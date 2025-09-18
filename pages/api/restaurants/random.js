@@ -2,6 +2,7 @@ import connectDB from '../../../lib/mongodb';
 import Restaurant from '../../../models/Restaurant';
 import Visit from '../../../models/Visit';
 import Selection from '../../../models/Selection';
+import UserPreference from '../../../models/UserPreference';
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
@@ -47,10 +48,27 @@ export default async function handler(req, res) {
             });
         }
 
-        // 최근 방문한 가게 제외 옵션
-        if (excludeRecent) {
+        // 사용자 선호도 가져오기
+        const userPreference = await UserPreference.findOne({ userId });
+        
+        // 사용자가 제외한 가게들 필터링
+        if (userPreference && userPreference.excludedRestaurants.length > 0) {
+            const excludedIds = userPreference.excludedRestaurants.map(
+                excluded => excluded.restaurantId.toString()
+            );
+            
+            availableRestaurants = availableRestaurants.filter(
+                restaurant => !excludedIds.includes(restaurant._id.toString())
+            );
+        }
+
+        // 최근 방문한 가게 제외 옵션 (사용자 선호도 또는 파라미터)
+        const shouldExcludeRecent = userPreference?.preferences?.excludeRecentVisits || excludeRecent;
+        const daysToExclude = userPreference?.preferences?.recentVisitDays || recentDays;
+
+        if (shouldExcludeRecent) {
             const recentDate = new Date();
-            recentDate.setDate(recentDate.getDate() - recentDays);
+            recentDate.setDate(recentDate.getDate() - daysToExclude);
 
             const recentVisits = await Visit.find({
                 userId,

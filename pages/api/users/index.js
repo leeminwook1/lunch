@@ -42,12 +42,20 @@ export default async function handler(req, res) {
                     // 기존 사용자 로그인 시간 업데이트
                     user.lastLoginAt = new Date();
                     if (email) user.email = email;
+                    
+                    // "관리자" 이름인 경우 자동으로 관리자 권한 부여
+                    if (name.trim() === '관리자') {
+                        user.role = 'admin';
+                    }
+                    
                     await user.save();
                 } else {
                     // 새 사용자 생성
+                    const isAdmin = name.trim() === '관리자';
                     user = await User.create({
                         name: name.trim(),
-                        email: email || undefined
+                        email: email || undefined,
+                        role: isAdmin ? 'admin' : 'user'
                     });
                 }
 

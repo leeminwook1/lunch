@@ -13,6 +13,11 @@ const UserSchema = new mongoose.Schema({
         lowercase: true,
         sparse: true // 선택적 필드이지만 있다면 유니크
     },
+    role: {
+        type: String,
+        enum: ['user', 'admin'],
+        default: 'user'
+    },
     isActive: {
         type: Boolean,
         default: true

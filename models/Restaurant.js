@@ -15,7 +15,7 @@ const RestaurantSchema = new mongoose.Schema({
     category: {
         type: String,
         required: [true, '카테고리는 필수입니다'],
-        enum: ['한식', '중식', '일식', '양식', '분식', '치킨', '카페', '기타']
+        enum: ['한식', '중식', '일식', '양식', '분식', '치킨', '카페', '베트남식', '기타']
     },
     image: {
         type: String,
@@ -29,6 +29,21 @@ const RestaurantSchema = new mongoose.Schema({
     isActive: {
         type: Boolean,
         default: true
+    },
+    // 평점 관련 필드
+    averageRating: {
+        type: Number,
+        default: 0,
+        min: 0,
+        max: 5
+    },
+    reviewCount: {
+        type: Number,
+        default: 0
+    },
+    totalLikes: {
+        type: Number,
+        default: 0
     },
     createdBy: {
         type: String,
@@ -45,7 +60,7 @@ const RestaurantSchema = new mongoose.Schema({
 });
 
 // 업데이트 시 updatedAt 자동 갱신
-RestaurantSchema.pre('save', function(next) {
+RestaurantSchema.pre('save', function (next) {
     this.updatedAt = Date.now();
     next();
 });
