@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 
 export default function Reviews() {
@@ -11,10 +11,27 @@ export default function Reviews() {
     const [sortBy, setSortBy] = useState('newest');
     const [modal, setModal] = useState({ isOpen: false, type: '', title: '', message: '', onConfirm: null });
     const [isAdmin, setIsAdmin] = useState(false);
+    const modalTimeoutRef = useRef(null);
 
     // 모달 관련 함수들
     const showModal = (type, title, message, onConfirm = null) => {
-        setModal({ isOpen: true, type, title, message, onConfirm });
+        // 기존 타이머가 있으면 취소
+        if (modalTimeoutRef.current) {
+            clearTimeout(modalTimeoutRef.current);
+        }
+        
+        // 기존 모달이 열려있으면 먼저 닫기
+        if (modal.isOpen) {
+            setModal({ isOpen: false, type: '', title: '', message: '', onConfirm: null });
+            
+            // 잠시 대기 후 새 모달 열기
+            modalTimeoutRef.current = setTimeout(() => {
+                setModal({ isOpen: true, type, title, message, onConfirm });
+            }, 100);
+        } else {
+            // 모달이 열려있지 않으면 바로 열기
+            setModal({ isOpen: true, type, title, message, onConfirm });
+        }
     };
 
     const closeModal = () => {
@@ -71,6 +88,13 @@ export default function Reviews() {
         };
 
         initializeData();
+        
+        // cleanup: 컴포넌트 언마운트 시 타이머 정리
+        return () => {
+            if (modalTimeoutRef.current) {
+                clearTimeout(modalTimeoutRef.current);
+            }
+        };
     }, []);
 
     const loadRestaurants = async () => {
@@ -97,6 +121,9 @@ export default function Reviews() {
     };
 
     const submitReview = async () => {
+        // 이미 처리 중이면 중복 실행 방지
+        if (loading) return;
+        
         if (!currentUser) {
             showModal('error', '로그인 필요', '리뷰를 작성하려면 로그인이 필요합니다.');
             return;

@@ -89,8 +89,37 @@ export default async function handler(req, res) {
             }
             break;
 
+        case 'DELETE':
+            try {
+                const { userId } = req.body;
+
+                if (!userId) {
+                    return res.status(400).json({
+                        success: false,
+                        message: '사용자 ID가 필요합니다'
+                    });
+                }
+
+                // 해당 사용자의 모든 방문 기록을 실제로 삭제
+                const result = await Visit.deleteMany({ userId });
+
+                res.status(200).json({
+                    success: true,
+                    message: `${result.deletedCount}개의 방문 기록이 삭제되었습니다`,
+                    deletedCount: result.deletedCount
+                });
+
+            } catch (error) {
+                res.status(500).json({
+                    success: false,
+                    message: '방문 기록 삭제에 실패했습니다',
+                    error: error.message
+                });
+            }
+            break;
+
         default:
-            res.setHeader('Allow', ['GET', 'POST']);
+            res.setHeader('Allow', ['GET', 'POST', 'DELETE']);
             res.status(405).json({
                 success: false,
                 message: `Method ${req.method} Not Allowed`

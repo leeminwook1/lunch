@@ -1,5 +1,7 @@
 import connectDB from '../../../lib/mongodb';
 import Restaurant from '../../../models/Restaurant';
+import Review from '../../../models/Review';
+import Visit from '../../../models/Visit';
 import mongoose from 'mongoose';
 
 export default async function handler(req, res) {
@@ -114,11 +116,14 @@ export default async function handler(req, res) {
                     });
                 }
 
-                // 소프트 삭제 (isActive를 false로 변경)
-                await Restaurant.findByIdAndUpdate(id, { 
-                    isActive: false,
-                    updatedAt: new Date()
-                });
+                // 실제 삭제 (DB에서 완전히 제거)
+                await Restaurant.findByIdAndDelete(id);
+                
+                // 관련된 리뷰와 방문기록도 삭제
+                await Promise.all([
+                    Review.deleteMany({ restaurantId: id }),
+                    Visit.deleteMany({ restaurantId: id })
+                ]);
 
                 res.status(200).json({
                     success: true,

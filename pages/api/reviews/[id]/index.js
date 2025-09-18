@@ -80,10 +80,8 @@ export default async function handler(req, res) {
                     });
                 }
 
-                // 소프트 삭제
-                review.isActive = false;
-                review.updatedAt = new Date();
-                await review.save();
+                // 실제 삭제 (DB에서 완전히 제거)
+                await Review.findByIdAndDelete(id);
 
                 // 가게 평점 재계산
                 await updateRestaurantRating(review.restaurantId);

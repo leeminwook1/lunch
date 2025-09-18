@@ -39,6 +39,7 @@ export default function Home() {
     const [nameCheckMessage, setNameCheckMessage] = useState('');
     const [adminPassword, setAdminPassword] = useState('');
     const [showAdminPassword, setShowAdminPassword] = useState(false);
+    const [isInitializing, setIsInitializing] = useState(true);
 
     // 리뷰 관련 상태
     const [reviews, setReviews] = useState([]);
@@ -61,7 +62,7 @@ export default function Home() {
         try {
             // 절대 경로로 변환
             const url = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-            
+
             const response = await fetch(url, {
                 headers: {
                     'Content-Type': 'application/json',
@@ -508,6 +509,7 @@ export default function Home() {
             setNameCheckMessage('');
             setShowAdminPassword(false);
             setAdminPassword('');
+            setIsInitializing(false); // 로그아웃 시에는 초기화 상태를 false로 설정
             localStorage.removeItem('currentUserId');
             localStorage.removeItem('currentUserName');
         });
@@ -662,38 +664,43 @@ export default function Home() {
     // 초기 로딩
     useEffect(() => {
         const initializeApp = async () => {
-            // 저장된 사용자 정보 확인
-            const savedUserId = localStorage.getItem('currentUserId');
-            const savedUserName = localStorage.getItem('currentUserName');
+            try {
+                // 저장된 사용자 정보 확인
+                const savedUserId = localStorage.getItem('currentUserId');
+                const savedUserName = localStorage.getItem('currentUserName');
 
-            if (savedUserId && savedUserName) {
-                // 사용자 정보를 다시 가져와서 최신 권한 확인
-                try {
-                    const userResult = await apiCall('/api/users', {
-                        method: 'POST',
-                        body: JSON.stringify({ name: savedUserName })
-                    });
+                if (savedUserId && savedUserName) {
+                    // 사용자 정보를 다시 가져와서 최신 권한 확인
+                    try {
+                        const userResult = await apiCall('/api/users', {
+                            method: 'POST',
+                            body: JSON.stringify({ name: savedUserName })
+                        });
 
-                    if (userResult.success) {
-                        setCurrentUser(userResult.data);
-                        setUserName(userResult.data.name);
+                        if (userResult.success) {
+                            setCurrentUser(userResult.data);
+                            setUserName(userResult.data.name);
+                            setIsUserNameSet(true);
+                            setIsAdmin(userResult.data.role === 'admin');
+                            await Promise.all([
+                                loadUserData(savedUserId),
+                                loadUserPreferences()
+                            ]);
+                        }
+                    } catch (error) {
+                        // 실패 시 기본 정보로 설정
+                        setCurrentUser({ _id: savedUserId, name: savedUserName });
+                        setUserName(savedUserName);
                         setIsUserNameSet(true);
-                        setIsAdmin(userResult.data.role === 'admin');
-                        await Promise.all([
-                            loadUserData(savedUserId),
-                            loadUserPreferences()
-                        ]);
+                        await loadUserData(savedUserId);
                     }
-                } catch (error) {
-                    // 실패 시 기본 정보로 설정
-                    setCurrentUser({ _id: savedUserId, name: savedUserName });
-                    setUserName(savedUserName);
-                    setIsUserNameSet(true);
-                    await loadUserData(savedUserId);
                 }
-            }
 
-            await loadRestaurants();
+                await loadRestaurants();
+            } finally {
+                // 초기화 완료
+                setIsInitializing(false);
+            }
         };
 
         initializeApp();
@@ -703,11 +710,20 @@ export default function Home() {
     const clearVisitHistory = () => {
         showModal('confirm', '방문기록 삭제', '내 방문기록을 모두 삭제하시겠습니까?', async () => {
             try {
-                // API로 방문기록 삭제 (구현 필요시)
-                setVisitHistory([]);
-                showModal('success', '삭제 완료', '방문기록이 모두 삭제되었습니다!');
+                const result = await apiCall('/api/visits', {
+                    method: 'DELETE',
+                    body: JSON.stringify({ userId: currentUser._id })
+                });
+
+                if (result.success) {
+                    setVisitHistory([]);
+                    showModal('success', '삭제 완료', `${result.deletedCount}개의 방문기록이 모두 삭제되었습니다!`);
+                } else {
+                    showModal('error', '삭제 실패', result.message || '방문기록 삭제에 실패했습니다.');
+                }
             } catch (error) {
                 console.error('방문기록 삭제 실패:', error);
+                showModal('error', '삭제 실패', '방문기록 삭제 중 오류가 발생했습니다.');
             }
         });
     };
@@ -989,6 +1005,30 @@ export default function Home() {
             </div>
         );
     }, [showEditRestaurant, editingRestaurant, loading, closeEditModal, handleEditSubmit, handleEditNameChange, handleEditDistanceChange, handleEditCategoryChange, handleEditImageChange, handleEditDescriptionChange]);
+
+    // 초기화 중일 때는 로딩 화면 표시
+    if (isInitializing) {
+        return (
+            <>
+                <Head>
+                    <title>점심메뉴 선택기</title>
+                    <meta name="description" content="로딩 중..." />
+                    <meta name="viewport" content="width=device-width, initial-scale=1" />
+                </Head>
+                <div className="App">
+                    <div className="container">
+                        <div className="user-setup">
+                            <div className="spinner spinning" style={{width: '60px', height: '60px', margin: '0 auto 20px'}}></div>
+                            <h1 className="setup-title">로딩 중...</h1>
+                            <p className="setup-description">
+                                사용자 정보를 확인하고 있습니다
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </>
+        );
+    }
 
     // 사용자 이름 입력 화면
     if (!isUserNameSet) {
