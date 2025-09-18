@@ -16,11 +16,20 @@ export default async function handler(req, res) {
     switch (req.method) {
         case 'GET':
             try {
-                const { category, sortBy = 'name' } = req.query;
+                const { category, sortBy = 'name', search } = req.query;
                 
                 let query = { isActive: true };
                 if (category && category !== 'all') {
                     query.category = category;
+                }
+                
+                // 검색 기능 추가
+                if (search && search.trim()) {
+                    query.$or = [
+                        { name: { $regex: search.trim(), $options: 'i' } },
+                        { category: { $regex: search.trim(), $options: 'i' } },
+                        { description: { $regex: search.trim(), $options: 'i' } }
+                    ];
                 }
 
                 let sortOption = {};

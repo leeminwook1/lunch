@@ -88,7 +88,21 @@ export default function Home() {
     // 데이터 로딩 함수들
     const loadRestaurants = async () => {
         try {
-            const result = await apiCall('/api/restaurants');
+            const params = new URLSearchParams();
+            if (filterCategory && filterCategory !== 'all') {
+                params.append('category', filterCategory);
+            }
+            if (sortBy) {
+                params.append('sortBy', sortBy);
+            }
+            if (searchQuery && searchQuery.trim()) {
+                params.append('search', searchQuery.trim());
+            }
+            
+            const queryString = params.toString();
+            const url = queryString ? `/api/restaurants?${queryString}` : '/api/restaurants';
+            
+            const result = await apiCall(url);
             if (result.success) {
                 setRestaurants(result.data);
             }
@@ -705,6 +719,13 @@ export default function Home() {
 
         initializeApp();
     }, []);
+
+    // 검색어나 정렬 옵션이 변경될 때마다 가게 목록 다시 로드
+    useEffect(() => {
+        if (restaurants.length > 0 || currentView === 'list') {
+            loadRestaurants();
+        }
+    }, [searchQuery, sortBy, filterCategory]);
 
     // 방문기록 삭제
     const clearVisitHistory = () => {
@@ -1448,6 +1469,7 @@ export default function Home() {
                                 >
                                     <option value="name">이름순</option>
                                     <option value="distance">거리순</option>
+                                    <option value="newest">최신순</option>
                                 </select>
                             </div>
                         </div>
