@@ -2,7 +2,16 @@ import connectDB from '../../../lib/mongodb';
 import Restaurant from '../../../models/Restaurant';
 
 export default async function handler(req, res) {
-    await connectDB();
+    try {
+        await connectDB();
+    } catch (error) {
+        console.error('DB 연결 실패:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'DB 연결에 실패했습니다',
+            error: error.message
+        });
+    }
 
     switch (req.method) {
         case 'GET':

@@ -59,7 +59,10 @@ export default function Home() {
     // API 호출 함수들
     const apiCall = async (endpoint, options = {}) => {
         try {
-            const response = await fetch(endpoint, {
+            // 절대 경로로 변환
+            const url = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+            
+            const response = await fetch(url, {
                 headers: {
                     'Content-Type': 'application/json',
                     ...options.headers
@@ -68,7 +71,9 @@ export default function Home() {
             });
 
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                const errorText = await response.text();
+                console.error(`API 오류 [${response.status}]:`, errorText);
+                throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
             }
 
             return await response.json();
