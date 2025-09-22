@@ -187,29 +187,49 @@ export default function WorldCup() {
             loser: loser
         }]);
 
-        // 다음 라운드에 승자 추가
-        setNextRound(prev => [...prev, selectedRestaurant]);
-
         const nextMatchIndex = currentMatch + 1;
         const totalMatches = Math.floor(currentRound.length / 2);
 
         if (nextMatchIndex >= totalMatches) {
             // 현재 라운드 종료
-            const newRound = [...nextRound, selectedRestaurant];
-            
-            if (newRound.length === 1) {
-                // 최종 우승자
-                setWinner(selectedRestaurant);
-                setGameStarted(false);
-            } else {
-                // 다음 라운드로 진행
-                setCurrentRound(newRound);
-                setNextRound([]);
-                setCurrentMatch(0);
-                setRoundName(getRoundName(newRound.length));
-            }
+            setNextRound(prev => {
+                const newRound = [...prev, selectedRestaurant];
+                
+                if (newRound.length === 1) {
+                    // 최종 우승자
+                    setWinner(selectedRestaurant);
+                    setGameStarted(false);
+                } else {
+                    // 홀수개 처리: 마지막 가게를 자동진출로 처리
+                    let finalRound = newRound;
+                    let autoAdvanced = [];
+                    
+                    if (newRound.length % 2 === 1) {
+                        autoAdvanced = [newRound.pop()]; // 마지막 가게를 자동진출
+                        finalRound = newRound;
+                        
+                        // 자동진출 히스토리 추가
+                        setGameHistory(prevHistory => [...prevHistory, {
+                            round: getRoundName(newRound.length + autoAdvanced.length),
+                            match: 'auto',
+                            winner: autoAdvanced[0],
+                            loser: null,
+                            isAutoAdvanced: true
+                        }]);
+                    }
+                    
+                    // 다음 라운드로 진행
+                    setCurrentRound(finalRound);
+                    setNextRound(autoAdvanced);
+                    setCurrentMatch(0);
+                    setRoundName(getRoundName(finalRound.length + autoAdvanced.length));
+                }
+                
+                return []; // nextRound 초기화
+            });
         } else {
-            // 같은 라운드 다음 매치
+            // 같은 라운드 다음 매치 - 승자를 nextRound에 추가
+            setNextRound(prev => [...prev, selectedRestaurant]);
             setCurrentMatch(nextMatchIndex);
         }
     };
