@@ -466,7 +466,8 @@ export default function Reviews() {
                                                             {isOwnReview && <span className="own-review-badge">내 리뷰</span>}
                                                             <span className="review-date">
                                                                 {new Date(review.createdAt).toLocaleDateString('ko-KR')}
-                                                                {review.updatedAt && new Date(review.updatedAt) > new Date(review.createdAt) && (
+                                                                {review.updatedAt && 
+                                                                 new Date(review.updatedAt) - new Date(review.createdAt) > 60000 && (
                                                                     <span className="edited-badge"> (수정됨)</span>
                                                                 )}
                                                             </span>
