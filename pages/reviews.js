@@ -352,8 +352,11 @@ export default function Reviews() {
             <div className="App">
                 <div className="container">
                     <div className="header">
-                        <a href="/" className="back-btn">← 메인으로</a>
                         <h1 className="title">📝 리뷰</h1>
+                        <a href="/" className="home-btn">
+                            <span className="home-icon">🏠</span>
+                            메인으로
+                        </a>
                     </div>
 
                     {/* 리뷰 작성 폼 */}

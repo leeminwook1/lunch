@@ -2193,29 +2193,104 @@ body {
 .header {
     display: flex;
     align-items: center;
-    gap: 20px;
+    justify-content: center;
     margin-bottom: 30px;
+    padding-right: 120px; /* 고정 버튼 공간 확보 */
 }
 
-.back-btn {
-    padding: 10px 20px;
-    background: #4a5568;
+.header h1 {
+    margin: 0;
+    text-align: center;
+}
+
+/* 새로운 메인으로 가기 버튼 */
+.home-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     border: none;
-    border-radius: 8px;
+    border-radius: 20px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 0.95rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 0.85rem;
+    text-decoration: none;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.25);
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    overflow: hidden;
 }
 
-.back-btn:hover {
-    background: #2d3748;
-    transform: translateY(-1px);
+.home-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.home-btn:hover::before {
+    left: 100%;
+}
+
+.home-btn:hover {
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.home-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.25);
+}
+
+/* 홈 아이콘 */
+.home-icon {
+    font-size: 1rem;
+    transition: transform 0.3s ease;
+}
+
+.home-btn:hover .home-icon {
+    transform: scale(1.1);
+}
+
+/* 기존 back-btn 숨김 */
+.back-btn {
+    display: none;
 }
 
 /* 반응형 추가 */
 @media (max-width: 768px) {
+    .header {
+        justify-content: center;
+        padding-right: 0;
+        margin-bottom: 50px; /* 고정 버튼 공간 확보 */
+    }
+    
+    .header h1 {
+        text-align: center;
+    }
+    
+    .home-btn {
+        top: 15px;
+        right: 15px;
+        font-size: 0.8rem;
+        padding: 6px 12px;
+        gap: 4px;
+    }
+    
+    .home-icon {
+        font-size: 0.9rem;
+    }
+    
     .user-info {
         flex-direction: column;
         gap: 10px;
@@ -3876,5 +3951,612 @@ body {
     .page-number {
         min-width: 35px;
         height: 35px;
+    }
+}
+
+/* 웹사이트 링크 스타일 */
+.website-link,
+.restaurant-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+    color: white;
+    text-decoration: none;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(72, 187, 120, 0.25);
+    margin-top: 12px;
+    position: relative;
+    overflow: hidden;
+}
+
+.website-link::before,
+.restaurant-link::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.website-link:hover::before,
+.restaurant-link:hover::before {
+    left: 100%;
+}
+
+.website-link:hover,
+.restaurant-link:hover {
+    background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(72, 187, 120, 0.4);
+    color: white;
+    text-decoration: none;
+}
+
+.website-link:active,
+.restaurant-link:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 12px rgba(72, 187, 120, 0.25);
+}
+
+.detail-website {
+    margin: 16px 0;
+}
+
+.restaurant-website {
+    margin-top: 8px;
+}
+
+.restaurant-link {
+    font-size: 0.8rem;
+    padding: 6px 12px;
+    margin-top: 8px;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .website-link,
+    .restaurant-link {
+        font-size: 0.8rem;
+        padding: 6px 12px;
+        gap: 4px;
+    }
+    
+    .detail-website,
+    .restaurant-website {
+        text-align: center;
+    }
+}
+
+/* 피드백 페이지 스타일 */
+.feedback-form-section {
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 32px;
+}
+
+.feedback-form-section h3 {
+    margin: 0 0 20px 0;
+    color: #2d3748;
+    font-size: 1.25rem;
+}
+
+.feedback-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.feedback-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.feedback-form .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.feedback-form label {
+    font-weight: 600;
+    color: #2d3748;
+    font-size: 0.95rem;
+}
+
+.feedback-form input,
+.feedback-form select,
+.feedback-form textarea {
+    padding: 12px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    transition: border-color 0.3s ease;
+}
+
+.feedback-form input:focus,
+.feedback-form select:focus,
+.feedback-form textarea:focus {
+    outline: none;
+    border-color: #4299e1;
+    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+}
+
+.feedback-form textarea {
+    resize: vertical;
+    line-height: 1.5;
+}
+
+.feedback-form small {
+    color: #718096;
+    font-size: 0.8rem;
+    text-align: right;
+}
+
+.submit-feedback-btn {
+    background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+    color: white;
+    border: none;
+    padding: 14px 24px;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(66, 153, 225, 0.3);
+    align-self: flex-start;
+}
+
+.submit-feedback-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #3182ce 0%, #2b6cb0 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(66, 153, 225, 0.4);
+}
+
+.submit-feedback-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* 피드백 필터 스타일 */
+.feedback-filters {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 24px;
+    padding: 16px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.feedback-filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.feedback-filter-group label {
+    font-weight: 600;
+    color: #2d3748;
+    font-size: 0.9rem;
+}
+
+.feedback-filter-group select {
+    padding: 8px 12px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    background: white;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: border-color 0.3s ease;
+}
+
+.feedback-filter-group select:focus {
+    outline: none;
+    border-color: #4299e1;
+}
+
+/* 피드백 목록 스타일 */
+.feedbacks-section h3 {
+    margin-bottom: 20px;
+    color: #2d3748;
+}
+
+.empty-feedbacks {
+    text-align: center;
+    padding: 40px;
+    color: #718096;
+}
+
+.feedbacks-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.feedback-item {
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+    transition: all 0.3s ease;
+}
+
+.feedback-item:hover {
+    border-color: #cbd5e0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.feedback-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+.feedback-title {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.feedback-type {
+    font-size: 0.85rem;
+    color: #718096;
+    font-weight: 500;
+}
+
+.feedback-title h4 {
+    margin: 0;
+    color: #2d3748;
+    font-size: 1.1rem;
+    line-height: 1.4;
+}
+
+.own-feedback-badge {
+    background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    align-self: flex-start;
+    box-shadow: 0 2px 4px rgba(72, 187, 120, 0.3);
+}
+
+.feedback-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: flex-end;
+}
+
+.feedback-status,
+.feedback-priority {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-align: center;
+    min-width: 60px;
+}
+
+.status-pending {
+    background: #fed7d7;
+    color: #c53030;
+}
+
+.status-progress {
+    background: #bee3f8;
+    color: #2b6cb0;
+}
+
+.status-completed {
+    background: #c6f6d5;
+    color: #2f855a;
+}
+
+.status-rejected {
+    background: #fed7d7;
+    color: #c53030;
+}
+
+.priority-low {
+    background: #e2e8f0;
+    color: #4a5568;
+}
+
+.priority-medium {
+    background: #fbb6ce;
+    color: #97266d;
+}
+
+.priority-high {
+    background: #feb2b2;
+    color: #c53030;
+}
+
+.feedback-content {
+    color: #4a5568;
+    line-height: 1.6;
+    margin-bottom: 16px;
+    white-space: pre-wrap;
+}
+
+.feedback-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 12px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.feedback-author {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.feedback-author strong {
+    color: #2d3748;
+    font-size: 0.9rem;
+}
+
+.feedback-date {
+    color: #718096;
+    font-size: 0.8rem;
+}
+
+.feedback-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.delete-feedback-btn {
+    background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 6px rgba(245, 101, 101, 0.3);
+}
+
+.delete-feedback-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(245, 101, 101, 0.4);
+}
+
+.delete-feedback-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* 관리자 답변 스타일 */
+.admin-reply {
+    margin-top: 16px;
+    padding: 16px;
+    background: linear-gradient(135deg, #edf2f7 0%, #e2e8f0 100%);
+    border-radius: 8px;
+    border-left: 4px solid #667eea;
+}
+
+.admin-reply-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.admin-reply-header strong {
+    color: #2d3748;
+    font-size: 0.9rem;
+}
+
+.reply-date {
+    color: #718096;
+    font-size: 0.8rem;
+}
+
+.admin-reply-content {
+    color: #4a5568;
+    line-height: 1.5;
+    white-space: pre-wrap;
+}
+
+/* 답변 관련 배지 */
+.has-reply-badge {
+    background: linear-gradient(135deg, #38b2ac, #319795);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-left: 8px;
+    white-space: nowrap;
+}
+
+.new-reply-badge {
+    background: linear-gradient(135deg, #ed8936, #dd6b20);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-left: 8px;
+    white-space: nowrap;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+/* 관리자 편집 폼 스타일 */
+.admin-edit-form {
+    background: #f7fafc;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 16px;
+}
+
+.admin-edit-form h4 {
+    margin: 0 0 16px 0;
+    color: #2d3748;
+    font-size: 1.1rem;
+}
+
+.admin-edit-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.save-admin-edit-btn {
+    background: linear-gradient(135deg, #48bb78, #38a169);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+}
+
+.save-admin-edit-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #38a169, #2f855a);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+}
+
+.save-admin-edit-btn:disabled {
+    background: #a0aec0;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.cancel-admin-edit-btn {
+    background: linear-gradient(135deg, #e53e3e, #c53030);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+}
+
+.cancel-admin-edit-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #c53030, #9c2626);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(229, 62, 62, 0.3);
+}
+
+.edit-feedback-btn {
+    background: linear-gradient(135deg, #4299e1, #3182ce);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.85rem;
+}
+
+.edit-feedback-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #3182ce, #2c5aa0);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(66, 153, 225, 0.3);
+}
+
+.edit-feedback-btn:disabled {
+    background: #a0aec0;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.delete-feedback-btn.admin {
+    background: linear-gradient(135deg, #e53e3e, #c53030);
+}
+
+.delete-feedback-btn.admin:hover:not(:disabled) {
+    background: linear-gradient(135deg, #c53030, #9c2626);
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .feedback-form-section {
+        padding: 16px;
+    }
+    
+    .feedback-form-row {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    
+    .feedback-filters {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .feedback-header {
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-start;
+    }
+    
+    .feedback-meta {
+        flex-direction: row;
+        gap: 8px;
+        align-items: center;
+    }
+    
+    .feedback-footer {
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-start;
+    }
+    
+    .admin-reply-header {
+        flex-direction: column;
+        gap: 4px;
+        align-items: flex-start;
+    }
+    
+    .admin-edit-form {
+        padding: 16px;
+    }
+    
+    .admin-edit-actions {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .save-admin-edit-btn,
+    .cancel-admin-edit-btn {
+        width: 100%;
+        text-align: center;
     }
 }

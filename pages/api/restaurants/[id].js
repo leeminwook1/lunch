@@ -44,7 +44,7 @@ export default async function handler(req, res) {
 
         case 'PUT':
             try {
-                const { name, distance, category, image, description } = req.body;
+                const { name, distance, category, image, description, websiteUrl } = req.body;
 
                 const restaurant = await Restaurant.findById(id);
                 
@@ -79,6 +79,7 @@ export default async function handler(req, res) {
                         ...(category && { category }),
                         ...(image && { image: image.trim() }),
                         ...(description !== undefined && { description: description?.trim() }),
+                        ...(websiteUrl !== undefined && { websiteUrl: websiteUrl?.trim() }),
                         updatedAt: new Date()
                     },
                     { new: true, runValidators: true }

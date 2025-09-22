@@ -26,6 +26,20 @@ const RestaurantSchema = new mongoose.Schema({
         type: String,
         maxlength: [200, '설명은 200자를 초과할 수 없습니다']
     },
+    websiteUrl: {
+        type: String,
+        trim: true,
+        validate: {
+            validator: function(v) {
+                // URL이 비어있으면 검증 통과 (선택사항)
+                if (!v) return true;
+                // URL 형식 검증
+                const urlRegex = /^https?:\/\/.+/;
+                return urlRegex.test(v);
+            },
+            message: 'URL은 http:// 또는 https://로 시작해야 합니다'
+        }
+    },
     isActive: {
         type: Boolean,
         default: true

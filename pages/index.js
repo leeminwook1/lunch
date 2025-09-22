@@ -31,6 +31,7 @@ export default function Home() {
     const [newImage, setNewImage] = useState('');
     const [newCategory, setNewCategory] = useState('');
     const [newDescription, setNewDescription] = useState('');
+    const [newWebsiteUrl, setNewWebsiteUrl] = useState('');
 
     // 사용자 관리
     const [userName, setUserName] = useState('');
@@ -315,7 +316,8 @@ export default function Home() {
                     distance: restaurantData.distance,
                     category: restaurantData.category,
                     image: restaurantData.image,
-                    description: restaurantData.description
+                    description: restaurantData.description,
+                    websiteUrl: restaurantData.websiteUrl
                 })
             });
 
@@ -556,6 +558,7 @@ export default function Home() {
                     category: newCategory,
                     image: newImage.trim(),
                     description: newDescription.trim(),
+                    websiteUrl: newWebsiteUrl.trim(),
                     createdBy: currentUser._id
                 })
             });
@@ -567,6 +570,7 @@ export default function Home() {
                 setNewImage('');
                 setNewCategory('');
                 setNewDescription('');
+                setNewWebsiteUrl('');
                 setCurrentView('main');
                 await loadRestaurants();
             }
@@ -1006,6 +1010,18 @@ export default function Home() {
                             </div>
 
                             <div className="form-group">
+                                <label>웹사이트 URL</label>
+                                <input
+                                    type="url"
+                                    value={editingRestaurant.websiteUrl || ''}
+                                    onChange={(e) => setEditingRestaurant(prev => prev ? { ...prev, websiteUrl: e.target.value } : null)}
+                                    placeholder="https://example.com"
+                                    disabled={loading}
+                                />
+                                <small>가게 홈페이지, 인스타그램, 블로그 등의 링크</small>
+                            </div>
+
+                            <div className="form-group">
                                 <label>설명</label>
                                 <textarea
                                     value={editingRestaurant.description || ''}
@@ -1156,10 +1172,11 @@ export default function Home() {
                 <div className="App">
                     <div className="container">
                         <div className="header">
-                            <button className="back-btn" onClick={() => setCurrentView('list')}>
-                                ← 목록으로
-                            </button>
                             <h1 className="title">🍽️ 가게 상세</h1>
+                            <button className="home-btn" onClick={() => setCurrentView('list')}>
+                                <span className="home-icon">📋</span>
+                                목록으로
+                            </button>
                         </div>
 
                         <div className="restaurant-detail">
@@ -1185,6 +1202,20 @@ export default function Home() {
                                     <p className="detail-description">{selectedRestaurantDetail.description}</p>
                                 )}
 
+                                {/* 웹사이트 링크 */}
+                                {selectedRestaurantDetail.websiteUrl && (
+                                    <div className="detail-website">
+                                        <a 
+                                            href={selectedRestaurantDetail.websiteUrl} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer"
+                                            className="website-link"
+                                        >
+                                            🔗 웹사이트 바로가기
+                                        </a>
+                                    </div>
+                                )}
+
                                 {/* 빠른 액션 버튼들 */}
                                 <div className="detail-actions">
                                     <button
@@ -1201,32 +1232,6 @@ export default function Home() {
                                         }}
                                     >
                                         ✏️ 가게 정보 수정
-                                    </button>
-                                    <button
-                                        className="action-btn tertiary"
-                                        onClick={async () => {
-                                            if (!currentUser) {
-                                                showModal('error', '오류', '로그인이 필요합니다.');
-                                                return;
-                                            }
-                                            try {
-                                                const result = await apiCall('/api/restaurants/random', {
-                                                    method: 'POST',
-                                                    body: JSON.stringify({
-                                                        userId: currentUser._id,
-                                                        userName: currentUser.name,
-                                                        category: selectedRestaurantDetail.category
-                                                    })
-                                                });
-                                                if (result.success) {
-                                                    showModal('success', '선택 완료', `${result.data.restaurant.name}이(가) 선택되었습니다!`);
-                                                }
-                                            } catch (error) {
-                                                console.error('선택 실패:', error);
-                                            }
-                                        }}
-                                    >
-                                        🎲 이 카테고리에서 랜덤 선택
                                     </button>
 
                                     {isAdmin && (
@@ -1357,10 +1362,11 @@ export default function Home() {
                 <div className="App">
                     <div className="container">
                         <div className="header">
-                            <button className="back-btn" onClick={() => setCurrentView('main')}>
-                                ← 메인으로
-                            </button>
                             <h1 className="title">🏪 가게 추가</h1>
+                            <button className="home-btn" onClick={() => setCurrentView('main')}>
+                                <span className="home-icon">🏠</span>
+                                메인으로
+                            </button>
                         </div>
 
                         <div className="add-form">
@@ -1418,6 +1424,18 @@ export default function Home() {
                             </div>
 
                             <div className="form-group">
+                                <label>웹사이트 URL (선택사항)</label>
+                                <input
+                                    type="url"
+                                    value={newWebsiteUrl}
+                                    onChange={(e) => setNewWebsiteUrl(e.target.value)}
+                                    placeholder="https://example.com"
+                                    disabled={loading}
+                                />
+                                <small>가게 홈페이지, 인스타그램, 블로그 등의 링크</small>
+                            </div>
+
+                            <div className="form-group">
                                 <label>설명 (선택사항)</label>
                                 <textarea
                                     value={newDescription}
@@ -1462,10 +1480,11 @@ export default function Home() {
                 <div className="App">
                     <div className="container">
                         <div className="header">
-                            <button className="back-btn" onClick={() => setCurrentView('main')}>
-                                ← 메인으로
-                            </button>
                             <h1 className="title">📋 가게 목록</h1>
+                            <button className="home-btn" onClick={() => setCurrentView('main')}>
+                                <span className="home-icon">🏠</span>
+                                메인으로
+                            </button>
                         </div>
 
                         {/* 검색 및 필터 */}
@@ -1537,6 +1556,18 @@ export default function Home() {
                                             </div>
                                             {restaurant.description && (
                                                 <p className="restaurant-description">{restaurant.description}</p>
+                                            )}
+                                            {restaurant.websiteUrl && (
+                                                <div className="restaurant-website">
+                                                    <a 
+                                                        href={restaurant.websiteUrl} 
+                                                        target="_blank" 
+                                                        rel="noopener noreferrer"
+                                                        className="restaurant-link"
+                                                    >
+                                                        🔗 웹사이트
+                                                    </a>
+                                                </div>
                                             )}
                                         </div>
                                         <div className="restaurant-actions">
@@ -1622,10 +1653,11 @@ export default function Home() {
                 <div className="App">
                     <div className="container">
                         <div className="header">
-                            <button className="back-btn" onClick={() => setCurrentView('main')}>
-                                ← 메인으로
-                            </button>
                             <h1 className="title">📊 {userName}님의 방문기록</h1>
+                            <button className="home-btn" onClick={() => setCurrentView('main')}>
+                                <span className="home-icon">🏠</span>
+                                메인으로
+                            </button>
                         </div>
 
                         {/* 최근 공유 선택 */}
@@ -1820,6 +1852,9 @@ export default function Home() {
                         </button>
                         <button className="menu-btn" onClick={() => window.location.href = '/reviews'}>
                             📝 리뷰 작성
+                        </button>
+                        <button className="menu-btn" onClick={() => window.location.href = '/feedback'}>
+                            💭 피드백 & 기능 요청
                         </button>
                         <button className="menu-btn" onClick={() => setShowPreferences(true)}>
                             ⚙️ 선호도 설정

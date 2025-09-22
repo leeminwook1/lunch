@@ -65,7 +65,7 @@ export default async function handler(req, res) {
 
         case 'POST':
             try {
-                const { name, distance, category, image, description, createdBy } = req.body;
+                const { name, distance, category, image, description, websiteUrl, createdBy } = req.body;
 
                 // 필수 필드 검증
                 if (!name || !distance || !category || !image || !createdBy) {
@@ -94,6 +94,7 @@ export default async function handler(req, res) {
                     category,
                     image: image.trim(),
                     description: description?.trim(),
+                    websiteUrl: websiteUrl?.trim(),
                     createdBy
                 });
 
