@@ -20,6 +20,7 @@ export default function Home() {
     const [selectedRestaurantDetail, setSelectedRestaurantDetail] = useState(null);
     const [isSpinning, setIsSpinning] = useState(false);
     const [modal, setModal] = useState({ isOpen: false, type: '', title: '', message: '', onConfirm: null });
+    const [showHelpModal, setShowHelpModal] = useState(false);
 
     // 필터 및 정렬
     const [filterCategory, setFilterCategory] = useState('all');
@@ -1788,7 +1789,16 @@ export default function Home() {
                         </div>
                     </div>
 
-                    <h1 className="title">🍽️ 점심메뉴 선택기</h1>
+                    <div className="title-container">
+                        <h1 className="title">🍽️ 점심메뉴 선택기</h1>
+                        <button 
+                            className="help-icon-btn"
+                            onClick={() => setShowHelpModal(true)}
+                            title="사용법 도움말"
+                        >
+                            ❓
+                        </button>
+                    </div>
 
                     {/* 최근 선택 정보 */}
                     {recentSelections.length > 0 && recentSelections[0] && (
@@ -1911,6 +1921,106 @@ export default function Home() {
             <Modal />
             {PreferencesPanel}
             {EditRestaurantModal}
+            {showHelpModal && (
+                <div className="modal-overlay open">
+                    <div className="help-modal">
+                        <div className="help-header">
+                            <h2>📖 점심메뉴 선택기 사용법</h2>
+                            <button 
+                                className="close-help-btn"
+                                onClick={() => setShowHelpModal(false)}
+                            >
+                                ✕
+                            </button>
+                        </div>
+                        
+                        <div className="help-content">
+                            <div className="help-section">
+                                <h3>🎯 기본 기능</h3>
+                                <ul>
+                                    <li><strong>🎲 랜덤으로 가게 선택하기</strong>: 등록된 가게 중에서 랜덤하게 하나를 선택해줍니다</li>
+                                    <li><strong>🏆 점식 식당 월드컵</strong>: 토너먼트 방식으로 가게들을 비교해서 최종 선택할 수 있습니다</li>
+                                    <li><strong>📋 가게 목록</strong>: 등록된 모든 가게를 카테고리별로 확인할 수 있습니다</li>
+                                </ul>
+                            </div>
+
+                            <div className="help-section">
+                                <h3>➕ 가게 관리</h3>
+                                <ul>
+                                    <li><strong>가게 추가</strong>: 새로운 가게를 등록할 수 있습니다 (이름, 거리, 카테고리, 이미지, 설명, 웹사이트)</li>
+                                    <li><strong>이미지 추가 방법</strong>: 
+                                        <br />• 구글에서 가게 사진 검색 → 우클릭 → "이미지 주소 복사" → 붙여넣기
+                                        <br />• 네이버/다음에서 가게 사진 → 우클릭 → "이미지 주소 복사" → 붙여넣기
+                                        <br />• 이미지 URL은 반드시 http:// 또는 https://로 시작해야 합니다
+                                    </li>
+                                    <li><strong>가게 수정</strong>: 등록된 가게 정보를 수정할 수 있습니다</li>
+                                    <li><strong>가게 제외</strong>: 랜덤 선택에서 특정 가게를 제외할 수 있습니다</li>
+                                </ul>
+                            </div>
+
+                            <div className="help-section">
+                                <h3>📝 리뷰 시스템</h3>
+                                <ul>
+                                    <li><strong>리뷰 작성</strong>: 가게에 대한 평점과 리뷰를 작성할 수 있습니다</li>
+                                    <li><strong>리뷰 수정/삭제</strong>: 본인이 작성한 리뷰는 수정하거나 삭제할 수 있습니다</li>
+                                    <li><strong>리뷰 좋아요</strong>: 다른 사용자의 리뷰에 좋아요를 누를 수 있습니다</li>
+                                </ul>
+                            </div>
+
+                            <div className="help-section">
+                                <h3>⚙️ 개인 설정</h3>
+                                <ul>
+                                    <li><strong>선호도 설정</strong>: 가게 제외 목록을 관리할 수 있습니다</li>
+                                    <li><strong>방문기록</strong>: 랜덤 선택한 가게들의 기록을 확인할 수 있습니다</li>
+                                    <li><strong>사용자 이름</strong>: 로그인 후 개인화된 서비스를 이용할 수 있습니다</li>
+                                </ul>
+                            </div>
+
+                            <div className="help-section">
+                                <h3>💭 피드백 & 관리자</h3>
+                                <ul>
+                                    <li><strong>피드백 제출</strong>: 기능 요청이나 버그 신고를 할 수 있습니다</li>
+                                    <li><strong>관리자 모드</strong>: 관리자는 모든 가게와 리뷰를 관리할 수 있습니다</li>
+                                    <li><strong>피드백 답변</strong>: 관리자가 피드백에 답변을 달아줍니다</li>
+                                </ul>
+                            </div>
+
+                            <div className="help-section">
+                                <h3>🏆 월드컵 게임</h3>
+                                <ul>
+                                    <li><strong>토너먼트 방식</strong>: 가게들을 2개씩 비교해서 최종 우승자를 선택합니다</li>
+                                    <li><strong>웹사이트 링크</strong>: 월드컵 중에도 가게의 웹사이트나 네이버 링크를 확인할 수 있습니다</li>
+                                    <li><strong>경기 기록</strong>: 모든 대결 결과를 확인할 수 있습니다</li>
+                                </ul>
+                            </div>
+
+                            <div className="help-tips">
+                                <h3>💡 사용 팁</h3>
+                                <ul>
+                                    <li><strong>이미지 추가 팁</strong>: 
+                                        <br />• 구글 이미지 검색에서 "크기" → "큰 이미지" 선택하면 고화질 사진을 찾을 수 있습니다
+                                        <br />• 가게 외관이나 음식 사진을 사용하면 더 직관적입니다
+                                        <br />• 이미지가 안 보이면 다른 이미지 URL을 시도해보세요
+                                    </li>
+                                    <li>가게를 추가할 때는 정확한 정보를 입력해주세요</li>
+                                    <li>리뷰를 작성하면 다른 사용자들에게 도움이 됩니다</li>
+                                    <li>선호도 설정으로 자주 가고 싶지 않은 가게를 제외할 수 있습니다</li>
+                                    <li>월드컵은 2개 이상의 가게가 있을 때만 이용 가능합니다</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div className="help-footer">
+                            <button 
+                                className="close-help-btn-large"
+                                onClick={() => setShowHelpModal(false)}
+                            >
+                                확인
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     );
 }
