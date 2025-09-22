@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
+import { useRouter } from 'next/router';
 
 export default function WorldCup() {
+    const router = useRouter();
     const [restaurants, setRestaurants] = useState([]);
     const [currentUser, setCurrentUser] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -343,9 +345,12 @@ export default function WorldCup() {
                                     <button className="restart-btn" onClick={restartGame}>
                                         🔄 다시 플레이
                                     </button>
-                                    <a href={`/?restaurant=${winner._id}`} className="goto-restaurant-btn">
+                                    <button 
+                                        className="goto-restaurant-btn" 
+                                        onClick={() => router.push(`/?restaurantId=${winner._id}`)}
+                                    >
                                         🍽️ 가게 상세보기
-                                    </a>
+                                    </button>
                                 </div>
                             </div>
                             

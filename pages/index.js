@@ -1,7 +1,10 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import Head from 'next/head';
+import { useRouter } from 'next/router';
 
 export default function Home() {
+    const router = useRouter();
+    
     // 상태 관리
     const [restaurants, setRestaurants] = useState([]);
     const [users, setUsers] = useState([]);
@@ -728,6 +731,20 @@ export default function Home() {
 
         initializeApp();
     }, []);
+
+    // URL 파라미터 처리 (restaurantId가 있으면 해당 가게 상세보기 열기)
+    useEffect(() => {
+        if (router.isReady && router.query.restaurantId && restaurants.length > 0) {
+            const restaurantId = router.query.restaurantId;
+            const restaurant = restaurants.find(r => r._id === restaurantId);
+            if (restaurant) {
+                setSelectedRestaurantDetail(restaurant);
+                setCurrentView('detail');
+                // URL에서 파라미터 제거
+                router.replace('/', undefined, { shallow: true });
+            }
+        }
+    }, [router.isReady, router.query.restaurantId, restaurants]);
 
     // 검색어나 정렬 옵션이 변경될 때마다 가게 목록 다시 로드
     useEffect(() => {
