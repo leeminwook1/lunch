@@ -337,10 +337,15 @@ export default function Home() {
         }
     };
 
-    // 리뷰 삭제 (관리자만)
-    const deleteReview = async (reviewId) => {
-        if (!currentUser || !isAdmin) {
-            showModal('error', '권한 없음', '관리자만 리뷰를 삭제할 수 있습니다.');
+    // 리뷰 삭제 (관리자 또는 본인)
+    const deleteReview = async (reviewId, isOwnReview = false) => {
+        if (!currentUser) {
+            showModal('error', '로그인 필요', '로그인이 필요합니다.');
+            return;
+        }
+
+        if (!isAdmin && !isOwnReview) {
+            showModal('error', '권한 없음', '본인의 리뷰만 삭제할 수 있습니다.');
             return;
         }
 
@@ -1279,9 +1284,31 @@ export default function Home() {
                                                     >
                                                         👍 {review.likeCount || 0}
                                                     </button>
-                                                    {isAdmin && (
+                                                    
+                                                    {/* 본인 리뷰인 경우 수정/삭제 버튼 */}
+                                                    {review.userId === currentUser?._id && (
+                                                        <>
+                                                            <button
+                                                                className="preview-edit-btn"
+                                                                onClick={() => window.location.href = '/reviews'}
+                                                                title="리뷰 페이지에서 수정"
+                                                            >
+                                                                ✏️
+                                                            </button>
+                                                            <button
+                                                                className="preview-delete-btn own"
+                                                                onClick={() => showModal('confirm', '내 리뷰 삭제', '내 리뷰를 삭제하시겠습니까?', () => deleteReview(review._id, true))}
+                                                                disabled={loading}
+                                                            >
+                                                                🗑️
+                                                            </button>
+                                                        </>
+                                                    )}
+                                                    
+                                                    {/* 관리자인 경우 타인 리뷰 삭제 버튼 */}
+                                                    {isAdmin && review.userId !== currentUser?._id && (
                                                         <button
-                                                            className="preview-delete-btn"
+                                                            className="preview-delete-btn admin"
                                                             onClick={() => showModal('confirm', '리뷰 삭제', `${review.userName}님의 리뷰를 삭제하시겠습니까?`, () => deleteReview(review._id))}
                                                             disabled={loading}
                                                         >

@@ -12,6 +12,14 @@ export default function Reviews() {
     const [modal, setModal] = useState({ isOpen: false, type: '', title: '', message: '', onConfirm: null });
     const [isAdmin, setIsAdmin] = useState(false);
     const modalTimeoutRef = useRef(null);
+    
+    // 페이지네이션 상태
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage] = useState(5);
+    
+    // 리뷰 수정 상태
+    const [editingReview, setEditingReview] = useState(null);
+    const [editReview, setEditReview] = useState({ rating: 5, content: '' });
 
     // 모달 관련 함수들
     const showModal = (type, title, message, onConfirm = null) => {
@@ -111,9 +119,10 @@ export default function Reviews() {
     const loadReviews = async () => {
         try {
             const query = selectedRestaurant ? `restaurantId=${selectedRestaurant}&` : '';
-            const result = await apiCall(`/api/reviews?${query}sortBy=${sortBy}&limit=50`);
+            const result = await apiCall(`/api/reviews?${query}sortBy=${sortBy}&limit=100`);
             if (result.success) {
                 setReviews(result.data);
+                setCurrentPage(1); // 새로운 데이터 로드 시 첫 페이지로 이동
             }
         } catch (error) {
             console.error('리뷰 로딩 실패:', error);
@@ -166,10 +175,15 @@ export default function Reviews() {
         }
     };
 
-    // 리뷰 삭제 (관리자만)
-    const deleteReview = async (reviewId) => {
-        if (!currentUser || !isAdmin) {
-            showModal('error', '권한 없음', '관리자만 리뷰를 삭제할 수 있습니다.');
+    // 리뷰 삭제 (관리자 또는 본인)
+    const deleteReview = async (reviewId, isOwnReview = false) => {
+        if (!currentUser) {
+            showModal('error', '로그인 필요', '로그인이 필요합니다.');
+            return;
+        }
+
+        if (!isAdmin && !isOwnReview) {
+            showModal('error', '권한 없음', '본인의 리뷰만 삭제할 수 있습니다.');
             return;
         }
 
@@ -188,6 +202,57 @@ export default function Reviews() {
             }
         } catch (error) {
             console.error('리뷰 삭제 실패:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // 리뷰 수정 시작
+    const startEditReview = (review) => {
+        setEditingReview(review._id);
+        setEditReview({
+            rating: review.rating,
+            content: review.content
+        });
+    };
+
+    // 리뷰 수정 취소
+    const cancelEditReview = () => {
+        setEditingReview(null);
+        setEditReview({ rating: 5, content: '' });
+    };
+
+    // 리뷰 수정 저장
+    const updateReview = async (reviewId) => {
+        if (!currentUser) {
+            showModal('error', '로그인 필요', '로그인이 필요합니다.');
+            return;
+        }
+
+        if (!editReview.content.trim()) {
+            showModal('error', '내용 입력 필요', '리뷰 내용을 입력해주세요.');
+            return;
+        }
+
+        try {
+            setLoading(true);
+            const result = await apiCall(`/api/reviews/${reviewId}`, {
+                method: 'PUT',
+                body: JSON.stringify({
+                    userId: currentUser._id,
+                    rating: editReview.rating,
+                    content: editReview.content.trim()
+                })
+            });
+
+            if (result.success) {
+                showModal('success', '수정 완료', '리뷰가 수정되었습니다!');
+                setEditingReview(null);
+                setEditReview({ rating: 5, content: '' });
+                await loadReviews();
+            }
+        } catch (error) {
+            console.error('리뷰 수정 실패:', error);
         } finally {
             setLoading(false);
         }
@@ -379,50 +444,168 @@ export default function Reviews() {
                                 <p>첫 번째 리뷰를 작성해보세요! ✍️</p>
                             </div>
                         ) : (
-                            <div className="reviews-list">
-                                {reviews.map(review => (
-                                    <div key={review._id} className="review-item">
-                                        <div className="review-header">
-                                            <div className="review-user">
-                                                <strong>{review.userName}</strong>
-                                                <span className="review-date">
-                                                    {new Date(review.createdAt).toLocaleDateString('ko-KR')}
-                                                </span>
-                                            </div>
-                                            <div className="review-restaurant">
-                                                {review.restaurantName}
-                                            </div>
+                            <>
+                                <div className="reviews-list">
+                                    {(() => {
+                                        const startIndex = (currentPage - 1) * itemsPerPage;
+                                        const endIndex = startIndex + itemsPerPage;
+                                        const paginatedReviews = reviews.slice(startIndex, endIndex);
+                                        
+                                        return paginatedReviews.map(review => {
+                                            const isOwnReview = review.userId === currentUser._id;
+                                            const isEditing = editingReview === review._id;
+                                            
+                                            return (
+                                                <div key={review._id} className="review-item">
+                                                    <div className="review-header">
+                                                        <div className="review-user">
+                                                            <strong>{review.userName}</strong>
+                                                            {isOwnReview && <span className="own-review-badge">내 리뷰</span>}
+                                                            <span className="review-date">
+                                                                {new Date(review.createdAt).toLocaleDateString('ko-KR')}
+                                                                {review.updatedAt && new Date(review.updatedAt) > new Date(review.createdAt) && (
+                                                                    <span className="edited-badge"> (수정됨)</span>
+                                                                )}
+                                                            </span>
+                                                        </div>
+                                                        <div className="review-restaurant">
+                                                            {review.restaurantName}
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    {isEditing ? (
+                                                        <div className="edit-review-form">
+                                                            <div className="edit-rating">
+                                                                <label>평점</label>
+                                                                {renderStars(editReview.rating, true, (rating) => 
+                                                                    setEditReview(prev => ({ ...prev, rating }))
+                                                                )}
+                                                            </div>
+                                                            <div className="edit-content">
+                                                                <label>리뷰 내용</label>
+                                                                <textarea
+                                                                    value={editReview.content}
+                                                                    onChange={(e) => setEditReview(prev => ({ ...prev, content: e.target.value }))}
+                                                                    placeholder="리뷰 내용을 수정하세요..."
+                                                                    rows="3"
+                                                                    maxLength="500"
+                                                                />
+                                                                <small>{editReview.content.length}/500</small>
+                                                            </div>
+                                                            <div className="edit-actions">
+                                                                <button
+                                                                    className="save-edit-btn"
+                                                                    onClick={() => updateReview(review._id)}
+                                                                    disabled={loading || !editReview.content.trim()}
+                                                                >
+                                                                    {loading ? '저장 중...' : '저장'}
+                                                                </button>
+                                                                <button
+                                                                    className="cancel-edit-btn"
+                                                                    onClick={cancelEditReview}
+                                                                    disabled={loading}
+                                                                >
+                                                                    취소
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <>
+                                                            <div className="review-rating">
+                                                                {renderStars(review.rating)}
+                                                                <span className="rating-text">({review.rating}/5)</span>
+                                                            </div>
+                                                            
+                                                            <div className="review-content">
+                                                                {review.content}
+                                                            </div>
+                                                        </>
+                                                    )}
+                                                    
+                                                    <div className="review-actions">
+                                                        <button
+                                                            className={`like-btn ${review.likes?.some(like => like.userId === currentUser._id) ? 'liked' : ''}`}
+                                                            onClick={() => toggleLike(review._id)}
+                                                        >
+                                                            👍 {review.likeCount || 0}
+                                                        </button>
+                                                        
+                                                        {isOwnReview && !isEditing && (
+                                                            <>
+                                                                <button
+                                                                    className="edit-review-btn"
+                                                                    onClick={() => startEditReview(review)}
+                                                                    disabled={loading}
+                                                                >
+                                                                    ✏️ 수정
+                                                                </button>
+                                                                <button
+                                                                    className="delete-own-review-btn"
+                                                                    onClick={() => showModal('confirm', '내 리뷰 삭제', '내 리뷰를 삭제하시겠습니까?', () => deleteReview(review._id, true))}
+                                                                    disabled={loading}
+                                                                >
+                                                                    🗑️ 삭제
+                                                                </button>
+                                                            </>
+                                                        )}
+                                                        
+                                                        {isAdmin && !isOwnReview && (
+                                                            <button
+                                                                className="delete-review-btn"
+                                                                onClick={() => showModal('confirm', '리뷰 삭제', `${review.userName}님의 리뷰를 삭제하시겠습니까?`, () => deleteReview(review._id))}
+                                                                disabled={loading}
+                                                            >
+                                                                🗑️ 관리자 삭제
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            );
+                                        });
+                                    })()}
+                                </div>
+                                
+                                {/* 페이지네이션 */}
+                                {Math.ceil(reviews.length / itemsPerPage) > 1 && (
+                                    <div className="pagination">
+                                        <button
+                                            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                                            disabled={currentPage === 1}
+                                        >
+                                            이전
+                                        </button>
+                                        
+                                        <div className="page-numbers">
+                                            {(() => {
+                                                const totalPages = Math.ceil(reviews.length / itemsPerPage);
+                                                const pages = [];
+                                                const startPage = Math.max(1, currentPage - 2);
+                                                const endPage = Math.min(totalPages, currentPage + 2);
+                                                
+                                                for (let i = startPage; i <= endPage; i++) {
+                                                    pages.push(
+                                                        <button
+                                                            key={i}
+                                                            className={`page-number ${i === currentPage ? 'active' : ''}`}
+                                                            onClick={() => setCurrentPage(i)}
+                                                        >
+                                                            {i}
+                                                        </button>
+                                                    );
+                                                }
+                                                return pages;
+                                            })()}
                                         </div>
                                         
-                                        <div className="review-rating">
-                                            {renderStars(review.rating)}
-                                            <span className="rating-text">({review.rating}/5)</span>
-                                        </div>
-                                        
-                                        <div className="review-content">
-                                            {review.content}
-                                        </div>
-                                        
-                                        <div className="review-actions">
-                                            <button
-                                                className={`like-btn ${review.likes?.some(like => like.userId === currentUser._id) ? 'liked' : ''}`}
-                                                onClick={() => toggleLike(review._id)}
-                                            >
-                                                👍 {review.likeCount || 0}
-                                            </button>
-                                            {isAdmin && (
-                                                <button
-                                                    className="delete-review-btn"
-                                                    onClick={() => showModal('confirm', '리뷰 삭제', `${review.userName}님의 리뷰를 삭제하시겠습니까?`, () => deleteReview(review._id))}
-                                                    disabled={loading}
-                                                >
-                                                    🗑️ 삭제
-                                                </button>
-                                            )}
-                                        </div>
+                                        <button
+                                            onClick={() => setCurrentPage(Math.min(Math.ceil(reviews.length / itemsPerPage), currentPage + 1))}
+                                            disabled={currentPage === Math.ceil(reviews.length / itemsPerPage)}
+                                        >
+                                            다음
+                                        </button>
                                     </div>
-                                ))}
-                            </div>
+                                )}
+                            </>
                         )}
                     </div>
                 </div>
