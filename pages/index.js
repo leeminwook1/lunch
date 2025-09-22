@@ -1830,13 +1830,23 @@ export default function Home() {
                             )}
                         </div>
 
-                        <button
-                            className="random-btn"
-                            onClick={selectRandomRestaurant}
-                            disabled={isSpinning || loading || restaurants.length === 0}
-                        >
-                            {isSpinning ? '선택 중...' : '🎲 랜덤으로 가게 선택하기'}
-                        </button>
+                        <div className="random-buttons">
+                            <button
+                                className="random-btn"
+                                onClick={selectRandomRestaurant}
+                                disabled={isSpinning || loading || restaurants.length === 0}
+                            >
+                                {isSpinning ? '선택 중...' : '🎲 랜덤으로 가게 선택하기'}
+                            </button>
+                            
+                            <button
+                                className="worldcup-btn"
+                                onClick={() => window.location.href = '/worldcup'}
+                                disabled={loading || restaurants.length < 2}
+                            >
+                                🏆 점식 식당 월드컵
+                            </button>
+                        </div>
                     </div>
 
                     {/* 메뉴 버튼들 */}

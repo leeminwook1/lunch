@@ -1624,6 +1624,15 @@ body {
     line-height: 1.2;
 }
 
+/* 랜덤 버튼들 컨테이너 */
+.random-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    align-items: center;
+    width: 100%;
+}
+
 .random-btn {
     padding: 18px 40px;
     background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
@@ -1635,6 +1644,8 @@ body {
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 8px 20px rgba(255, 107, 107, 0.3);
+    width: 100%;
+    max-width: 400px;
 }
 
 .random-btn:hover:not(:disabled) {
@@ -1644,6 +1655,34 @@ body {
 }
 
 .random-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* 월드컵 버튼 */
+.worldcup-btn {
+    padding: 18px 40px;
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    border: none;
+    border-radius: 15px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 20px rgba(240, 147, 251, 0.3);
+    width: 100%;
+    max-width: 400px;
+}
+
+.worldcup-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #f5576c 0%, #e73c7e 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(240, 147, 251, 0.4);
+}
+
+.worldcup-btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
     transform: none;
@@ -4352,22 +4391,44 @@ body {
 /* 관리자 답변 스타일 */
 .admin-reply {
     margin-top: 16px;
-    padding: 16px;
-    background: linear-gradient(135deg, #edf2f7 0%, #e2e8f0 100%);
-    border-radius: 8px;
-    border-left: 4px solid #667eea;
+    padding: 20px;
+    background: linear-gradient(135deg, #f0fff4, #e6fffa);
+    border: 2px solid #38a169;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(56, 161, 105, 0.15);
+    position: relative;
+}
+
+.admin-reply::before {
+    content: '👑';
+    position: absolute;
+    top: -10px;
+    left: 16px;
+    background: #38a169;
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
 .admin-reply-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 8px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    gap: 8px;
 }
 
 .admin-reply-header strong {
-    color: #2d3748;
-    font-size: 0.9rem;
+    color: #2f855a;
+    font-size: 1rem;
+    font-weight: 700;
 }
 
 .reply-date {
@@ -4376,9 +4437,13 @@ body {
 }
 
 .admin-reply-content {
-    color: #4a5568;
-    line-height: 1.5;
+    color: #2d3748;
+    line-height: 1.6;
     white-space: pre-wrap;
+    background: rgba(255, 255, 255, 0.7);
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 500;
 }
 
 /* 답변 관련 배지 */
@@ -4558,5 +4623,584 @@ body {
     .cancel-admin-edit-btn {
         width: 100%;
         text-align: center;
+    }
+}
+
+/* 이상형 월드컵 스타일 */
+.worldcup-start {
+    text-align: center;
+    padding: 40px 20px;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.start-info h2 {
+    color: #2d3748;
+    margin-bottom: 16px;
+    font-size: 1.8rem;
+}
+
+.start-info p {
+    color: #4a5568;
+    margin-bottom: 32px;
+    font-size: 1.1rem;
+    line-height: 1.6;
+}
+
+.game-stats {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin-bottom: 40px;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.stat-label {
+    color: #718096;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.start-worldcup-btn {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    padding: 16px 32px;
+    border-radius: 12px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.start-worldcup-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.start-worldcup-btn:disabled {
+    background: #a0aec0;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* 게임 진행 화면 */
+.worldcup-game {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.game-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.round-info h2 {
+    color: #2d3748;
+    margin-bottom: 8px;
+    font-size: 2rem;
+}
+
+.round-info p {
+    color: #718096;
+    font-size: 1.1rem;
+    margin-bottom: 20px;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #e2e8f0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    transition: width 0.3s ease;
+}
+
+/* VS 대결 화면 */
+.vs-container {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 20px;
+    align-items: center;
+    margin-bottom: 40px;
+}
+
+.restaurant-option {
+    background: white;
+    border: 3px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 24px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.restaurant-option:hover {
+    border-color: #667eea;
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
+}
+
+/* 가게 액션 버튼들 */
+.restaurant-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.select-restaurant-btn {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.85rem;
+    flex: 1;
+    min-width: 80px;
+}
+
+.select-restaurant-btn:hover {
+    background: linear-gradient(135deg, #5a67d8, #6b46c1);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.view-restaurant-btn {
+    background: linear-gradient(135deg, #48bb78, #38a169);
+    color: white;
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    font-size: 0.85rem;
+    text-align: center;
+    flex: 1;
+    min-width: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.view-restaurant-btn:hover {
+    background: linear-gradient(135deg, #38a169, #2f855a);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+    color: white;
+    text-decoration: none;
+}
+
+.website-link-btn {
+    background: linear-gradient(135deg, #ed8936, #dd6b20);
+    color: white;
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    font-size: 0.85rem;
+    text-align: center;
+    flex: 1;
+    min-width: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.website-link-btn:hover {
+    background: linear-gradient(135deg, #dd6b20, #c05621);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(237, 137, 54, 0.3);
+    color: white;
+    text-decoration: none;
+}
+
+.restaurant-image {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 20px;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid #e2e8f0;
+}
+
+.restaurant-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.restaurant-image .no-image {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #f7fafc, #edf2f7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    color: #a0aec0;
+}
+
+.restaurant-details h3 {
+    color: #2d3748;
+    font-size: 1.4rem;
+    margin-bottom: 8px;
+    font-weight: 700;
+}
+
+.restaurant-details .category {
+    color: #4a5568;
+    font-size: 1rem;
+    margin-bottom: 8px;
+}
+
+.restaurant-details .rating {
+    color: #ed8936;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.vs-divider {
+    font-size: 2rem;
+    font-weight: 900;
+    color: #e53e3e;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    padding: 20px;
+    background: linear-gradient(135deg, #fed7d7, #feb2b2);
+    border-radius: 50%;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    font-size: 1.2rem;
+}
+
+/* 부전승 스타일 */
+.bye-slot {
+    background: linear-gradient(135deg, #f7fafc, #edf2f7) !important;
+    border: 3px dashed #cbd5e0 !important;
+    cursor: default !important;
+    opacity: 0.7;
+}
+
+.bye-slot:hover {
+    transform: none !important;
+    box-shadow: none !important;
+    border-color: #cbd5e0 !important;
+}
+
+.bye-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+
+.bye-icon {
+    font-size: 4rem;
+    margin-bottom: 16px;
+    opacity: 0.6;
+}
+
+.bye-content h3 {
+    color: #718096;
+    margin-bottom: 8px;
+}
+
+.bye-description {
+    color: #a0aec0;
+    font-size: 0.9rem;
+}
+
+.bye-match {
+    background: linear-gradient(135deg, #f7fafc, #edf2f7);
+    border-left-color: #a0aec0 !important;
+}
+
+.auto-indicator {
+    color: #38a169;
+    font-size: 0.85rem;
+    font-weight: normal;
+}
+
+.auto-advanced {
+    background: linear-gradient(135deg, #f0fff4, #e6fffa);
+    border-left-color: #38a169 !important;
+}
+
+/* 게임 결과 화면 */
+.worldcup-result {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.winner-announcement {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.winner-announcement h2 {
+    color: #2d3748;
+    font-size: 2.5rem;
+    margin-bottom: 32px;
+}
+
+.winner-card {
+    background: linear-gradient(135deg, #ffd89b, #19547b);
+    color: white;
+    border-radius: 20px;
+    padding: 40px;
+    margin-bottom: 32px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.winner-image {
+    width: 150px;
+    height: 150px;
+    margin: 0 auto 24px;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 4px solid rgba(255,255,255,0.3);
+}
+
+.winner-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.winner-image .no-image {
+    width: 100%;
+    height: 100%;
+    background: rgba(255,255,255,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4rem;
+}
+
+.winner-info h3 {
+    font-size: 2rem;
+    margin-bottom: 12px;
+    font-weight: 800;
+}
+
+.winner-category {
+    font-size: 1.2rem;
+    opacity: 0.9;
+    margin-bottom: 8px;
+}
+
+.winner-rating {
+    font-size: 1.3rem;
+    font-weight: 700;
+}
+
+.result-actions {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.restart-btn, .goto-restaurant-btn {
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+    font-size: 1rem;
+}
+
+.restart-btn {
+    background: linear-gradient(135deg, #4299e1, #3182ce);
+    color: white;
+}
+
+.restart-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(66, 153, 225, 0.4);
+}
+
+.goto-restaurant-btn {
+    background: linear-gradient(135deg, #48bb78, #38a169);
+    color: white;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.goto-restaurant-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(72, 187, 120, 0.4);
+}
+
+/* 게임 히스토리 */
+.game-history {
+    background: #f7fafc;
+    border-radius: 12px;
+    padding: 24px;
+}
+
+.game-history h3 {
+    color: #2d3748;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.history-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: white;
+    padding: 12px 16px;
+    border-radius: 8px;
+    border-left: 4px solid #667eea;
+}
+
+.round-name {
+    font-weight: 600;
+    color: #4a5568;
+    min-width: 60px;
+}
+
+.match-result {
+    color: #2d3748;
+}
+
+.game-actions {
+    text-align: center;
+    margin-top: 32px;
+}
+
+.quit-btn {
+    background: linear-gradient(135deg, #e53e3e, #c53030);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.quit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(229, 62, 62, 0.4);
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .vs-container {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+    
+    .vs-divider {
+        width: 60px;
+        height: 60px;
+        font-size: 1.5rem;
+        order: -1;
+    }
+    
+    .restaurant-option {
+        min-height: 200px;
+        padding: 16px;
+    }
+    
+    .restaurant-image {
+        width: 80px;
+        height: 80px;
+        margin-bottom: 16px;
+    }
+    
+    .restaurant-details h3 {
+        font-size: 1.2rem;
+    }
+    
+    .game-stats {
+        gap: 20px;
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+    }
+    
+    .winner-card {
+        padding: 24px;
+    }
+    
+    .winner-image {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .winner-info h3 {
+        font-size: 1.5rem;
+    }
+    
+    .result-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .restart-btn, .goto-restaurant-btn {
+        width: 100%;
+        max-width: 250px;
+    }
+    
+    .restaurant-actions {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .select-restaurant-btn, .view-restaurant-btn, .website-link-btn {
+        width: 100%;
+        padding: 10px 16px;
+        font-size: 0.95rem;
     }
 }
