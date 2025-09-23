@@ -1122,7 +1122,7 @@ export default function Home() {
                                             setAdminPassword('');
                                         }}
                                         onBlur={() => userName.trim() && checkUserName(userName)}
-                                        placeholder="이름을 입력하세요 (예: 홍길동)"
+                                        placeholder="사용할 닉네임을 입력하세요 (예: 이름 or 닉네임)"
                                         className={`setup-input ${nameCheckStatus}`}
                                         onKeyPress={(e) => e.key === 'Enter' && setUserNameHandler(userName)}
                                         autoFocus
@@ -1146,7 +1146,7 @@ export default function Home() {
                                             type="password"
                                             value={adminPassword}
                                             onChange={(e) => setAdminPassword(e.target.value)}
-                                            placeholder="관리자 비밀번호 (123)"
+                                            placeholder="관리자 비밀번호"
                                             className="setup-input"
                                             onKeyPress={(e) => e.key === 'Enter' && setUserNameHandler(userName)}
                                             disabled={loading}
