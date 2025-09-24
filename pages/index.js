@@ -9,8 +9,7 @@ export default function Home() {
     const [restaurants, setRestaurants] = useState([]);
     const [users, setUsers] = useState([]);
     const [currentUser, setCurrentUser] = useState(null);
-    const [visitHistory, setVisitHistory] = useState([]);
-    const [recentSelections, setRecentSelections] = useState([]);
+
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(false);
 
@@ -120,22 +119,10 @@ export default function Home() {
         if (!userId) return;
 
         try {
-            const [visitsResult, statsResult, selectionsResult] = await Promise.all([
-                apiCall(`/api/visits?userId=${userId}`),
-                apiCall(`/api/stats?userId=${userId}`),
-                apiCall('/api/selections?limit=10')
-            ]);
-
-            if (visitsResult.success) {
-                setVisitHistory(visitsResult.data);
-            }
+            const statsResult = await apiCall(`/api/stats?userId=${userId}`);
 
             if (statsResult.success) {
                 setStats(statsResult.data);
-            }
-
-            if (selectionsResult.success) {
-                setRecentSelections(selectionsResult.data);
             }
         } catch (error) {
             console.error('사용자 데이터 로딩 실패:', error);
@@ -156,6 +143,8 @@ export default function Home() {
             setLoading(false);
         }
     };
+
+
 
     // 리뷰 관련 함수들
     const loadReviews = async (restaurantId) => {
@@ -525,8 +514,6 @@ export default function Home() {
             setIsUserNameSet(false);
             setCurrentUser(null);
             setUserName('');
-            setVisitHistory([]);
-            setRecentSelections([]);
             setStats(null);
             setIsAdmin(false);
             setUserPreferences(null);
@@ -1800,31 +1787,32 @@ export default function Home() {
                         </button>
                     </div>
 
-                    {/* 최근 선택 정보 */}
-                    {recentSelections.length > 0 && recentSelections[0] && (
-                        <div className="last-selection-info">
-                            <div className="last-selection-content">
-                                <span className="last-selection-text">
-                                    🕐 마지막 선택: <strong>{recentSelections[0].userName}</strong>님이
-                                    <strong>{recentSelections[0].restaurantName}</strong>을(를) 선택
-                                    ({new Date(recentSelections[0].selectedAt).toLocaleString('ko-KR', {
-                                        month: 'short',
-                                        day: 'numeric',
-                                        hour: '2-digit',
-                                        minute: '2-digit'
-                                    })})
-                                </span>
-                            </div>
-                        </div>
-                    )}
+
 
                     {/* 필터 섹션 */}
-                    <div className="filter-section">
-                        <h3>🔍 필터 설정</h3>
-                        <div className="filter-controls">
+                    <div className="glass-card" style={{ 
+                        padding: 'var(--space-6)', 
+                        marginBottom: 'var(--space-8)',
+                        textAlign: 'center'
+                    }}>
+                        <h3 style={{ 
+                            marginBottom: 'var(--space-4)', 
+                            color: 'var(--gray-800)', 
+                            fontSize: '1.25rem', 
+                            fontWeight: '700',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: 'var(--space-2)'
+                        }}>
+                            <span className="emoji">🔍</span> 필터 설정
+                        </h3>
+                        <div style={{ marginBottom: 'var(--space-4)' }}>
                             <select
+                                className="modern-select"
                                 value={filterCategory}
                                 onChange={(e) => setFilterCategory(e.target.value)}
+                                style={{ maxWidth: '300px', margin: '0 auto' }}
                             >
                                 <option value="all">전체 카테고리</option>
                                 {getAllCategories().map(category => (
@@ -1832,7 +1820,12 @@ export default function Home() {
                                 ))}
                             </select>
                         </div>
-                        <p className="filter-info">
+                        <p style={{ 
+                            color: 'var(--gray-600)', 
+                            fontSize: '0.9rem',
+                            fontWeight: '500',
+                            margin: '0'
+                        }}>
                             {filterCategory === 'all'
                                 ? `전체 ${restaurants.length}개 가게`
                                 : `${filterCategory} ${getFilteredAndSortedRestaurants().length}개 가게`
@@ -1873,46 +1866,215 @@ export default function Home() {
                             >
                                 🏆 점식 식당 월드컵
                             </button>
+                            
+                            <button
+                                className="slot-btn"
+                                onClick={() => window.location.href = '/slot'}
+                                disabled={loading || restaurants.length === 0}
+                            >
+                                🎰 슬롯머신
+                            </button>
                         </div>
                     </div>
 
                     {/* 메뉴 버튼들 */}
-                    <div className="menu-buttons">
-                        <button className="menu-btn" onClick={() => setCurrentView('list')}>
-                            📋 가게 목록 ({restaurants.length})
+                    <div style={{ 
+                        display: 'grid', 
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', 
+                        gap: 'var(--space-6)', 
+                        marginBottom: 'var(--space-8)' 
+                    }}>
+                        <button 
+                            className="glass-card" 
+                            onClick={() => setCurrentView('list')}
+                            style={{ 
+                                padding: 'var(--space-6)', 
+                                border: 'none', 
+                                cursor: 'pointer',
+                                textAlign: 'left',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 'var(--space-4)',
+                                fontSize: '1rem',
+                                fontWeight: '600',
+                                color: 'var(--gray-800)'
+                            }}
+                        >
+                            <span className="emoji" style={{ fontSize: '2rem' }}>📋</span>
+                            <div>
+                                <div>가게 목록</div>
+                                <small style={{ color: 'var(--gray-600)', fontWeight: '500' }}>
+                                    {restaurants.length}개 가게
+                                </small>
+                            </div>
                         </button>
-                        <button className="menu-btn" onClick={() => setCurrentView('add')}>
-                            ➕ 가게 추가
+                        
+                        <button 
+                            className="glass-card" 
+                            onClick={() => setCurrentView('add')}
+                            style={{ 
+                                padding: 'var(--space-6)', 
+                                border: 'none', 
+                                cursor: 'pointer',
+                                textAlign: 'left',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 'var(--space-4)',
+                                fontSize: '1rem',
+                                fontWeight: '600',
+                                color: 'var(--gray-800)'
+                            }}
+                        >
+                            <span className="emoji" style={{ fontSize: '2rem' }}>➕</span>
+                            <div>
+                                <div>가게 추가</div>
+                                <small style={{ color: 'var(--gray-600)', fontWeight: '500' }}>
+                                    새로운 맛집 등록
+                                </small>
+                            </div>
                         </button>
-                        <button className="menu-btn" onClick={() => setCurrentView('history')}>
-                            📊 방문기록 ({visitHistory.length})
+                        
+
+                        
+                        <button 
+                            className="glass-card" 
+                            onClick={() => window.location.href = '/reviews'}
+                            style={{ 
+                                padding: 'var(--space-6)', 
+                                border: 'none', 
+                                cursor: 'pointer',
+                                textAlign: 'left',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 'var(--space-4)',
+                                fontSize: '1rem',
+                                fontWeight: '600',
+                                color: 'var(--gray-800)'
+                            }}
+                        >
+                            <span className="emoji" style={{ fontSize: '2rem' }}>📝</span>
+                            <div>
+                                <div>리뷰 작성</div>
+                                <small style={{ color: 'var(--gray-600)', fontWeight: '500' }}>
+                                    맛집 후기 공유
+                                </small>
+                            </div>
                         </button>
-                        <button className="menu-btn" onClick={() => window.location.href = '/reviews'}>
-                            📝 리뷰 작성
+                        
+                        <button 
+                            className="glass-card" 
+                            onClick={() => window.location.href = '/feedback'}
+                            style={{ 
+                                padding: 'var(--space-6)', 
+                                border: 'none', 
+                                cursor: 'pointer',
+                                textAlign: 'left',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 'var(--space-4)',
+                                fontSize: '1rem',
+                                fontWeight: '600',
+                                color: 'var(--gray-800)'
+                            }}
+                        >
+                            <span className="emoji" style={{ fontSize: '2rem' }}>💭</span>
+                            <div>
+                                <div>피드백</div>
+                                <small style={{ color: 'var(--gray-600)', fontWeight: '500' }}>
+                                    기능 요청 & 건의
+                                </small>
+                            </div>
                         </button>
-                        <button className="menu-btn" onClick={() => window.location.href = '/feedback'}>
-                            💭 피드백 & 기능 요청
+                        
+                        <button 
+                            className="glass-card" 
+                            onClick={() => setShowPreferences(true)}
+                            style={{ 
+                                padding: 'var(--space-6)', 
+                                border: 'none', 
+                                cursor: 'pointer',
+                                textAlign: 'left',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 'var(--space-4)',
+                                fontSize: '1rem',
+                                fontWeight: '600',
+                                color: 'var(--gray-800)'
+                            }}
+                        >
+                            <span className="emoji" style={{ fontSize: '2rem' }}>⚙️</span>
+                            <div>
+                                <div>선호도 설정</div>
+                                <small style={{ color: 'var(--gray-600)', fontWeight: '500' }}>
+                                    개인 맞춤 설정
+                                </small>
+                            </div>
                         </button>
-                        <button className="menu-btn" onClick={() => setShowPreferences(true)}>
-                            ⚙️ 선호도 설정
-                        </button>
+                        
                         {isAdmin && (
-                            <button className="menu-btn admin-active">
-                                👑 관리자 모드
+                            <button 
+                                className="glass-card" 
+                                style={{ 
+                                    padding: 'var(--space-6)', 
+                                    border: 'none', 
+                                    cursor: 'pointer',
+                                    textAlign: 'left',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 'var(--space-4)',
+                                    fontSize: '1rem',
+                                    fontWeight: '600',
+                                    color: 'var(--gray-800)',
+                                    background: 'linear-gradient(135deg, var(--warning-50) 0%, var(--warning-100) 100%)',
+                                    border: '1px solid var(--warning-200)'
+                                }}
+                            >
+                                <span className="emoji" style={{ fontSize: '2rem' }}>👑</span>
+                                <div>
+                                    <div>관리자 메뉴</div>
+                                    <small style={{ color: 'var(--warning-600)', fontWeight: '500' }}>
+                                        시스템 관리
+                                    </small>
+                                </div>
                             </button>
                         )}
                     </div>
 
                     {/* 초기화 버튼 (가게가 없을 때만) */}
                     {restaurants.length === 0 && (
-                        <div className="init-section">
-                            <p>등록된 가게가 없습니다.</p>
+                        <div className="glass-card" style={{ 
+                            padding: 'var(--space-6)', 
+                            marginBottom: 'var(--space-8)',
+                            textAlign: 'center'
+                        }}>
+                            <h3 style={{ 
+                                marginBottom: 'var(--space-4)', 
+                                color: 'var(--gray-800)', 
+                                fontSize: '1.25rem', 
+                                fontWeight: '700',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: 'var(--space-2)'
+                            }}>
+                                <span className="emoji">🏪</span> 가게 데이터가 없습니다
+                            </h3>
+                            
+                            <p style={{ 
+                                marginBottom: 'var(--space-4)', 
+                                color: 'var(--gray-600)', 
+                                fontSize: '1rem'
+                            }}>
+                                샘플 데이터를 생성하거나 직접 가게를 추가해보세요!
+                            </p>
+                            
                             <button
-                                className="sample-btn"
+                                className="modern-btn warning"
                                 onClick={initializeSampleData}
                                 disabled={loading}
+                                style={{ opacity: loading ? '0.6' : '1' }}
                             >
-                                {loading ? '생성 중...' : '샘플 데이터 생성'}
+                                <span className="emoji">🎲</span> {loading ? '생성 중...' : '샘플 데이터 생성'}
                             </button>
                         </div>
                     )}

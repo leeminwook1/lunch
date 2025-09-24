@@ -360,12 +360,28 @@ export default function Reviews() {
                     </div>
 
                     {/* 리뷰 작성 폼 */}
-                    <div className="review-form-section">
-                        <h3>리뷰 작성</h3>
-                        <div className="review-form">
-                            <div className="form-group">
-                                <label>가게 선택</label>
+                    <div className="review-form-card" style={{ padding: 'var(--space-8)', marginBottom: 'var(--space-8)' }}>
+                        <h3 style={{ 
+                            marginBottom: 'var(--space-6)', 
+                            color: 'var(--gray-800)', 
+                            fontSize: '1.25rem', 
+                            fontWeight: '700',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 'var(--space-2)'
+                        }}>
+                            <span className="emoji">✍️</span> 리뷰 작성
+                        </h3>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
+                            <div>
+                                <label style={{ 
+                                    display: 'block', 
+                                    marginBottom: 'var(--space-2)', 
+                                    fontWeight: '600', 
+                                    color: 'var(--gray-700)' 
+                                }}>가게 선택</label>
                                 <select
+                                    className="modern-select"
                                     value={selectedRestaurant}
                                     onChange={(e) => setSelectedRestaurant(e.target.value)}
                                 >
@@ -378,40 +394,74 @@ export default function Reviews() {
                                 </select>
                             </div>
 
-                            <div className="form-group">
-                                <label>평점</label>
+                            <div>
+                                <label style={{ 
+                                    display: 'block', 
+                                    marginBottom: 'var(--space-2)', 
+                                    fontWeight: '600', 
+                                    color: 'var(--gray-700)' 
+                                }}>평점</label>
                                 {renderStars(newReview.rating, true, (rating) => 
                                     setNewReview(prev => ({ ...prev, rating }))
                                 )}
                             </div>
 
-                            <div className="form-group">
-                                <label>리뷰 내용</label>
+                            <div>
+                                <label style={{ 
+                                    display: 'block', 
+                                    marginBottom: 'var(--space-2)', 
+                                    fontWeight: '600', 
+                                    color: 'var(--gray-700)' 
+                                }}>리뷰 내용</label>
                                 <textarea
+                                    className="modern-input"
                                     value={newReview.content}
                                     onChange={(e) => setNewReview(prev => ({ ...prev, content: e.target.value }))}
                                     placeholder="가게에 대한 솔직한 리뷰를 작성해주세요..."
                                     rows="4"
                                     maxLength="500"
+                                    style={{ resize: 'vertical', minHeight: '120px' }}
                                 />
-                                <small>{newReview.content.length}/500</small>
+                                <small style={{ color: 'var(--gray-500)', fontSize: '0.875rem' }}>
+                                    {newReview.content.length}/500
+                                </small>
                             </div>
 
                             <button
-                                className="submit-review-btn"
+                                className="modern-btn primary"
                                 onClick={submitReview}
                                 disabled={loading || !selectedRestaurant || !newReview.content.trim()}
+                                style={{ 
+                                    padding: 'var(--space-4) var(--space-8)',
+                                    fontSize: '1.1rem',
+                                    opacity: (loading || !selectedRestaurant || !newReview.content.trim()) ? '0.6' : '1',
+                                    cursor: (loading || !selectedRestaurant || !newReview.content.trim()) ? 'not-allowed' : 'pointer'
+                                }}
                             >
-                                {loading ? '작성 중...' : '리뷰 작성'}
+                                {loading ? '작성 중...' : '✨ 리뷰 작성'}
                             </button>
                         </div>
                     </div>
 
                     {/* 필터 */}
-                    <div className="review-filters">
-                        <div className="filter-group">
-                            <label>가게 필터</label>
+                    <div className="glass-card" style={{ 
+                        padding: 'var(--space-5)', 
+                        marginBottom: 'var(--space-8)',
+                        display: 'flex',
+                        gap: 'var(--space-6)',
+                        alignItems: 'end',
+                        flexWrap: 'wrap'
+                    }}>
+                        <div style={{ flex: '1', minWidth: '200px' }}>
+                            <label style={{ 
+                                display: 'block', 
+                                marginBottom: 'var(--space-2)', 
+                                fontWeight: '600', 
+                                color: 'var(--gray-700)',
+                                fontSize: '0.9rem'
+                            }}><span className="emoji">🏪</span> 가게 필터</label>
                             <select
+                                className="modern-select"
                                 value={selectedRestaurant}
                                 onChange={(e) => setSelectedRestaurant(e.target.value)}
                             >
@@ -424,9 +474,16 @@ export default function Reviews() {
                             </select>
                         </div>
 
-                        <div className="filter-group">
-                            <label>정렬</label>
+                        <div style={{ flex: '1', minWidth: '150px' }}>
+                            <label style={{ 
+                                display: 'block', 
+                                marginBottom: 'var(--space-2)', 
+                                fontWeight: '600', 
+                                color: 'var(--gray-700)',
+                                fontSize: '0.9rem'
+                            }}><span className="emoji">📊</span> 정렬</label>
                             <select
+                                className="modern-select"
                                 value={sortBy}
                                 onChange={(e) => setSortBy(e.target.value)}
                             >
