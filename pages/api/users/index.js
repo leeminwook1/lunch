@@ -38,11 +38,11 @@ export default async function handler(req, res) {
                 // 관리자 계정인 경우 비밀번호 검증
                 if (name.trim() === '관리자') {
                     // 환경 변수에서 비밀번호 읽기, 없으면 기본값 사용
-                    const correctPassword = process.env.ADMIN_PASSWORD || 'admin123';
+                    const correctPassword = process.env.ADMIN_PASSWORD || 'LunchAdmin2024!@#';
                     
-                    // 디버그용 로그 (프로덕션에서는 제거)
+                    // 보안을 위해 비밀번호는 로그에 남기지 않음
                     if (process.env.NODE_ENV === 'development') {
-                        console.log('Admin login attempt - Expected:', correctPassword, 'Provided:', adminPassword);
+                        console.log('Admin login attempt');
                     }
                     
                     if (!adminPassword) {

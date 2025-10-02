@@ -75,6 +75,9 @@ export default function Home() {
 
     // 사용자 선호도 상태
     const [userPreferences, setUserPreferences] = useState(null);
+    
+    // 로그인 에러 상태
+    const [loginError, setLoginError] = useState('');
 
     // 사용자 데이터 로딩
     const loadUserData = useCallback(async (userId) => {
@@ -299,13 +302,20 @@ export default function Home() {
                 loadUserPreferences()
             ]);
         } catch (error) {
-            // 관리자 비밀번호 오류인 경우에만 모달 표시
-            if (error.message && error.message.includes('관리자 비밀번호')) {
-                showModal('error', '로그인 실패', error.message);
-            } else {
-                console.error('로그인 오류:', error);
-                showModal('error', '오류', error.message || '사용자 설정에 실패했습니다.');
+            // 에러 메시지를 사용자 친화적으로 변경
+            let friendlyMessage = '로그인에 실패했습니다.';
+            
+            if (error.message.includes('관리자 비밀번호')) {
+                friendlyMessage = '관리자 비밀번호가 올바르지 않습니다.';
+            } else if (error.message.includes('비밀번호를 입력')) {
+                friendlyMessage = '관리자 비밀번호를 입력해주세요.';
+            } else if (error.message.includes('네트워크')) {
+                friendlyMessage = '네트워크 연결을 확인해주세요.';
+            } else if (error.message.includes('서버')) {
+                friendlyMessage = '서버에 일시적인 문제가 발생했습니다. 잠시 후 다시 시도해주세요.';
             }
+            
+            setLoginError(friendlyMessage);
             analytics.trackError(error, { context: 'user_login' });
         }
     }, [createOrLoginUser, adminPassword, analytics, loadUserData, loadUserPreferences, showModal]);
@@ -378,6 +388,8 @@ export default function Home() {
                     setAdminPassword={setAdminPassword}
                     onCheckUserName={checkUserName}
                     onSetUserName={handleUserLogin}
+                    errorMessage={loginError}
+                    onClearError={() => setLoginError('')}
                 />
                 
                 <Modal 

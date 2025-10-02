@@ -77,7 +77,7 @@ body {
         sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background: var(--gray-50);
+    background: white;
     min-height: 100vh;
     color: var(--gray-800);
     line-height: 1.6;
@@ -87,6 +87,7 @@ body {
 .app {
     min-height: 100vh;
     padding: var(--space-6);
+    background: white;
 }
 
 .container {
@@ -104,7 +105,7 @@ body {
     .app {
         padding: var(--space-3);
     }
-    
+
     .container {
         border-radius: var(--radius-xl);
         padding: var(--space-6);
@@ -116,7 +117,7 @@ body {
     .app {
         padding: var(--space-2);
     }
-    
+
     .container {
         border-radius: var(--radius-lg);
         padding: var(--space-4);
@@ -210,7 +211,7 @@ body {
 
 /* 히어로 섹션 */
 .hero-section {
-    background: linear-gradient(135deg, var(--gray-100) 0%, var(--primary-50) 50%, var(--gray-100) 100%);
+    background: white;
     border-radius: var(--radius-3xl);
     padding: var(--space-8);
     text-align: center;
@@ -531,6 +532,17 @@ body {
     background-color: inherit;
 }
 
+/* 가게 카드 이미지 영역 배경 완전 제거 */
+.restaurant-card .restaurant-image {
+    background: none !important;
+    background-color: transparent !important;
+}
+
+.restaurant-card .restaurant-image img {
+    background: none !important;
+    background-color: transparent !important;
+}
+
 .restaurant-card:hover {
     transform: translateY(-6px);
     box-shadow: var(--shadow-2xl);
@@ -541,7 +553,7 @@ body {
     position: relative;
     height: 200px;
     overflow: hidden;
-    background: var(--gray-100);
+    background: none !important;
 }
 
 .restaurant-image img {
@@ -549,10 +561,33 @@ body {
     height: 100%;
     object-fit: cover;
     transition: transform 0.3s ease;
-    background: var(--gray-50);
+    background: none !important;
     display: block;
     border: none;
     outline: none;
+}
+
+/* 이미지 로드 실패 시 숨김 */
+.restaurant-image img[src=""],
+.restaurant-image img:not([src]),
+.restaurant-image img[src="#"],
+.restaurant-image img[alt=""] {
+    display: none !important;
+    visibility: hidden !important;
+}
+
+/* 이미지 로드 에러 시 처리 */
+.restaurant-image img:not([src]) {
+    opacity: 0 !important;
+}
+
+/* 모든 배경 제거 */
+.restaurant-image,
+.restaurant-image *,
+.restaurant-image::before,
+.restaurant-image::after {
+    background: none !important;
+    background-color: transparent !important;
 }
 
 .restaurant-card:hover .restaurant-image img {
@@ -704,6 +739,68 @@ body {
     padding: var(--space-2) var(--space-4);
     background: var(--gray-100);
     border-radius: var(--radius-xl);
+}
+
+/* 페이지네이션 모바일 최적화 - 강제로 한 줄 배치 */
+@media (max-width: 768px) {
+    .pagination {
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: center !important;
+        align-items: center !important;
+        gap: 6px !important;
+        margin-top: var(--space-3) !important;
+        flex-wrap: nowrap !important;
+        padding: var(--space-2) !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    .pagination-btn {
+        padding: 8px 12px !important;
+        min-height: 36px !important;
+        font-size: 0.75rem !important;
+        min-width: 70px !important;
+        max-width: 80px !important;
+        flex-shrink: 0 !important;
+        white-space: nowrap !important;
+        border-radius: var(--radius-md) !important;
+        text-overflow: ellipsis !important;
+        overflow: hidden !important;
+    }
+
+    .pagination-info {
+        font-size: 0.75rem !important;
+        padding: 8px 12px !important;
+        min-width: 60px !important;
+        max-width: 70px !important;
+        text-align: center !important;
+        flex-shrink: 0 !important;
+        border-radius: var(--radius-md) !important;
+        white-space: nowrap !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .pagination {
+        gap: 4px !important;
+        padding: var(--space-1) !important;
+    }
+
+    .pagination-btn {
+        padding: 6px 8px !important;
+        min-height: 32px !important;
+        font-size: 0.7rem !important;
+        min-width: 50px !important;
+        max-width: 60px !important;
+    }
+
+    .pagination-info {
+        font-size: 0.7rem !important;
+        padding: 6px 8px !important;
+        min-width: 40px !important;
+        max-width: 50px !important;
+    }
 }
 
 /* 빈 상태 */
@@ -876,8 +973,8 @@ body {
     position: absolute;
     top: var(--space-4);
     right: var(--space-4);
-    background: rgba(0, 0, 0, 0.8);
-    color: white;
+    /* background: rgba(0, 0, 0, 0.8);
+    color: white; */
     padding: var(--space-2) var(--space-4);
     border-radius: var(--radius-xl);
     font-weight: 600;
@@ -954,6 +1051,9 @@ body {
 .detail-actions {
     margin-top: var(--space-6);
     padding: var(--space-2);
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .btn-write-review {
@@ -967,6 +1067,7 @@ body {
     font-weight: 600;
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: var(--space-2);
 }
 
@@ -2612,49 +2713,153 @@ body {
     color: var(--gray-600);
 }
 
-/* 반응형 디자인 */
+/* 월드컵 모바일 반응형 디자인 - 세로 배치 */
 @media (max-width: 768px) {
+    .worldcup-game-section {
+        padding: var(--space-4) !important;
+    }
+
+    .game-header {
+        margin-bottom: var(--space-4) !important;
+    }
+
+    .game-header h2 {
+        font-size: 1.3rem !important;
+    }
+
+    .game-header p {
+        font-size: 0.9rem !important;
+    }
+
+    .match-container {
+        margin-bottom: var(--space-4) !important;
+    }
+
     .restaurant-options {
-        grid-template-columns: 1fr;
-        gap: var(--space-4);
+        display: flex !important;
+        flex-direction: column !important;
+        gap: var(--space-3) !important;
+        align-items: center !important;
     }
 
-    .vs-text {
-        position: static;
-        transform: none;
-        margin: var(--space-4) 0;
-        display: inline-block;
-    }
-
-    .winner-card {
-        flex-direction: column;
-        text-align: center;
-    }
-
-    .winner-info {
-        text-align: center;
-    }
-
-    .result-actions {
-        flex-direction: column;
-    }
-
-    .game-info {
-        flex-direction: column;
-        align-items: center;
+    .restaurant-option {
+        width: 100% !important;
+        max-width: 300px !important;
+        border-radius: var(--radius-lg) !important;
+        margin: 0 auto !important;
     }
 
     .restaurant-option img {
-        height: 200px;
+        height: 150px !important;
+        width: 100% !important;
+        object-fit: cover !important;
+    }
+
+    .restaurant-option .restaurant-info {
+        padding: var(--space-3) !important;
+    }
+
+    .restaurant-option h3 {
+        font-size: 1rem !important;
+        margin-bottom: var(--space-1) !important;
+    }
+
+    .restaurant-option .category {
+        font-size: 0.75rem !important;
+        margin-bottom: var(--space-1) !important;
+    }
+
+    .restaurant-option .distance {
+        font-size: 0.75rem !important;
+    }
+
+    .vs-text {
+        position: static !important;
+        transform: none !important;
+        margin: var(--space-2) 0 !important;
+        display: block !important;
+        font-size: 1.2rem !important;
+        padding: var(--space-2) var(--space-3) !important;
+    }
+
+    .winner-card {
+        flex-direction: column !important;
+        text-align: center !important;
+        max-width: 300px !important;
     }
 
     .winner-card img {
-        width: 150px;
-        height: 150px;
+        width: 200px !important;
+        height: 150px !important;
+        margin: 0 auto var(--space-3) !important;
+    }
+
+    .winner-info {
+        text-align: center !important;
+    }
+
+    .winner-info h3 {
+        font-size: 1.3rem !important;
+    }
+
+    .result-actions {
+        flex-direction: column !important;
+        gap: var(--space-2) !important;
+    }
+
+    .game-info {
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: var(--space-3) !important;
+    }
+
+    .info-item {
+        min-width: 100px !important;
+        padding: var(--space-3) !important;
+    }
+
+    .btn-start-game,
+    .btn-play-again,
+    .btn-go-home {
+        width: 100% !important;
+        max-width: 250px !important;
+        margin: 0 auto !important;
     }
 }
 
-/* 리뷰 페이지 스타일 */ 
+@media (max-width: 480px) {
+    .restaurant-option {
+        max-width: 280px !important;
+    }
+
+    .restaurant-option img {
+        height: 120px !important;
+    }
+
+    .restaurant-option .restaurant-info {
+        padding: var(--space-2) !important;
+    }
+
+    .restaurant-option h3 {
+        font-size: 0.9rem !important;
+    }
+
+    .vs-text {
+        font-size: 1rem !important;
+        padding: var(--space-1) var(--space-2) !important;
+    }
+
+    .winner-card img {
+        width: 150px !important;
+        height: 120px !important;
+    }
+
+    .winner-info h3 {
+        font-size: 1.1rem !important;
+    }
+}
+
+/* 리뷰 페이지 스타일 */
 .review-write-section {
     background: white;
     border-radius: var(--radius-2xl);
@@ -3020,7 +3225,7 @@ body {
     }
 }
 
-/* 피드백 페이지 스타일 */ 
+/* 피드백 페이지 스타일 */
 .feedback-write-section {
     background: white;
     border-radius: var(--radius-2xl);
@@ -4140,7 +4345,8 @@ body {
     transform: rotateY(180deg);
 }
 
-.card-back, .card-front {
+.card-back,
+.card-front {
     position: absolute;
     width: 100%;
     height: 100%;
@@ -4175,7 +4381,7 @@ body {
 .card-text {
     font-size: 3rem;
     font-weight: 800;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .restaurant-emoji {
@@ -4239,35 +4445,35 @@ body {
         grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
         gap: 1rem;
     }
-    
+
     .card {
         height: 220px;
     }
-    
+
     .card-pattern {
         font-size: 3rem;
     }
-    
+
     .card-text {
         font-size: 2rem;
     }
-    
+
     .restaurant-emoji {
         font-size: 2.5rem;
     }
-    
+
     .restaurant-name {
         font-size: 1.1rem;
     }
-    
+
     .restaurant-category {
         font-size: 0.9rem;
     }
-    
+
     .game-instructions h2 {
         font-size: 1.5rem;
     }
-    
+
     .game-instructions p {
         font-size: 1rem;
     }
@@ -4277,24 +4483,22 @@ body {
     .cards-grid {
         grid-template-columns: repeat(2, 1fr);
     }
-    
+
     .card {
         height: 180px;
     }
-    
+
     .card-inner {
         padding: 1rem;
     }
-    
+
     .restaurant-name {
         font-size: 1rem;
     }
-}/* ===== 메인
- 페이지 액션 버튼 스타일 ===== */
-.action-section {
-    margin: 2rem 0;
 }
 
+/* ===== 메인
+ 페이지 액션 버튼 스타일 ===== */
 .action-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -4371,7 +4575,7 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 50%, rgba(255,255,255,0.1) 100%);
+    background: linear-gradient(45deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%, rgba(255, 255, 255, 0.1) 100%);
     opacity: 0;
     transition: opacity 0.3s ease;
 }
@@ -4416,16 +4620,16 @@ body {
         grid-template-columns: repeat(3, 1fr);
         gap: 0.8rem;
     }
-    
+
     .action-btn {
         padding: 1rem 0.6rem;
         min-height: 70px;
     }
-    
+
     .action-icon {
         font-size: 1.5rem;
     }
-    
+
     .action-text {
         font-size: 0.8rem;
     }
@@ -4436,20 +4640,22 @@ body {
         grid-template-columns: repeat(2, 1fr);
         gap: 0.6rem;
     }
-    
+
     .action-btn {
         padding: 0.8rem 0.4rem;
         min-height: 60px;
     }
-    
+
     .action-icon {
         font-size: 1.3rem;
     }
-    
+
     .action-text {
         font-size: 0.75rem;
     }
-}/* ====
+}
+
+/* ====
 = 헤더 스타일 ===== */
 .header {
     margin-bottom: var(--space-8);
@@ -4524,23 +4730,23 @@ body {
         margin-bottom: var(--space-6);
         padding-bottom: var(--space-4);
     }
-    
+
     .header-content {
         flex-direction: column;
         align-items: stretch;
         gap: var(--space-3);
     }
-    
+
     .title {
         font-size: 2rem;
         margin-bottom: var(--space-2);
     }
-    
+
     .user-info {
         justify-content: space-between;
         align-items: center;
     }
-    
+
     .btn-change-user {
         padding: var(--space-2) var(--space-3);
         font-size: 0.9rem;
@@ -4551,11 +4757,11 @@ body {
     .title {
         font-size: 1.75rem;
     }
-    
+
     .user-greeting {
         font-size: 1rem;
     }
-    
+
     .admin-badge {
         font-size: 0.75rem;
         padding: 2px var(--space-2);
@@ -4575,7 +4781,7 @@ body {
     padding: var(--space-8) 0;
     background: linear-gradient(135deg, var(--primary-50), var(--secondary-50));
     border-radius: var(--radius-2xl);
-    margin-bottom: var(--space-6);
+
 }
 
 .hero-content {
@@ -4638,29 +4844,33 @@ body {
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 /* 히어로 섹션 모바일 반응형 */
 @media (max-width: 768px) {
     .hero-section {
         padding: var(--space-6) 0;
-        margin-bottom: var(--space-4);
     }
-    
+
     .hero-placeholder h2,
     .selected-result h2,
     .spinning-wheel h2 {
         font-size: 1.75rem;
     }
-    
+
     .hero-placeholder p,
     .spinning-wheel p {
         font-size: 1rem;
         margin-bottom: var(--space-4);
     }
-    
+
     .btn-random {
         padding: var(--space-3) var(--space-6);
         font-size: 1.1rem;
@@ -4669,29 +4879,32 @@ body {
 }
 
 @media (max-width: 480px) {
+
     .hero-placeholder h2,
     .selected-result h2,
     .spinning-wheel h2 {
         font-size: 1.5rem;
         margin-bottom: var(--space-3);
     }
-    
+
     .hero-placeholder p,
     .spinning-wheel p {
         font-size: 0.95rem;
     }
-    
+
     .btn-random {
         padding: var(--space-3) var(--space-4);
         font-size: 1rem;
         min-width: 160px;
     }
-    
+
     .spinner {
         width: 50px;
         height: 50px;
     }
-}/* ===== 
+}
+
+/* ===== 
 필터 섹션 스타일 ===== */
 .filter-section {
     background: white;
@@ -4742,12 +4955,12 @@ body {
     .filter-section {
         padding: var(--space-4);
     }
-    
+
     .filter-controls {
         grid-template-columns: 1fr;
         gap: var(--space-3);
     }
-    
+
     .filter-header h3 {
         font-size: 1.25rem;
     }
@@ -4874,39 +5087,39 @@ body {
     .restaurants-section {
         padding: var(--space-4);
     }
-    
+
     .section-header {
         margin-bottom: var(--space-4);
     }
-    
+
     .section-header h3 {
         font-size: 1.25rem;
     }
-    
+
     .restaurants-grid {
         grid-template-columns: 1fr;
         gap: var(--space-4);
         margin-bottom: var(--space-4);
     }
-    
+
     .pagination {
         gap: var(--space-3);
         margin-top: var(--space-4);
     }
-    
+
     .pagination-btn {
         padding: var(--space-2) var(--space-3);
         font-size: 0.9rem;
     }
-    
+
     .empty-state {
         padding: var(--space-8) var(--space-2);
     }
-    
+
     .empty-icon {
         font-size: 3rem;
     }
-    
+
     .empty-state h4 {
         font-size: 1.1rem;
     }
@@ -4916,16 +5129,18 @@ body {
     .restaurants-grid {
         gap: var(--space-3);
     }
-    
+
     .pagination {
         flex-direction: column;
         gap: var(--space-2);
     }
-    
+
     .pagination-info {
         order: -1;
     }
-}/* =
+}
+
+/* =
 ==== 폼 스타일 ===== */
 .form-view {
     background: white;
@@ -4974,17 +5189,17 @@ body {
     .form-view {
         padding: var(--space-6);
     }
-    
+
     .form-header {
         flex-direction: column;
         align-items: flex-start;
         gap: var(--space-3);
     }
-    
+
     .form-header h2 {
         font-size: 1.5rem;
     }
-    
+
     .btn-back {
         align-self: flex-start;
     }
@@ -4994,7 +5209,7 @@ body {
     .form-view {
         padding: var(--space-4);
     }
-    
+
     .form-header h2 {
         font-size: 1.25rem;
     }
@@ -5105,33 +5320,33 @@ body {
     .modal-overlay {
         padding: var(--space-3);
     }
-    
+
     .modal-content {
         max-width: none;
         margin: 0;
     }
-    
+
     .modal-header {
         padding: var(--space-4) var(--space-4) var(--space-3);
     }
-    
+
     .modal-header h3 {
         font-size: 1.25rem;
     }
-    
+
     .modal-body {
         padding: var(--space-4);
     }
-    
+
     .modal-body p {
         font-size: 1rem;
     }
-    
+
     .modal-footer {
         padding: var(--space-3) var(--space-4) var(--space-4);
         flex-direction: column-reverse;
     }
-    
+
     .modal-btn {
         width: 100%;
         justify-content: center;
@@ -5197,6 +5412,7 @@ textarea:focus-visible {
 
 /* 터치 디바이스 최적화 */
 @media (hover: none) and (pointer: coarse) {
+
     .action-btn:hover,
     .btn-random:hover,
     .modal-btn:hover,
@@ -5204,7 +5420,7 @@ textarea:focus-visible {
     .btn-change-user:hover {
         transform: none;
     }
-    
+
     .action-btn:active,
     .btn-random:active,
     .modal-btn:active,
@@ -5212,7 +5428,9 @@ textarea:focus-visible {
     .btn-change-user:active {
         transform: scale(0.98);
     }
-}/* 
+}
+
+/* 
 ===== 서브 페이지 헤더 스타일 (돌아가기 버튼 포함) ===== */
 .header {
     margin-bottom: var(--space-8);
@@ -5267,17 +5485,17 @@ textarea:focus-visible {
         margin-bottom: var(--space-6);
         padding-bottom: var(--space-4);
     }
-    
+
     .header-content {
         flex-direction: column;
         align-items: stretch;
         gap: var(--space-3);
     }
-    
+
     .header-left .btn-back {
         margin-bottom: var(--space-2);
     }
-    
+
     .subpage-header .header-left {
         gap: var(--space-2);
     }
@@ -5287,7 +5505,9 @@ textarea:focus-visible {
     .header-left .btn-back {
         margin-bottom: var(--space-2);
     }
-}/* ===
+}
+
+/* ===
 == 폼 헤더 스타일 개선 ===== */
 .form-header {
     display: flex;
@@ -5317,7 +5537,7 @@ textarea:focus-visible {
         margin-bottom: var(--space-4);
         padding-bottom: var(--space-3);
     }
-    
+
     .form-header h2 {
         font-size: 1.5rem;
     }
@@ -5326,5 +5546,2051 @@ textarea:focus-visible {
 @media (max-width: 480px) {
     .form-header h2 {
         font-size: 1.25rem;
+    }
+}
+
+/* =====
+ UserLogin 모달 스타일 ===== */
+.user-login-container .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    padding: var(--space-4);
+}
+
+.user-login-container .modal-content {
+    background: white;
+    border-radius: var(--radius-2xl);
+    box-shadow: var(--shadow-2xl);
+    max-width: 400px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.user-login-container .modal-header {
+    padding: var(--space-6) var(--space-6) var(--space-4);
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.user-login-container .modal-header h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--gray-800);
+    margin: 0;
+}
+
+.user-login-container .modal-header.error {
+    background: linear-gradient(135deg, var(--error-50), var(--error-100));
+    color: var(--error-800);
+    border-bottom-color: var(--error-200);
+}
+
+.user-login-container .modal-body {
+    padding: var(--space-6);
+}
+
+.user-login-container .modal-body p {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: var(--gray-700);
+    margin: 0;
+}
+
+.user-login-container .modal-footer {
+    padding: var(--space-4) var(--space-6) var(--space-6);
+    display: flex;
+    justify-content: flex-end;
+}
+
+.user-login-container .modal-btn {
+    padding: var(--space-3) var(--space-6);
+    border: none;
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.user-login-container .modal-btn.confirm {
+    background: var(--primary-500);
+    color: white;
+}
+
+.user-login-container .modal-btn.confirm:hover {
+    background: var(--primary-600);
+    transform: translateY(-1px);
+}
+
+/* 모바일 반응형 */
+@media (max-width: 768px) {
+    .user-login-container .modal-overlay {
+        padding: var(--space-3);
+    }
+
+    .user-login-container .modal-content {
+        max-width: none;
+        margin: 0;
+    }
+
+    .user-login-container .modal-header {
+        padding: var(--space-4) var(--space-4) var(--space-3);
+    }
+
+    .user-login-container .modal-header h3 {
+        font-size: 1.25rem;
+    }
+
+    .user-login-container .modal-body {
+        padding: var(--space-4);
+    }
+
+    .user-login-container .modal-body p {
+        font-size: 1rem;
+    }
+
+    .user-login-container .modal-footer {
+        padding: var(--space-3) var(--space-4) var(--space-4);
+    }
+
+    .user-login-container .modal-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* 전체 앱 패딩 조정 - 더 컴팩트하게 */
+    .app {
+        padding: var(--space-1);
+        background: white !important;
+    }
+
+    .container {
+        padding: var(--space-3);
+        border-radius: var(--radius-md);
+    }
+
+    /* 헤더 모바일 최적화 - 더 작게 */
+    .header {
+        margin-bottom: var(--space-3);
+        padding-bottom: var(--space-2);
+    }
+
+    .title {
+        font-size: 1.4rem;
+        margin-bottom: var(--space-1);
+    }
+
+    .user-greeting {
+        font-size: 0.8rem;
+    }
+
+    .btn-change-user {
+        padding: var(--space-1) var(--space-2);
+        font-size: 0.75rem;
+        min-height: 36px;
+    }
+
+    /* 히어로 섹션 모바일 최적화 - 더 컴팩트하게 */
+    .hero-section {
+        padding: var(--space-4);
+
+        b .hero-placeholder h2,
+        .selected-result h2,
+        .spinning-wheel h2 {
+            font-size: 1.2rem;
+            margin-bottom: var(--space-2);
+        }
+
+        .hero-placeholder p,
+        .spinning-wheel p {
+            font-size: 0.85rem;
+            margin-bottom: var(--space-3);
+        }
+
+        .btn-random {
+            padding: var(--space-2) var(--space-4);
+            font-size: 0.9rem;
+            min-width: 140px;
+            min-height: 40px;
+        }
+
+        /* 액션 버튼 모바일 최적화 - 앱처럼 작고 깔끔하게 */
+        .action-section {
+            padding: var(--space-3);
+            margin: var(--space-3) 0;
+        }
+
+        .action-grid {
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--space-2);
+        }
+
+        .action-btn {
+            padding: var(--space-2);
+            min-height: 70px;
+            border-radius: var(--radius-lg);
+        }
+
+        .action-icon {
+            font-size: 1.4rem;
+            margin-bottom: var(--space-1);
+        }
+
+        .action-text {
+            font-size: 0.7rem;
+            line-height: 1.2;
+            font-weight: 500;
+        }
+
+        /* 필터 섹션 모바일 최적화 - 더 컴팩트하게 */
+        .filter-section {
+            padding: var(--space-3);
+        }
+
+        .filter-header h3 {
+            font-size: 1rem;
+            margin-bottom: var(--space-2);
+        }
+
+        .filter-controls {
+            grid-template-columns: 1fr;
+            gap: var(--space-2);
+        }
+
+        .search-input,
+        .filter-select,
+        .sort-select {
+            padding: var(--space-2);
+            font-size: 0.85rem;
+            min-height: 40px;
+            border-radius: var(--radius-md);
+        }
+
+        /* 가게 목록 모바일 최적화 - 더 컴팩트하게 */
+        .restaurants-section {
+            padding: var(--space-3);
+        }
+
+        .section-header h3 {
+            font-size: 1rem;
+        }
+
+        .restaurants-grid {
+            grid-template-columns: 1fr;
+            gap: var(--space-3);
+        }
+
+        /* 가게 카드 모바일 최적화 - 더 작고 깔끔하게 */
+        .restaurant-card {
+            border-radius: var(--radius-lg);
+            margin-bottom: var(--space-2);
+        }
+
+        .restaurant-image {
+            height: 140px;
+        }
+
+        .restaurant-actions {
+            top: var(--space-2);
+            right: var(--space-2);
+            gap: var(--space-1);
+        }
+
+        .btn-edit,
+        .btn-delete {
+            padding: var(--space-1);
+            font-size: 1rem;
+            min-width: 32px;
+            min-height: 32px;
+            border-radius: var(--radius-md);
+        }
+
+        .restaurant-info {
+            padding: var(--space-3);
+        }
+
+        .restaurant-name {
+            font-size: 1rem;
+            margin-bottom: var(--space-1);
+        }
+
+        .restaurant-distance {
+            font-size: 0.8rem;
+            margin-bottom: var(--space-2);
+        }
+
+        .restaurant-description {
+            font-size: 0.75rem;
+            margin-bottom: var(--space-2);
+            line-height: 1.3;
+        }
+
+        .restaurant-stats {
+            gap: var(--space-2);
+            font-size: 0.7rem;
+        }
+
+        /* 페이지네이션 모바일 최적화 - 한 줄에 모두 표시 */
+        .pagination {
+            flex-direction: row;
+            gap: var(--space-1);
+            margin-top: var(--space-3);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .pagination-btn {
+            padding: var(--space-1) var(--space-2);
+            min-height: 32px;
+            font-size: 0.75rem;
+            min-width: 50px;
+            flex-shrink: 0;
+        }
+
+        .pagination-info {
+            font-size: 0.75rem;
+            padding: var(--space-1);
+            min-width: 40px;
+            text-align: center;
+        }
+
+        /* 폼 모바일 최적화 - 더 컴팩트하게 */
+        .form-view {
+            padding: var(--space-3);
+        }
+
+        .form-header {
+            margin-bottom: var(--space-3);
+            padding-bottom: var(--space-2);
+        }
+
+        .form-header h2 {
+            font-size: 1.1rem;
+        }
+
+        .btn-back {
+            padding: var(--space-1) var(--space-2);
+            font-size: 0.8rem;
+            min-height: 36px;
+        }
+
+        /* 모달 모바일 최적화 - 더 컴팩트하게 */
+        .modal-overlay {
+            padding: var(--space-2);
+        }
+
+        .modal-content {
+            border-radius: var(--radius-lg);
+            max-width: none;
+            width: 100%;
+        }
+
+        .modal-header {
+            padding: var(--space-3);
+        }
+
+        .modal-header h3 {
+            font-size: 1rem;
+        }
+
+        .modal-body {
+            padding: var(--space-3);
+        }
+
+        .modal-body p {
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        .modal-footer {
+            padding: var(--space-2) var(--space-3) var(--space-3);
+            flex-direction: column-reverse;
+            gap: var(--space-2);
+        }
+
+        .modal-btn {
+            width: 100%;
+            padding: var(--space-2);
+            min-height: 40px;
+            font-size: 0.9rem;
+            justify-content: center;
+        }
+    }
+
+    /* 작은 모바일 화면 (480px 이하) 추가 최적화 - 더욱 컴팩트하게 */
+    @media (max-width: 480px) {
+        .app {
+            padding: 2px;
+            background: white !important;
+        }
+
+        .container {
+            padding: var(--space-2);
+            border-radius: var(--radius-sm);
+        }
+
+        .title {
+            font-size: 1.2rem;
+        }
+
+        .hero-section {
+            padding: var(--space-3);
+        }
+
+        .hero-placeholder h2,
+        .selected-result h2,
+        .spinning-wheel h2 {
+            font-size: 1.1rem;
+        }
+
+        .action-grid {
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--space-1);
+        }
+
+        .action-btn {
+            min-height: 60px;
+            padding: var(--space-1);
+        }
+
+        .action-icon {
+            font-size: 1.2rem;
+        }
+
+        .action-text {
+            font-size: 0.65rem;
+            font-weight: 600;
+        }
+
+        .restaurant-image {
+            height: 120px;
+        }
+
+        .restaurant-info {
+            padding: var(--space-2);
+        }
+
+        .restaurant-name {
+            font-size: 0.9rem;
+        }
+
+        .restaurant-stats {
+            gap: var(--space-1);
+            font-size: 0.65rem;
+        }
+
+        /* 페이지네이션 480px 이하 최적화 */
+        .pagination {
+            gap: 4px !important;
+            padding: var(--space-1) !important;
+        }
+
+        .pagination-btn {
+            padding: 4px 8px !important;
+            min-height: 28px !important;
+            font-size: 0.7rem !important;
+            min-width: 40px !important;
+        }
+
+        .pagination-info {
+            font-size: 0.7rem !important;
+            min-width: 35px !important;
+        }
+    }
+
+    /* 터치 디바이스 전용 최적화 */
+    @media (hover: none) and (pointer: coarse) {
+
+        /* 터치 타겟 크기 최적화 */
+        .action-btn,
+        .btn-random,
+        .btn-change-user,
+        .btn-back,
+        .pagination-btn,
+        .modal-btn,
+        .search-input,
+        .filter-select,
+        .sort-select {
+            min-height: 44px;
+            /* iOS 권장 최소 터치 타겟 크기 */
+        }
+
+        .btn-edit,
+        .btn-delete {
+            min-width: 44px;
+            min-height: 44px;
+        }
+
+        /* 호버 효과 제거, 탭 효과로 대체 */
+        .action-btn:hover,
+        .restaurant-card:hover,
+        .btn-random:hover,
+        .modal-btn:hover {
+            transform: none;
+        }
+
+        .action-btn:active,
+        .restaurant-card:active,
+        .btn-random:active,
+        .modal-btn:active {
+            transform: scale(0.98);
+            transition: transform 0.1s ease;
+        }
+
+        /* 터치 시 시각적 피드백 */
+        .action-btn:active {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        /* 스크롤 영역 터치 최적화 */
+        .restaurants-grid,
+        .modal-content {
+            -webkit-overflow-scrolling: touch;
+        }
+    }
+
+    /* 가로 모드 모바일 최적화 */
+    @media (max-width: 768px) and (orientation: landscape) {
+        .hero-section {
+            padding: var(--space-4) var(--space-6);
+        }
+
+        .action-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .action-btn {
+            min-height: 80px;
+        }
+
+        .restaurants-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-3);
+        }
+    }
+
+    /* ===== 카드 뽑기 게임 모바일 최적화 ===== */
+    @media (max-width: 768px) {
+        .card-game-section {
+            padding: var(--space-2) 0;
+            margin-top: 0;
+        }
+
+        .card-game-container {
+            padding: 0 var(--space-2);
+            margin-top: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
+        .game-instructions {
+            margin-bottom: var(--space-3);
+            text-align: center;
+            width: 100%;
+        }
+
+        .game-instructions h2 {
+            font-size: 1.3rem;
+            margin-bottom: var(--space-2);
+        }
+
+        .game-instructions p {
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .card-game-section .cards-grid {
+            display: grid !important;
+            grid-template-columns: repeat(3, 1fr) !important;
+            gap: 8px !important;
+            margin-bottom: var(--space-3) !important;
+            width: 100% !important;
+            max-width: 300px !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+            justify-items: stretch !important;
+            align-items: stretch !important;
+            padding: 0 !important;
+        }
+
+        .card-game-section .card {
+            height: 80px !important;
+            width: 100% !important;
+            aspect-ratio: 1 !important;
+            border-radius: var(--radius-md) !important;
+        }
+
+        .card-game-section .card-inner {
+            border-radius: var(--radius-md) !important;
+        }
+
+        .card-game-section .card-back,
+        .card-game-section .card-front {
+            border-radius: var(--radius-md) !important;
+            padding: var(--space-1) !important;
+        }
+
+        .card-game-section .card-pattern {
+            font-size: 1.5rem !important;
+            margin-bottom: 0 !important;
+        }
+
+        .card-game-section .card-text {
+            font-size: 1.2rem !important;
+        }
+
+        .card-game-section .restaurant-emoji {
+            font-size: 1.2rem !important;
+            margin-bottom: 0 !important;
+        }
+
+        .card-game-section .restaurant-name {
+            font-size: 0.6rem !important;
+            line-height: 1 !important;
+            margin-bottom: 2px !important;
+        }
+
+        .card-game-section .restaurant-category {
+            font-size: 0.5rem !important;
+            padding: 1px 3px !important;
+        }
+
+        .game-controls {
+            margin-top: var(--space-4);
+        }
+
+        .btn-shuffle {
+            padding: var(--space-3) var(--space-5);
+            font-size: 1rem;
+            min-width: 180px;
+            min-height: 48px;
+        }
+
+        /* 카드 터치 최적화 */
+        .card:active {
+            transform: scale(0.95);
+            transition: transform 0.1s ease;
+        }
+
+        .card.disabled {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .card-game-container {
+            padding: 0 var(--space-1) !important;
+        }
+
+        .card-game-section .cards-grid {
+            grid-template-columns: repeat(3, 1fr) !important;
+            gap: 6px !important;
+            max-width: 250px !important;
+        }
+
+        .card-game-section .card {
+            height: 70px !important;
+        }
+
+        .card-game-section .card-pattern {
+            font-size: 1.2rem !important;
+        }
+
+        .card-game-section .card-text {
+            font-size: 1rem !important;
+        }
+
+        .card-game-section .restaurant-emoji {
+            font-size: 1rem !important;
+        }
+
+        .card-game-section .restaurant-name {
+            font-size: 0.5rem !important;
+            line-height: 1 !important;
+        }
+
+        .card-game-section .restaurant-category {
+            font-size: 0.4rem !important;
+            padding: 1px 2px !important;
+        }
+
+        .restaurant-category {
+            font-size: 0.6rem;
+        }
+
+        .btn-shuffle {
+            width: 100%;
+            min-width: auto;
+        }
+    }
+
+    /* ===== 서브 페이지 공통 모바일 최적화 ===== */
+    @media (max-width: 768px) {
+
+        /* 서브 페이지 헤더 */
+        .subpage-header {
+            margin-bottom: var(--space-2);
+            padding-bottom: var(--space-2);
+        }
+
+        .subpage-header .header-left {
+            gap: var(--space-1);
+        }
+
+        .subpage-header .btn-back {
+            margin-bottom: var(--space-1);
+            padding: var(--space-1) var(--space-2);
+            font-size: 0.8rem;
+            min-height: 36px;
+        }
+
+        .subpage-header .title {
+            font-size: 1.3rem;
+            margin-bottom: var(--space-1);
+        }
+
+        .subpage-header .user-greeting {
+            font-size: 0.8rem;
+        }
+
+        /* 정보 섹션 모바일 최적화 */
+        .info-section {
+            margin-top: var(--space-4);
+        }
+
+        .info-card {
+            padding: var(--space-4);
+            border-radius: var(--radius-lg);
+        }
+
+        .info-card h3 {
+            font-size: 1.2rem;
+            margin-bottom: var(--space-3);
+            text-align: center;
+        }
+
+        .info-card ul {
+            padding-left: 0;
+            list-style: none;
+        }
+
+        .info-card li {
+            font-size: 0.9rem;
+            line-height: 1.6;
+            margin-bottom: var(--space-3);
+            padding: var(--space-3);
+            background: var(--gray-50);
+            border-radius: var(--radius-lg);
+            border-left: 4px solid var(--primary-500);
+            display: flex;
+            align-items: flex-start;
+            gap: var(--space-2);
+        }
+
+        .info-card li strong {
+            color: var(--primary-600);
+            font-weight: 700;
+            min-width: 60px;
+            display: inline-block;
+        }
+
+        /* 텍스트 줄바꿈 방지 */
+        .info-card li {
+            word-break: keep-all;
+            overflow-wrap: break-word;
+        }
+
+        /* 결과 섹션 모바일 최적화 */
+        .result-section {
+            margin-top: var(--space-4);
+        }
+
+        .result-card {
+            padding: var(--space-4);
+            border-radius: var(--radius-lg);
+        }
+
+        .result-card h2 {
+            font-size: 1.3rem;
+            margin-bottom: var(--space-3);
+        }
+
+        .selected-restaurant img {
+            border-radius: var(--radius-lg);
+            max-height: 200px;
+        }
+
+        .restaurant-info h3 {
+            font-size: 1.2rem;
+        }
+
+        .restaurant-info p {
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+    }
+
+    /* ===== 접근성 및 사용성 개선 ===== */
+    @media (max-width: 768px) {
+
+        /* 포커스 표시 개선 */
+        button:focus-visible,
+        input:focus-visible,
+        select:focus-visible {
+            outline: 3px solid var(--primary-500);
+            outline-offset: 2px;
+        }
+
+        /* 텍스트 선택 방지 (터치 시 불필요한 선택 방지) */
+        .action-btn,
+        .restaurant-card,
+        .card,
+        .btn-random,
+        .modal-btn {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* 스크롤 개선 */
+        .main-content {
+            scroll-behavior: smooth;
+            gap: var(--space-2);
+        }
+
+        /* 입력 필드 줌 방지 (iOS) */
+        input[type="text"],
+        input[type="password"],
+        select,
+        textarea {
+            font-size: 16px;
+            /* iOS에서 줌 방지 */
+        }
+    }
+
+    /*=====카드 게임 모바일 UI 개선 - 균등한 크기와 위치=====*/
+    @media (max-width: 768px) {
+        .cards-grid {
+            display: grid !important;
+            grid-template-columns: repeat(3, 1fr) !important;
+            gap: var(--space-2) !important;
+            margin-bottom: var(--space-3) !important;
+            padding: var(--space-2) !important;
+            max-width: 100% !important;
+        }
+
+        .card {
+            width: 100% !important;
+            height: 120px !important;
+            border-radius: var(--radius-lg) !important;
+            box-shadow: var(--shadow-sm) !important;
+            aspect-ratio: 1 !important;
+        }
+
+        .card-inner {
+            border-radius: var(--radius-lg) !important;
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        .card-back,
+        .card-front {
+            border-radius: var(--radius-lg) !important;
+            padding: var(--space-2) !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+
+        .card-pattern {
+            font-size: 1.8rem !important;
+            margin-bottom: var(--space-1) !important;
+        }
+
+        .card-text {
+            font-size: 1.4rem !important;
+            font-weight: 800 !important;
+        }
+
+        .card .restaurant-emoji {
+            font-size: 1.5rem !important;
+            margin-bottom: var(--space-1) !important;
+        }
+
+        .card .restaurant-name {
+            font-size: 0.7rem !important;
+            line-height: 1.2 !important;
+            margin-bottom: var(--space-1) !important;
+            font-weight: 600 !important;
+            text-align: center !important;
+            word-break: keep-all !important;
+            overflow-wrap: break-word !important;
+            max-width: 100% !important;
+        }
+
+        .card .restaurant-category {
+            font-size: 0.6rem !important;
+            padding: 2px 6px !important;
+            border-radius: var(--radius-sm) !important;
+            font-weight: 500 !important;
+        }
+
+        .game-instructions {
+            margin-bottom: var(--space-3) !important;
+            text-align: center !important;
+            padding: var(--space-3) !important;
+            background: white !important;
+            border-radius: var(--radius-lg) !important;
+            border: 1px solid var(--gray-200) !important;
+        }
+
+        .game-instructions h2 {
+            font-size: 1.1rem !important;
+            margin-bottom: var(--space-2) !important;
+            color: var(--gray-800) !important;
+        }
+
+        .game-instructions p {
+            font-size: 0.8rem !important;
+            line-height: 1.4 !important;
+            color: var(--gray-700) !important;
+        }
+
+        .btn-shuffle {
+            padding: var(--space-2) var(--space-4) !important;
+            font-size: 0.9rem !important;
+            min-width: 160px !important;
+            min-height: 40px !important;
+            border-radius: var(--radius-lg) !important;
+            font-weight: 600 !important;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .cards-grid {
+            grid-template-columns: repeat(3, 1fr) !important;
+            gap: var(--space-1) !important;
+            padding: var(--space-1) !important;
+        }
+
+        .card {
+            height: 100px !important;
+        }
+
+        .card-pattern {
+            font-size: 1.5rem !important;
+        }
+
+        .card-text {
+            font-size: 1.2rem !important;
+        }
+
+        .card .restaurant-emoji {
+            font-size: 1.3rem !important;
+        }
+
+        .card .restaurant-name {
+            font-size: 0.6rem !important;
+            line-height: 1.1 !important;
+        }
+
+        .card .restaurant-category {
+            font-size: 0.5rem !important;
+            padding: 1px 4px !important;
+        }
+
+        .btn-shuffle {
+            width: 100% !important;
+            min-width: auto !important;
+            padding: var(--space-2) !important;
+            font-size: 0.85rem !important;
+        }
+
+        .game-instructions {
+            padding: var(--space-2) !important;
+            margin-bottom: var(--space-2) !important;
+        }
+
+        .game-instructions h2 {
+            font-size: 1rem !important;
+        }
+
+        .game-instructions p {
+            font-size: 0.75rem !important;
+        }
+    }
+
+    /* =
+==== 페이지네이션 모바일 UI 개선 ===== */
+    @media (max-width: 768px) {
+        .pagination {
+            display: flex !important;
+            flex-direction: row !important;
+            justify-content: center !important;
+            align-items: center !important;
+            gap: var(--space-4) !important;
+            margin-top: var(--space-4) !important;
+            padding: var(--space-3) !important;
+            background: var(--gray-50) !important;
+            border-radius: var(--radius-xl) !important;
+        }
+
+        .pagination-btn {
+            padding: var(--space-3) var(--space-4) !important;
+            min-height: 48px !important;
+            font-size: 0.95rem !important;
+            border-radius: var(--radius-lg) !important;
+            min-width: 80px !important;
+            flex-shrink: 0 !important;
+        }
+
+        .pagination-info {
+            font-size: 0.9rem !important;
+            font-weight: 600 !important;
+            color: var(--gray-700) !important;
+            min-width: 60px !important;
+            text-align: center !important;
+            order: 0 !important;
+        }
+
+        .pagination-btn:first-child {
+            order: -1 !important;
+        }
+
+        .pagination-btn:last-child {
+            order: 1 !important;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .pagination {
+            flex-direction: column !important;
+            gap: var(--space-3) !important;
+        }
+
+        .pagination-info {
+            order: -1 !important;
+            font-size: 1rem !important;
+        }
+
+        .pagination-btn {
+            width: 100% !important;
+            min-width: auto !important;
+        }
+    }
+
+    /* ==
+=== 가게 카드 모바일 UI 개선 ===== */
+    @media (max-width: 768px) {
+        .restaurant-card {
+            border-radius: var(--radius-xl) !important;
+            margin-bottom: var(--space-4) !important;
+            box-shadow: var(--shadow-lg) !important;
+            overflow: hidden !important;
+        }
+
+        .restaurant-image {
+            height: 200px !important;
+            position: relative !important;
+        }
+
+        .restaurant-image img {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+        }
+
+        .restaurant-actions {
+            top: var(--space-3) !important;
+            right: var(--space-3) !important;
+            gap: var(--space-2) !important;
+        }
+
+        .btn-edit,
+        .btn-delete {
+            padding: var(--space-2) !important;
+            font-size: 1.2rem !important;
+            min-width: 44px !important;
+            min-height: 44px !important;
+            border-radius: var(--radius-lg) !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+
+        .restaurant-info {
+            padding: var(--space-5) !important;
+        }
+
+        .restaurant-name {
+            font-size: 1.2rem !important;
+            margin-bottom: var(--space-2) !important;
+            font-weight: 700 !important;
+            line-height: 1.3 !important;
+            word-break: keep-all !important;
+        }
+
+        .restaurant-distance {
+            font-size: 0.95rem !important;
+            margin-bottom: var(--space-3) !important;
+            color: var(--gray-600) !important;
+        }
+
+        .restaurant-description {
+            font-size: 0.9rem !important;
+            margin-bottom: var(--space-4) !important;
+            line-height: 1.5 !important;
+            color: var(--gray-700) !important;
+            display: -webkit-box !important;
+            -webkit-line-clamp: 2 !important;
+            line-clamp: 2 !important;
+            -webkit-box-orient: vertical !important;
+            overflow: hidden !important;
+        }
+
+        .restaurant-stats {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            gap: var(--space-3) !important;
+            font-size: 0.85rem !important;
+            font-weight: 600 !important;
+        }
+
+        .restaurant-stats span {
+            display: flex !important;
+            align-items: center !important;
+            gap: var(--space-1) !important;
+            color: var(--gray-600) !important;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .restaurant-image {
+            height: 180px !important;
+        }
+
+        .restaurant-info {
+            padding: var(--space-4) !important;
+        }
+
+        .restaurant-name {
+            font-size: 1.1rem !important;
+        }
+
+        .restaurant-distance {
+            font-size: 0.9rem !important;
+        }
+
+        .restaurant-description {
+            font-size: 0.85rem !important;
+        }
+
+        .restaurant-stats {
+            font-size: 0.8rem !important;
+            flex-wrap: wrap !important;
+            gap: var(--space-2) !important;
+        }
+    }
+
+
+    /* ===== 액션 버튼 모바일 UI 개선 - 앱처럼 컴팩트하게 ===== */
+    @media (max-width: 768px) {
+        .action-section {
+            padding: var(--space-3) !important;
+            /* margin: var(--space-3) 0 !important; */
+            border-radius: var(--radius-lg) !important;
+        }
+
+        .action-grid {
+            grid-template-columns: repeat(3, 1fr) !important;
+            gap: var(--space-2) !important;
+            max-width: none !important;
+        }
+
+        .action-btn {
+            padding: var(--space-2) !important;
+            min-height: 70px !important;
+            border-radius: var(--radius-lg) !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            text-align: center !important;
+            box-shadow: var(--shadow-sm) !important;
+        }
+
+        .action-icon {
+            font-size: 1.4rem !important;
+            margin-bottom: var(--space-1) !important;
+            display: block !important;
+        }
+
+        .action-text {
+            font-size: 0.7rem !important;
+            line-height: 1.2 !important;
+            font-weight: 500 !important;
+            word-break: keep-all !important;
+        }
+
+        /* 개별 버튼 색상 유지 */
+        .add-btn {
+            background: linear-gradient(135deg, var(--success-500), var(--success-600)) !important;
+            color: white !important;
+        }
+
+        .game-btn {
+            background: linear-gradient(135deg, #8b5cf6, #ec4899) !important;
+            color: white !important;
+        }
+
+        .review-btn {
+            background: linear-gradient(135deg, var(--warning-500), var(--warning-600)) !important;
+            color: white !important;
+        }
+
+        .feedback-btn {
+            background: linear-gradient(135deg, var(--primary-500), var(--primary-600)) !important;
+            color: white !important;
+        }
+
+        .calendar-btn {
+            background: linear-gradient(135deg, var(--secondary-500), var(--secondary-600)) !important;
+            color: white !important;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .action-grid {
+            grid-template-columns: repeat(3, 1fr) !important;
+            gap: var(--space-1) !important;
+        }
+
+        .action-btn {
+            min-height: 60px !important;
+            padding: var(--space-1) !important;
+            flex-direction: column !important;
+            justify-content: center !important;
+            text-align: center !important;
+        }
+
+        .action-icon {
+            font-size: 1.2rem !important;
+            margin-bottom: var(--space-1) !important;
+            margin-right: 0 !important;
+            flex-shrink: 0 !important;
+        }
+
+        .action-text {
+            font-size: 0.65rem !important;
+            font-weight: 600 !important;
+            flex: none !important;
+        }
+    }
+}
+
+/* 페
+이지네이션 강제 한 줄 배치 - 모든 화면 크기 */
+.pagination {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: center !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+}
+
+.pagination>* {
+    flex-shrink: 0 !important;
+}
+
+/* 모바일에서 페이지네이션 한 줄 강제 */
+@media (max-width: 768px) {
+    .pagination {
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        gap: 8px !important;
+        flex-wrap: nowrap !important;
+        padding: var(--space-2) var(--space-4) !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .pagination-btn,
+    .pagination button {
+        flex: 1 !important;
+        max-width: 80px !important;
+        min-width: 60px !important;
+        padding: 8px 4px !important;
+        font-size: 0.75rem !important;
+        white-space: nowrap !important;
+        text-overflow: ellipsis !important;
+        overflow: hidden !important;
+    }
+
+    .pagination-info,
+    .pagination span {
+        flex: 0 0 auto !important;
+        min-width: 50px !important;
+        text-align: center !important;
+        font-size: 0.75rem !important;
+        white-space: nowrap !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .pagination {
+        gap: 4px !important;
+        padding: var(--space-1) var(--space-2) !important;
+    }
+
+    .pagination-btn,
+    .pagination button {
+        max-width: 60px !important;
+        min-width: 45px !important;
+        padding: 6px 2px !important;
+        font-size: 0.7rem !important;
+    }
+
+    .pagination-info,
+    .pagination span {
+        min-width: 40px !important;
+        font-size: 0.7rem !important;
+    }
+}
+
+/* 필터 섹션 모바일 한 줄 배치 강제 */
+@media (max-width: 768px) {
+    .filter-section {
+        padding: var(--space-3) !important;
+    }
+
+    .filter-header h3 {
+        font-size: 1rem !important;
+        margin-bottom: var(--space-2) !important;
+    }
+
+    .filter-controls {
+        display: grid !important;
+        grid-template-columns: 2fr 1fr 1fr !important;
+        gap: var(--space-2) !important;
+        align-items: center !important;
+        width: 100% !important;
+    }
+
+    .search-input,
+    .filter-select,
+    .sort-select {
+        padding: var(--space-2) !important;
+        font-size: 0.8rem !important;
+        min-height: 36px !important;
+        border-radius: var(--radius-md) !important;
+        flex-shrink: 0 !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .search-input {
+        min-width: 0 !important;
+    }
+
+    .filter-select,
+    .sort-select {
+        min-width: 80px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .filter-controls {
+        grid-template-columns: 1.5fr 1fr 1fr !important;
+        gap: var(--space-1) !important;
+    }
+
+    .search-input,
+    .filter-select,
+    .sort-select {
+        padding: var(--space-1) !important;
+        font-size: 0.75rem !important;
+        min-height: 32px !important;
+    }
+
+    .filter-select,
+    .sort-select {
+        min-width: 70px !important;
+    }
+}
+
+/* 필터 컨트롤 기본 스타일 강화 */
+.filter-controls {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: var(--space-4);
+    align-items: center;
+}
+
+.search-input,
+.filter-select,
+.sort-select {
+    padding: var(--space-3) var(--space-4);
+    border: 2px solid var(--gray-200);
+    border-radius: var(--radius-xl);
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    background: white;
+}
+
+.search-input:focus,
+.filter-select:focus,
+.sort-select:focus {
+    outline: none;
+    border-color: var(--primary-500);
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+}
+
+/* 가게 상
+세보기 모바일 최적화 */
+@media (max-width: 768px) {
+    .detail-view {
+        padding: var(--space-3) !important;
+    }
+
+    .detail-header {
+        margin-bottom: var(--space-3) !important;
+        padding-bottom: var(--space-2) !important;
+    }
+
+    .detail-header h2 {
+        font-size: 1.2rem !important;
+    }
+
+    .detail-content {
+        gap: var(--space-4) !important;
+        padding: 0 !important;
+    }
+
+    .detail-main {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: var(--space-4) !important;
+    }
+
+    .restaurant-image-large {
+        width: 100% !important;
+        max-width: 100% !important;
+        aspect-ratio: 16/9 !important;
+        border-radius: var(--radius-lg) !important;
+    }
+
+    .restaurant-image-large img {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+    }
+
+    .restaurant-category-large {
+        top: var(--space-2) !important;
+        right: var(--space-2) !important;
+        padding: var(--space-1) var(--space-2) !important;
+        font-size: 0.75rem !important;
+    }
+
+    .restaurant-info-large {
+        gap: var(--space-3) !important;
+        padding: 0 !important;
+    }
+
+    /* 정보 행들을 더 컴팩트하게 */
+    .info-row {
+        padding: var(--space-2) var(--space-3) !important;
+        margin: var(--space-1) 0 !important;
+        border-radius: var(--radius-md) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+    }
+
+    .info-label {
+        font-size: 0.85rem !important;
+        min-width: 60px !important;
+        padding-left: 0 !important;
+        color: var(--gray-600) !important;
+        font-weight: 500 !important;
+    }
+
+    .info-value {
+        font-size: 0.9rem !important;
+        padding-right: 0 !important;
+        font-weight: 600 !important;
+        color: var(--gray-800) !important;
+        text-align: right !important;
+    }
+
+    .info-link {
+        font-size: 0.85rem !important;
+        text-decoration: none !important;
+        color: var(--primary-600) !important;
+    }
+
+    /* 통계 정보를 가로 배치로 */
+    .restaurant-stats-large {
+        display: grid !important;
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: var(--space-2) !important;
+        padding: var(--space-3) !important;
+        margin: var(--space-2) 0 !important;
+        border-radius: var(--radius-lg) !important;
+    }
+
+    .stat-item {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: var(--space-1) !important;
+        text-align: center !important;
+    }
+
+    .stat-icon {
+        font-size: 1.5rem !important;
+    }
+
+    .stat-text {
+        font-size: 0.75rem !important;
+        font-weight: 600 !important;
+        color: var(--gray-700) !important;
+        padding: 0 !important;
+        line-height: 1.2 !important;
+    }
+
+    .detail-actions {
+        margin-top: var(--space-4) !important;
+        padding: 0 !important;
+        text-align: center !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+    }
+
+    .btn-write-review {
+        width: 100% !important;
+        max-width: 300px !important;
+        padding: var(--space-3) var(--space-4) !important;
+        font-size: 1rem !important;
+        justify-content: center !important;
+        display: flex !important;
+        align-items: center !important;
+        margin: 0 auto !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .detail-view {
+        padding: var(--space-2) !important;
+    }
+
+    .detail-header h2 {
+        font-size: 1.1rem !important;
+    }
+
+    .restaurant-image-large {
+        aspect-ratio: 4/3 !important;
+    }
+
+    .info-row {
+        padding: var(--space-2) !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: var(--space-1) !important;
+    }
+
+    .info-label {
+        font-size: 0.75rem !important;
+        min-width: auto !important;
+        color: var(--gray-500) !important;
+    }
+
+    .info-value {
+        font-size: 0.85rem !important;
+        text-align: left !important;
+    }
+
+    .restaurant-stats-large {
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: var(--space-1) !important;
+        padding: var(--space-2) !important;
+    }
+
+    .stat-item {
+        gap: 2px !important;
+    }
+
+    .stat-icon {
+        font-size: 1.2rem !important;
+    }
+
+    .stat-text {
+        font-size: 0.7rem !important;
+    }
+
+    .btn-write-review {
+        padding: var(--space-2) var(--space-3) !important;
+        font-size: 0.9rem !important;
+    }
+}
+
+/* 리뷰 섹션 모바일 최적화 */
+@media (max-width: 768px) {
+    .reviews-section {
+        padding: var(--space-4) !important;
+        margin: var(--space-3) !important;
+        border-radius: var(--radius-lg) !important;
+    }
+
+    .reviews-header h3 {
+        font-size: 1.1rem !important;
+        margin-bottom: var(--space-3) !important;
+    }
+
+    .review-form {
+        padding: var(--space-4) !important;
+        margin-bottom: var(--space-4) !important;
+    }
+
+    .review-form h4 {
+        font-size: 1rem !important;
+        margin-bottom: var(--space-3) !important;
+    }
+
+    .star-rating {
+        justify-content: center !important;
+        margin-bottom: var(--space-3) !important;
+    }
+
+    .star {
+        font-size: 1.8rem !important;
+    }
+
+    .review-textarea {
+        padding: var(--space-3) !important;
+        font-size: 0.9rem !important;
+        min-height: 100px !important;
+    }
+
+    .review-form-actions {
+        justify-content: center !important;
+        gap: var(--space-2) !important;
+    }
+
+    .btn-cancel,
+    .btn-submit {
+        padding: var(--space-2) var(--space-4) !important;
+        font-size: 0.9rem !important;
+        min-width: 80px !important;
+    }
+
+    .review-item {
+        padding: var(--space-3) !important;
+        margin-bottom: var(--space-3) !important;
+    }
+
+    .review-header {
+        margin-bottom: var(--space-2) !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: var(--space-1) !important;
+    }
+
+    .review-author {
+        gap: var(--space-2) !important;
+    }
+
+    .author-name {
+        font-size: 0.9rem !important;
+    }
+
+    .review-rating {
+        font-size: 0.8rem !important;
+    }
+
+    .review-date {
+        font-size: 0.75rem !important;
+        align-self: flex-end !important;
+    }
+
+    .review-content {
+        font-size: 0.85rem !important;
+        line-height: 1.5 !important;
+        margin-bottom: var(--space-2) !important;
+    }
+
+    .review-actions {
+        gap: var(--space-2) !important;
+    }
+
+    .btn-like {
+        padding: var(--space-1) var(--space-2) !important;
+        font-size: 0.8rem !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .reviews-section {
+        padding: var(--space-3) !important;
+        margin: var(--space-2) !important;
+    }
+
+    .review-form {
+        padding: var(--space-3) !important;
+    }
+
+    .star {
+        font-size: 1.5rem !important;
+    }
+
+    .review-textarea {
+        min-height: 80px !important;
+        font-size: 0.85rem !important;
+    }
+
+    .review-item {
+        padding: var(--space-2) !important;
+    }
+
+    .review-content {
+        font-size: 0.8rem !important;
+    }
+}
+
+/* ====
+= 카드 뽑기 게임 스타일 ===== */
+.card-game-section {
+    padding: var(--space-6) 0;
+}
+
+.card-game-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--space-4);
+}
+
+.game-instructions {
+    text-align: center;
+    margin-bottom: var(--space-6);
+    background: white;
+    padding: var(--space-6);
+    border-radius: var(--radius-2xl);
+    border: 1px solid var(--gray-200);
+}
+
+.game-instructions h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--gray-800);
+    margin-bottom: var(--space-3);
+}
+
+.game-instructions p {
+    font-size: 1.1rem;
+    color: var(--gray-600);
+}
+
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: var(--space-4);
+    margin-bottom: var(--space-6);
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+    aspect-ratio: 4/3;
+}
+
+.card {
+    width: 100%;
+    height: 100%;
+    perspective: 1000px;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    aspect-ratio: 1;
+}
+
+.card:hover:not(.disabled) {
+    transform: translateY(-5px);
+}
+
+.card.disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    transition: transform 0.8s;
+    transform-style: preserve-3d;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+}
+
+.card.flipped .card-inner {
+    transform: rotateY(180deg);
+}
+
+.card-back,
+.card-front {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: var(--radius-xl);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-3);
+}
+
+.card-back {
+    background: linear-gradient(135deg, var(--primary-600), var(--secondary-600));
+    color: white;
+    border: 3px solid var(--primary-700);
+}
+
+.card-front {
+    background: linear-gradient(135deg, var(--success-50), var(--primary-50));
+    color: var(--gray-800);
+    transform: rotateY(180deg);
+    border: 3px solid var(--success-500);
+}
+
+.card-pattern {
+    font-size: 3rem;
+    margin-bottom: var(--space-2);
+    opacity: 0.8;
+}
+
+.card-text {
+    font-size: 2.5rem;
+    font-weight: 800;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.restaurant-emoji {
+    font-size: 2.5rem;
+    margin-bottom: var(--space-2);
+}
+
+.restaurant-name {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: var(--space-1);
+    text-align: center;
+    line-height: 1.3;
+    word-break: keep-all;
+}
+
+.restaurant-category {
+    font-size: 0.8rem;
+    color: var(--gray-600);
+    font-weight: 500;
+    padding: var(--space-1) var(--space-2);
+    background: var(--gray-100);
+    border-radius: var(--radius-lg);
+    display: inline-block;
+}
+
+.game-controls {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-4);
+}
+
+.btn-shuffle {
+    background: linear-gradient(135deg, var(--warning-500), var(--warning-600));
+    color: white;
+    border: none;
+    padding: var(--space-4) var(--space-8);
+    border-radius: var(--radius-xl);
+    font-size: 1.2rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-md);
+    min-width: 200px;
+}
+
+.btn-shuffle:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    background: linear-gradient(135deg, var(--warning-600), var(--warning-500));
+}
+
+.btn-shuffle:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* 모바일 최적화 - 3x4 그리드로 변경 */
+@media (max-width: 768px) {
+    .card-game-container {
+        padding: 0 var(--space-2) !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+    }
+
+    .cards-grid {
+        display: grid !important;
+        grid-template-columns: repeat(3, 1fr) !important;
+        grid-template-rows: repeat(4, 1fr) !important;
+        gap: var(--space-2) !important;
+        width: 90vw !important;
+        max-width: 350px !important;
+        aspect-ratio: 3/4 !important;
+        padding: 0 !important;
+        margin: 0 auto var(--space-4) auto !important;
+        justify-content: center !important;
+        align-content: center !important;
+        place-items: center !important;
+    }
+
+    .card {
+        aspect-ratio: 1 !important;
+        width: 100% !important;
+        height: 100% !important;
+    }
+
+    .card-back,
+    .card-front {
+        padding: var(--space-2) !important;
+    }
+
+    .card-pattern {
+        font-size: 1.5rem !important;
+        margin-bottom: var(--space-1) !important;
+    }
+
+    .card-text {
+        font-size: 1.2rem !important;
+    }
+
+    .restaurant-emoji {
+        font-size: 1.2rem !important;
+        margin-bottom: var(--space-1) !important;
+    }
+
+    .restaurant-name {
+        font-size: 0.65rem !important;
+        line-height: 1.1 !important;
+        margin-bottom: var(--space-1) !important;
+        display: -webkit-box !important;
+        -webkit-line-clamp: 2 !important;
+        line-clamp: 2 !important;
+        -webkit-box-orient: vertical !important;
+        overflow: hidden !important;
+    }
+
+    .restaurant-category {
+        font-size: 0.55rem !important;
+        padding: 1px 4px !important;
+    }
+
+    .game-instructions {
+        padding: var(--space-4) !important;
+        margin-bottom: var(--space-4) !important;
+    }
+
+    .game-instructions h2 {
+        font-size: 1.2rem !important;
+        margin-bottom: var(--space-2) !important;
+    }
+
+    .game-instructions p {
+        font-size: 0.85rem !important;
+    }
+
+    .btn-shuffle {
+        padding: var(--space-3) var(--space-6) !important;
+        font-size: 1rem !important;
+        min-width: 200px !important;
+        margin: 0 auto !important;
+        display: block !important;
+    }
+
+    .game-controls {
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        width: 100% !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .cards-grid {
+        gap: var(--space-1) !important;
+        padding: 0 !important;
+        width: 95vw !important;
+        max-width: 300px !important;
+        margin: 0 auto var(--space-3) auto !important;
+    }
+
+    .card-pattern {
+        font-size: 1.2rem !important;
+    }
+
+    .card-text {
+        font-size: 1rem !important;
+    }
+
+    .restaurant-emoji {
+        font-size: 1rem !important;
+    }
+
+    .restaurant-name {
+        font-size: 0.55rem !important;
+        line-height: 1.1 !important;
+    }
+
+    .restaurant-category {
+        font-size: 0.45rem !important;
+        padding: 1px 3px !important;
+    }
+
+    .btn-shuffle {
+        width: 100% !important;
+        min-width: auto !important;
+        padding: var(--space-3) !important;
+        font-size: 0.9rem !important;
+    }
+
+    .game-instructions {
+        padding: var(--space-3) !important;
+        margin-bottom: var(--space-3) !important;
+    }
+
+    .game-instructions h2 {
+        font-size: 1rem !important;
+    }
+
+    .game-instructions p {
+        font-size: 0.75rem !important;
     }
 }

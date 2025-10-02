@@ -28,11 +28,11 @@ export default function WorldCup() {
                 },
                 ...options
             });
-            
+
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            
+
             return await response.json();
         } catch (error) {
             console.error('API 호출 오류:', error);
@@ -61,10 +61,10 @@ export default function WorldCup() {
     useEffect(() => {
         const initializeData = async () => {
             try {
-                // 사용자 정보 복원
-                const savedUserId = localStorage.getItem('currentUserId');
-                const savedUserName = localStorage.getItem('currentUserName');
-                
+                // 사용자 정보 복원 (세션 스토리지 우선)
+                const savedUserId = sessionStorage.getItem('currentUserId') || localStorage.getItem('currentUserId');
+                const savedUserName = sessionStorage.getItem('currentUserName') || localStorage.getItem('currentUserName');
+
                 if (savedUserId && savedUserName) {
                     setCurrentUser({ _id: savedUserId, name: savedUserName });
                 }
@@ -91,7 +91,7 @@ export default function WorldCup() {
 
         const shuffled = [...restaurants].sort(() => Math.random() - 0.5);
         let gameSize = 16;
-        
+
         if (shuffled.length >= 32) gameSize = 32;
         else if (shuffled.length >= 16) gameSize = 16;
         else if (shuffled.length >= 8) gameSize = 8;
@@ -99,7 +99,7 @@ export default function WorldCup() {
         else gameSize = 2;
 
         const gameRestaurants = shuffled.slice(0, gameSize);
-        
+
         setCurrentRound(gameRestaurants);
         setNextRound([]);
         setCurrentMatch(0);
@@ -127,9 +127,9 @@ export default function WorldCup() {
             round: roundName,
             match: currentMatch + 1,
             winner: restaurant,
-            loser: currentRound[currentMatch * 2] === restaurant ? 
-                   currentRound[currentMatch * 2 + 1] : 
-                   currentRound[currentMatch * 2]
+            loser: currentRound[currentMatch * 2] === restaurant ?
+                currentRound[currentMatch * 2 + 1] :
+                currentRound[currentMatch * 2]
         }];
         setGameHistory(newHistory);
 
@@ -142,7 +142,7 @@ export default function WorldCup() {
                 // 게임 완료
                 setWinner(newNextRound[0]);
                 showModal('success', '🏆 우승!', `${newNextRound[0].name}이(가) 우승했습니다!`);
-                
+
                 // 우승 기록 저장
                 if (currentUser) {
                     try {
@@ -239,7 +239,7 @@ export default function WorldCup() {
                     <header className="header subpage-header">
                         <div className="header-content">
                             <div className="header-left">
-                                <button 
+                                <button
                                     onClick={() => router.push('/')}
                                     className="btn-back"
                                 >
@@ -265,7 +265,7 @@ export default function WorldCup() {
                                         <h2>🏆 가게 월드컵</h2>
                                         <p>두 가게 중 더 좋아하는 곳을 선택하여 최고의 가게를 찾아보세요!</p>
                                     </div>
-                                    
+
                                     <div className="game-info">
                                         <div className="info-item">
                                             <span className="info-icon">🏪</span>
@@ -281,7 +281,7 @@ export default function WorldCup() {
                                         </div>
                                     </div>
 
-                                    <button 
+                                    <button
                                         onClick={startGame}
                                         disabled={restaurants.length < 2}
                                         className="btn-start-game"
@@ -302,8 +302,8 @@ export default function WorldCup() {
                                 <div className="result-content">
                                     <h2>🏆 우승!</h2>
                                     <div className="winner-card">
-                                        <img 
-                                            src={winner.image} 
+                                        <img
+                                            src={winner.image}
                                             alt={winner.name}
                                             onError={(e) => {
                                                 e.target.src = 'https://via.placeholder.com/300x200?text=No+Image';
@@ -317,9 +317,9 @@ export default function WorldCup() {
                                                 <p className="description">{winner.description}</p>
                                             )}
                                             {winner.websiteUrl && (
-                                                <a 
-                                                    href={winner.websiteUrl} 
-                                                    target="_blank" 
+                                                <a
+                                                    href={winner.websiteUrl}
+                                                    target="_blank"
                                                     rel="noopener noreferrer"
                                                     className="winner-website-link"
                                                 >
@@ -328,12 +328,12 @@ export default function WorldCup() {
                                             )}
                                         </div>
                                     </div>
-                                    
+
                                     <div className="result-actions">
                                         <button onClick={resetGame} className="btn-play-again">
                                             🔄 다시 플레이
                                         </button>
-                                        <button 
+                                        <button
                                             onClick={() => router.push('/')}
                                             className="btn-go-home"
                                         >
@@ -349,10 +349,10 @@ export default function WorldCup() {
                                     <h2>{roundName}</h2>
                                     <p>{currentMatch + 1} / {Math.ceil(currentRound.length / 2)} 매치</p>
                                     <div className="progress-bar">
-                                        <div 
+                                        <div
                                             className="progress-fill"
-                                            style={{ 
-                                                width: `${((currentMatch + 1) / Math.ceil(currentRound.length / 2)) * 100}%` 
+                                            style={{
+                                                width: `${((currentMatch + 1) / Math.ceil(currentRound.length / 2)) * 100}%`
                                             }}
                                         ></div>
                                     </div>
@@ -360,14 +360,14 @@ export default function WorldCup() {
 
                                 <div className="match-container">
                                     <div className="vs-text">VS</div>
-                                    
+
                                     <div className="restaurant-options">
-                                        <div 
+                                        <div
                                             className="restaurant-option"
                                             onClick={() => selectRestaurant(currentMatchData.restaurant1)}
                                         >
-                                            <img 
-                                                src={currentMatchData.restaurant1.image} 
+                                            <img
+                                                src={currentMatchData.restaurant1.image}
                                                 alt={currentMatchData.restaurant1.name}
                                                 onError={(e) => {
                                                     e.target.src = 'https://via.placeholder.com/300x200?text=No+Image';
@@ -378,9 +378,9 @@ export default function WorldCup() {
                                                 <p className="category">{currentMatchData.restaurant1.category}</p>
                                                 <p className="distance">🚶‍♂️ {currentMatchData.restaurant1.distance}</p>
                                                 {currentMatchData.restaurant1.websiteUrl && (
-                                                    <a 
-                                                        href={currentMatchData.restaurant1.websiteUrl} 
-                                                        target="_blank" 
+                                                    <a
+                                                        href={currentMatchData.restaurant1.websiteUrl}
+                                                        target="_blank"
                                                         rel="noopener noreferrer"
                                                         className="website-link"
                                                         onClick={(e) => e.stopPropagation()}
@@ -391,12 +391,12 @@ export default function WorldCup() {
                                             </div>
                                         </div>
 
-                                        <div 
+                                        <div
                                             className="restaurant-option"
                                             onClick={() => selectRestaurant(currentMatchData.restaurant2)}
                                         >
-                                            <img 
-                                                src={currentMatchData.restaurant2.image} 
+                                            <img
+                                                src={currentMatchData.restaurant2.image}
                                                 alt={currentMatchData.restaurant2.name}
                                                 onError={(e) => {
                                                     e.target.src = 'https://via.placeholder.com/300x200?text=No+Image';
@@ -407,9 +407,9 @@ export default function WorldCup() {
                                                 <p className="category">{currentMatchData.restaurant2.category}</p>
                                                 <p className="distance">🚶‍♂️ {currentMatchData.restaurant2.distance}</p>
                                                 {currentMatchData.restaurant2.websiteUrl && (
-                                                    <a 
-                                                        href={currentMatchData.restaurant2.websiteUrl} 
-                                                        target="_blank" 
+                                                    <a
+                                                        href={currentMatchData.restaurant2.websiteUrl}
+                                                        target="_blank"
                                                         rel="noopener noreferrer"
                                                         className="website-link"
                                                         onClick={(e) => e.stopPropagation()}

@@ -74,19 +74,41 @@ export default function Feedback() {
     useEffect(() => {
         const initializeData = async () => {
             try {
-                // 사용자 정보 복원
-                const savedUserId = localStorage.getItem('currentUserId');
-                const savedUserName = localStorage.getItem('currentUserName');
+                // 사용자 정보 복원 (세션 스토리지 우선)
+                let savedUserId = sessionStorage.getItem('currentUserId') || localStorage.getItem('currentUserId');
+                let savedUserName = sessionStorage.getItem('currentUserName') || localStorage.getItem('currentUserName');
+                let savedUserRole = sessionStorage.getItem('userRole');
                 
                 if (savedUserId && savedUserName) {
-                    const userResult = await apiCall('/api/users', {
-                        method: 'POST',
-                        body: JSON.stringify({ name: savedUserName })
-                    });
-                    
-                    if (userResult.success) {
-                        setCurrentUser(userResult.data);
-                        setIsAdmin(userResult.data.role === 'admin');
+                    if (savedUserRole) {
+                        // 세션에 역할 정보가 있으면 API 호출 없이 복원
+                        setCurrentUser({
+                            _id: savedUserId,
+                            name: savedUserName,
+                            role: savedUserRole
+                        });
+                        setIsAdmin(savedUserRole === 'admin');
+                    } else {
+                        // 세션에 역할 정보가 없으면 API 호출 (일반 사용자만)
+                        if (savedUserName !== '관리자') {
+                            const userResult = await apiCall('/api/users', {
+                                method: 'POST',
+                                body: JSON.stringify({ name: savedUserName })
+                            });
+                            
+                            if (userResult.success) {
+                                setCurrentUser(userResult.data);
+                                setIsAdmin(userResult.data.role === 'admin');
+                            }
+                        } else {
+                            // 관리자인 경우 세션 정보로만 복원
+                            setCurrentUser({
+                                _id: savedUserId,
+                                name: savedUserName,
+                                role: 'admin'
+                            });
+                            setIsAdmin(true);
+                        }
                     }
                 }
 

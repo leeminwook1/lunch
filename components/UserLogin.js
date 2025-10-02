@@ -9,7 +9,9 @@ const UserLogin = ({
     adminPassword, 
     setAdminPassword, 
     onCheckUserName, 
-    onSetUserName 
+    onSetUserName,
+    errorMessage,
+    onClearError
 }) => {
     const [localUserName, setLocalUserName] = useState(userName);
     const [localAdminPassword, setLocalAdminPassword] = useState(adminPassword);
@@ -108,9 +110,28 @@ const UserLogin = ({
                 </form>
 
                 <div className="login-footer">
-                    <p>💡 관리자 계정으로 로그인하면 가게 관리가 가능합니다</p>
+                    <p>💡 이름을 입력하여 점심메뉴 선택을 시작하세요</p>
                 </div>
             </div>
+
+            {/* 에러 모달 */}
+            {errorMessage && (
+                <div className="modal-overlay" onClick={onClearError}>
+                    <div className="modal-content" onClick={e => e.stopPropagation()}>
+                        <div className="modal-header error">
+                            <h3>로그인 실패</h3>
+                        </div>
+                        <div className="modal-body">
+                            <p>{errorMessage}</p>
+                        </div>
+                        <div className="modal-footer">
+                            <button className="modal-btn confirm" onClick={onClearError}>
+                                확인
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

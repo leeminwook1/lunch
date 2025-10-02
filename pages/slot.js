@@ -55,9 +55,9 @@ export default function CardGame() {
     useEffect(() => {
         const initializeData = async () => {
             try {
-                // 사용자 정보 복원
-                const savedUserId = localStorage.getItem('currentUserId');
-                const savedUserName = localStorage.getItem('currentUserName');
+                // 사용자 정보 복원 (세션 스토리지 우선)
+                const savedUserId = sessionStorage.getItem('currentUserId') || localStorage.getItem('currentUserId');
+                const savedUserName = sessionStorage.getItem('currentUserName') || localStorage.getItem('currentUserName');
 
                 if (savedUserId && savedUserName) {
                     setCurrentUser({ _id: savedUserId, name: savedUserName });

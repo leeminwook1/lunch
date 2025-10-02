@@ -24,13 +24,43 @@ export const useUser = () => {
             });
 
             if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+                let errorMessage = '서버 오류가 발생했습니다.';
+                
+                try {
+                    const errorData = await response.json();
+                    if (errorData.message) {
+                        errorMessage = errorData.message;
+                    }
+                } catch (parseError) {
+                    // JSON 파싱 실패 시 상태 코드에 따른 메시지
+                    switch (response.status) {
+                        case 401:
+                            errorMessage = '인증에 실패했습니다.';
+                            break;
+                        case 403:
+                            errorMessage = '접근 권한이 없습니다.';
+                            break;
+                        case 404:
+                            errorMessage = '요청한 리소스를 찾을 수 없습니다.';
+                            break;
+                        case 500:
+                            errorMessage = '서버 내부 오류가 발생했습니다.';
+                            break;
+                        default:
+                            errorMessage = '네트워크 오류가 발생했습니다.';
+                    }
+                }
+                
+                throw new Error(errorMessage);
             }
 
             return await response.json();
         } catch (error) {
             console.error('API 호출 오류:', error);
+            // 네트워크 오류인 경우 사용자 친화적 메시지로 변경
+            if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                throw new Error('네트워크 연결을 확인해주세요.');
+            }
             throw error;
         }
     }, []);
@@ -103,9 +133,12 @@ export const useUser = () => {
                 setIsUserNameSet(true);
                 setIsAdmin(result.data.role === 'admin');
                 
-                // 로컬 스토리지에 저장
+                // 로컬 스토리지와 세션 스토리지에 저장
                 localStorage.setItem('currentUserId', result.data._id);
                 localStorage.setItem('currentUserName', result.data.name);
+                sessionStorage.setItem('currentUserId', result.data._id);
+                sessionStorage.setItem('currentUserName', result.data.name);
+                sessionStorage.setItem('userRole', result.data.role || 'user');
                 
                 return result.data;
             } else {
@@ -129,30 +162,49 @@ export const useUser = () => {
         
         localStorage.removeItem('currentUserId');
         localStorage.removeItem('currentUserName');
+        sessionStorage.removeItem('currentUserId');
+        sessionStorage.removeItem('currentUserName');
+        sessionStorage.removeItem('userRole');
     }, []);
 
     // 초기화 시 저장된 사용자 정보 복원
     useEffect(() => {
         const initializeUser = async () => {
             try {
-                const savedUserId = localStorage.getItem('currentUserId');
-                const savedUserName = localStorage.getItem('currentUserName');
+                // 세션 스토리지 우선 확인, 없으면 로컬 스토리지 확인
+                let savedUserId = sessionStorage.getItem('currentUserId') || localStorage.getItem('currentUserId');
+                let savedUserName = sessionStorage.getItem('currentUserName') || localStorage.getItem('currentUserName');
+                let savedUserRole = sessionStorage.getItem('userRole');
 
                 if (savedUserId && savedUserName) {
                     try {
-                        const userResult = await apiCall('/api/users', {
-                            method: 'POST',
-                            body: JSON.stringify({ name: savedUserName })
-                        });
-
-                        if (userResult.success) {
-                            setCurrentUser(userResult.data);
+                        // 세션에 역할 정보가 있으면 API 호출 없이 복원
+                        if (savedUserRole) {
+                            setCurrentUser({
+                                _id: savedUserId,
+                                name: savedUserName,
+                                role: savedUserRole
+                            });
                             setIsUserNameSet(true);
-                            setIsAdmin(userResult.data.role === 'admin');
+                            setIsAdmin(savedUserRole === 'admin');
+                        } else {
+                            // 세션에 역할 정보가 없으면 API 호출
+                            const userResult = await apiCall('/api/users', {
+                                method: 'POST',
+                                body: JSON.stringify({ name: savedUserName })
+                            });
+
+                            if (userResult.success) {
+                                setCurrentUser(userResult.data);
+                                setIsUserNameSet(true);
+                                setIsAdmin(userResult.data.role === 'admin');
+                                // 세션에 역할 정보 저장
+                                sessionStorage.setItem('userRole', userResult.data.role || 'user');
+                            }
                         }
                     } catch (error) {
                         console.error('사용자 정보 복원 실패:', error);
-                        // 실패 시 로컬 스토리지 정리
+                        // 실패 시 스토리지 정리
                         logout();
                     }
                 }
