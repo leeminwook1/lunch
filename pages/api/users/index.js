@@ -26,13 +26,38 @@ export default async function handler(req, res) {
 
         case 'POST':
             try {
-                const { name, email } = req.body;
+                const { name, email, adminPassword } = req.body;
 
                 if (!name || name.trim().length === 0) {
                     return res.status(400).json({
                         success: false,
                         message: '사용자 이름은 필수입니다'
                     });
+                }
+
+                // 관리자 계정인 경우 비밀번호 검증
+                if (name.trim() === '관리자') {
+                    // 환경 변수에서 비밀번호 읽기, 없으면 기본값 사용
+                    const correctPassword = process.env.ADMIN_PASSWORD || 'admin123';
+                    
+                    // 디버그용 로그 (프로덕션에서는 제거)
+                    if (process.env.NODE_ENV === 'development') {
+                        console.log('Admin login attempt - Expected:', correctPassword, 'Provided:', adminPassword);
+                    }
+                    
+                    if (!adminPassword) {
+                        return res.status(401).json({
+                            success: false,
+                            message: '관리자 비밀번호를 입력해주세요.'
+                        });
+                    }
+                    
+                    if (adminPassword.trim() !== correctPassword) {
+                        return res.status(401).json({
+                            success: false,
+                            message: '관리자 비밀번호가 올바르지 않습니다.'
+                        });
+                    }
                 }
 
                 // 기존 사용자 확인

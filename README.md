@@ -13,18 +13,21 @@
 
 
 ### 🎲 핵심 기능
-- 랜덤 가게 선택 (스피닝 애니메이션)
-- 가게 추가/삭제/수정 (이름, 거리, 카테고리, 이미지)
-- 카테고리별 필터링 (한식, 중식, 일식, 양식, 분식, 치킨, 카페)
-- 가게 목록 정렬 (이름순/거리순/방문순)
-- 가게 상세 정보 및 방문 기록
-- 방문 통계 및 히스토리
+- **랜덤 가게 선택**: 스피닝 애니메이션과 함께 재미있는 선택 경험
+- **가게 관리**: 추가/삭제/수정 (이름, 거리, 카테고리, 이미지, 설명, 웹사이트)
+- **카테고리별 필터링**: 한식, 중식, 일식, 양식, 분식, 치킨, 카페, 베트남식, 기타
+- **다양한 정렬**: 이름순/거리순/최신순
+- **가게 상세보기**: 상세 정보, 리뷰, 평점 시스템
+- **리뷰 시스템**: 별점과 텍스트 리뷰 작성 및 조회
+- **게임 기능**: 슬롯머신, 월드컵 게임
+- **피드백 시스템**: 사용자 의견 수집 및 관리
 
 ### 📱 사용자 경험
-- 반응형 웹 디자인 (모바일 최적화)
-- 다크/라이트 테마 지원
-- 직관적인 모달 인터페이스
-- 부드러운 애니메이션 효과
+- **현대적 디자인**: 그라데이션과 글래스모피즘 효과
+- **반응형 웹 디자인**: 모바일, 태블릿, 데스크톱 완벽 지원
+- **직관적인 UI**: 카드 기반 레이아웃과 명확한 액션 버튼
+- **부드러운 애니메이션**: 호버 효과와 전환 애니메이션
+- **접근성 고려**: 키보드 네비게이션, 스크린 리더 지원
 
 ## 🚀 설치 및 실행
 
@@ -51,18 +54,24 @@ cp .env.example .env.local
 4. Network Access에서 IP 허용 (0.0.0.0/0 또는 특정 IP)
 5. 연결 문자열 복사하여 .env.local에 설정
 
-### 4. 데이터베이스 초기화
+### 4. TypeScript 설정 (선택사항)
+```bash
+# TypeScript 의존성이 이미 설치되어 있습니다
+# 점진적으로 .js 파일을 .ts/.tsx로 변환할 수 있습니다
+```
+
+### 5. 데이터베이스 초기화
 ```bash
 # 데이터베이스 인덱스 생성
 npm run db:init
 ```
 
-### 5. 개발 서버 실행
+### 6. 개발 서버 실행
 ```bash
 npm run dev
 ```
 
-### 6. 샘플 데이터 추가 (선택사항)
+### 7. 샘플 데이터 추가 (선택사항)
 브라우저에서 다음 URL에 POST 요청:
 ```
 POST http://localhost:3000/api/init/sample-data
@@ -101,15 +110,24 @@ POST http://localhost:3000/api/init/sample-data
 ## 🛠️ 기술 스택
 
 ### Frontend
-- **Framework**: Next.js 14, React 18
+- **Framework**: Next.js 13, React 18
+- **Language**: JavaScript (TypeScript 준비 완료)
 - **Styling**: CSS3 (Flexbox, Grid, 반응형 디자인)
 - **Icons**: 이모지 기반 아이콘 시스템
+- **State Management**: React Hooks (커스텀 훅 활용)
 
 ### Backend
 - **API**: Next.js API Routes
 - **Database**: MongoDB (Mongoose ODM)
-- **Authentication**: JWT 기반 사용자 인증
+- **Validation**: Zod 스키마 검증
+- **Security**: 레이트 리미팅, 입력 검증, CORS
 - **Hosting**: MongoDB Atlas (무료 티어 512MB)
+
+### 개발 도구
+- **Linting**: ESLint
+- **Type Checking**: TypeScript (설정 완료)
+- **Error Handling**: Error Boundary
+- **Analytics**: 간단한 클라이언트 사이드 분석
 
 ## 📖 사용법
 

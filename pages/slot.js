@@ -1,21 +1,16 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import Head from 'next/head';
+import { useRouter } from 'next/router';
 
-export default function SlotMachine() {
+export default function CardGame() {
+    const router = useRouter();
     const [restaurants, setRestaurants] = useState([]);
     const [currentUser, setCurrentUser] = useState(null);
-    const [isSpinning, setIsSpinning] = useState(false);
+    const [isDrawing, setIsDrawing] = useState(false);
     const [selectedRestaurant, setSelectedRestaurant] = useState(null);
     const [modal, setModal] = useState({ isOpen: false, type: '', title: '', message: '', onConfirm: null });
-    
-    // 슬롯 릴 상태
-    const [reels, setReels] = useState([
-        { items: [], currentIndex: 0, isSpinning: false },
-        { items: [], currentIndex: 0, isSpinning: false },
-        { items: [], currentIndex: 0, isSpinning: false }
-    ]);
-    
-    const reelRefs = [useRef(null), useRef(null), useRef(null)];
+    const [cards, setCards] = useState([]);
+    const [flippedCard, setFlippedCard] = useState(null);
 
     // API 호출 함수
     const apiCall = async (endpoint, options = {}) => {
@@ -27,11 +22,11 @@ export default function SlotMachine() {
                 },
                 ...options
             });
-            
+
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            
+
             return await response.json();
         } catch (error) {
             console.error('API 호출 오류:', error);
@@ -59,199 +54,98 @@ export default function SlotMachine() {
     // 데이터 로딩
     useEffect(() => {
         const initializeData = async () => {
-            // 저장된 사용자 정보 확인
-            const savedUserId = localStorage.getItem('currentUserId');
-            const savedUserName = localStorage.getItem('currentUserName');
-            
-            if (savedUserId && savedUserName) {
-                setCurrentUser({ _id: savedUserId, name: savedUserName });
+            try {
+                // 사용자 정보 복원
+                const savedUserId = localStorage.getItem('currentUserId');
+                const savedUserName = localStorage.getItem('currentUserName');
+
+                if (savedUserId && savedUserName) {
+                    setCurrentUser({ _id: savedUserId, name: savedUserName });
+                }
+
+                // 가게 목록 로딩
+                const result = await apiCall('/api/restaurants');
+                if (result.success) {
+                    setRestaurants(result.data);
+                    initializeCards(result.data);
+                }
+            } catch (error) {
+                console.error('데이터 로딩 실패:', error);
             }
-            
-            await loadRestaurants();
         };
 
         initializeData();
     }, []);
 
-    const loadRestaurants = async () => {
-        try {
-            const result = await apiCall('/api/restaurants');
-            if (result.success && result.data.length > 0) {
-                setRestaurants(result.data);
-                initializeReels(result.data);
-            }
-        } catch (error) {
-            console.error('가게 목록 로딩 실패:', error);
-        }
+    // 카드 초기화
+    const initializeCards = (restaurantList) => {
+        const shuffledRestaurants = [...restaurantList].sort(() => Math.random() - 0.5);
+        const cardData = shuffledRestaurants.map((restaurant, index) => ({
+            id: index,
+            restaurant: restaurant,
+            isFlipped: false
+        }));
+        setCards(cardData);
     };
 
-    // 릴 초기화 - 실제 가게만 사용
-    const initializeReels = (restaurantData) => {
-        // 가게 수가 적으면 반복해서 충분한 릴 아이템 생성
-        const minItems = 15;
-        const createRestaurantReel = (count = minItems) => {
-            const result = [];
-            for (let i = 0; i < count; i++) {
-                const restaurant = restaurantData[i % restaurantData.length];
-                result.push(restaurant); // 전체 가게 객체를 저장
-            }
-            return result;
-        };
-
-        // 3개 릴 모두 동일한 가게 리스트 사용 (순서만 다르게)
-        const baseRestaurants = createRestaurantReel();
-        
-        const newReels = [
-            { 
-                items: [...baseRestaurants], // 첫 번째 릴
-                currentIndex: 0, 
-                isSpinning: false 
-            },
-            { 
-                items: [...baseRestaurants].reverse(), // 두 번째 릴 (역순)
-                currentIndex: 0, 
-                isSpinning: false 
-            },
-            { 
-                items: [...baseRestaurants].sort(() => Math.random() - 0.5), // 세 번째 릴 (랜덤 순서)
-                currentIndex: 0, 
-                isSpinning: false 
-            }
-        ];
-
-        setReels(newReels);
-
-        // 초기 위치 설정
-        setTimeout(() => {
-            reelRefs.forEach((ref, index) => {
-                if (ref.current) {
-                    ref.current.style.transform = 'translateY(0px)';
-                    ref.current.style.transition = 'none';
-                }
-            });
-        }, 100);
-    };
-
-    // 슬롯머신 스핀
-    const spinSlots = async () => {
+    // 카드 뽑기
+    const drawCard = async (cardId) => {
         if (!currentUser) {
-            showModal('error', '오류', '로그인이 필요합니다.');
+            showModal('error', '오류', '사용자 정보가 없습니다.');
             return;
         }
 
-        if (restaurants.length === 0) {
-            showModal('error', '오류', '등록된 가게가 없습니다.');
-            return;
-        }
+        if (isDrawing) return;
 
-        setIsSpinning(true);
+        setIsDrawing(true);
         setSelectedRestaurant(null);
 
-        // 각 릴을 순차적으로 스핀
-        const spinDurations = [2000, 2500, 3000]; // 각 릴의 스핀 시간
-        const finalIndices = [];
-
-        // 모든 릴을 동시에 스핀 시작
-        setReels(prev => prev.map(reel => ({ ...reel, isSpinning: true })));
-
-        for (let i = 0; i < 3; i++) {
-            // 가운데 칸에 맞는 인덱스 계산 (윈도우에서 3개가 보이므로 1번째가 가운데)
-            const randomOffset = Math.floor(Math.random() * (reels[i].items.length - 2)); // 마지막 2개 제외
-            const finalIndex = randomOffset + 1; // 가운데 칸이 되도록 +1
-            finalIndices.push(finalIndex);
-
-            // 스핀 애니메이션 시작
-            const reel = reelRefs[i].current;
-            if (reel) {
-                const itemHeight = 80;
-                
-                // 빠른 스핀 애니메이션 시작
-                let currentPosition = 0;
-                const spinSpeed = 20; // 스핀 속도 (ms)
-                const totalItems = reels[i].items.length;
-                
-                const spinInterval = setInterval(() => {
-                    currentPosition -= itemHeight;
-                    if (currentPosition <= -(totalItems * itemHeight)) {
-                        currentPosition = 0; // 처음으로 돌아가기
-                    }
-                    reel.style.transform = `translateY(${currentPosition}px)`;
-                }, spinSpeed);
-
-                // 지정된 시간 후 릴 정지
-                setTimeout(() => {
-                    clearInterval(spinInterval);
-                    
-                    // 최종 위치로 부드럽게 이동 (가운데 칸에 맞춰서)
-                    const finalPosition = -((finalIndex - 1) * itemHeight); // -1을 해서 가운데 칸에 맞춤
-                    reel.style.transition = 'transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-                    reel.style.transform = `translateY(${finalPosition}px)`;
-                    
-                    // 릴 정지 상태 업데이트
-                    setReels(prev => prev.map((reelState, index) => 
-                        index === i ? { ...reelState, isSpinning: false, currentIndex: finalIndex } : reelState
-                    ));
-                    
-                    // 트랜지션 제거
-                    setTimeout(() => {
-                        reel.style.transition = 'none';
-                    }, 500);
-                    
-                }, spinDurations[i]);
-            }
+        // 선택된 카드 뒤집기
+        const selectedCard = cards.find(card => card.id === cardId);
+        if (!selectedCard) {
+            setIsDrawing(false);
+            return;
         }
 
-        // 모든 릴이 정지한 후 결과 처리
+        // 카드 뒤집기 애니메이션
+        setFlippedCard(cardId);
+        
         setTimeout(async () => {
-            // 가운데 릴(두 번째 릴)의 가게가 당첨
-            const middleReelIndex = finalIndices[1];
-            const selectedRestaurant = reels[1].items[middleReelIndex];
-
-
-
-            // 1초 후 가운데 릴 하이라이트
-            setTimeout(() => {
-                // 가운데 릴만 하이라이트
-                reelRefs.forEach((ref, index) => {
-                    if (ref.current) {
-                        const reelWindow = ref.current.parentElement;
-                        if (index === 1) { // 가운데 릴 (인덱스 1)
-                            reelWindow.classList.add('winning-reel');
-                        } else {
-                            reelWindow.classList.add('losing-reel');
-                        }
-                    }
+            setSelectedRestaurant(selectedCard.restaurant);
+            
+            // 선택 기록 저장
+            try {
+                await apiCall('/api/selections', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        userId: currentUser._id,
+                        userName: currentUser.name,
+                        restaurantId: selectedCard.restaurant._id,
+                        restaurantName: selectedCard.restaurant.name,
+                        method: 'card_draw'
+                    })
                 });
                 
-                // 2초 후 결과 표시
-                setTimeout(() => {
-                    setSelectedRestaurant(selectedRestaurant);
-                    setIsSpinning(false);
+                // API 호출 성공 후에만 모달 표시
+                showModal('success', '🎉 운명의 카드!', `${selectedCard.restaurant.name}이(가) 선택되었습니다! 오늘 점심은 여기로 가세요!`);
+            } catch (error) {
+                console.error('선택 기록 저장 실패:', error);
+                // 에러가 발생해도 모달은 표시 (사용자 경험을 위해)
+                showModal('success', '🎉 운명의 카드!', `${selectedCard.restaurant.name}이(가) 선택되었습니다! 오늘 점심은 여기로 가세요!`);
+            }
 
-                    // 하이라이트 제거
-                    reelRefs.forEach((ref) => {
-                        if (ref.current) {
-                            const reelWindow = ref.current.parentElement;
-                            reelWindow.classList.remove('winning-reel', 'losing-reel');
-                        }
-                    });
+            setIsDrawing(false);
+        }, 1000);
+    };
 
-                    // 방문 기록 저장
-                    apiCall('/api/restaurants/random', {
-                        method: 'POST',
-                        body: JSON.stringify({
-                            userId: currentUser._id,
-                            userName: currentUser.name,
-                            restaurantId: selectedRestaurant._id
-                        })
-                    }).catch(error => {
-                        // 방문 기록 저장 실패 시 무시
-                    });
-                }, 2000);
-                
-            }, 1000);
-
-        }, Math.max(...spinDurations) + 500);
+    // 카드 다시 섞기
+    const shuffleCards = () => {
+        if (isDrawing) return;
+        
+        setSelectedRestaurant(null);
+        setFlippedCard(null);
+        initializeCards(restaurants);
+        showModal('info', '🔄 카드 섞기', '카드를 다시 섞었습니다! 새로운 운명의 카드를 선택해보세요!');
     };
 
     // 모달 컴포넌트
@@ -261,7 +155,7 @@ export default function SlotMachine() {
         return (
             <div className="modal-overlay" onClick={closeModal}>
                 <div className="modal-content" onClick={e => e.stopPropagation()}>
-                    <div className={`modal-header ${modal.type}`}>
+                    <div className={`modal-header ${modal.type === 'info' ? 'confirm' : modal.type}`}>
                         <h3>{modal.title}</h3>
                     </div>
                     <div className="modal-body">
@@ -282,132 +176,124 @@ export default function SlotMachine() {
         );
     };
 
-    if (!currentUser) {
-        return (
-            <div className="App">
-                <div className="container">
-                    <h1>🎰 슬롯머신</h1>
-                    <p>슬롯머신을 이용하려면 먼저 메인 페이지에서 로그인해주세요.</p>
-                    <a href="/" className="home-btn">
-                        <span className="home-icon">🏠</span>
-                        메인 페이지로 이동
-                    </a>
-                </div>
-            </div>
-        );
-    }
-
     return (
         <>
             <Head>
-                <title>🎰 슬롯머신 - 점심메뉴 선택기</title>
-                <meta name="description" content="슬롯머신으로 재미있게 가게를 선택하세요!" />
-                <meta name="viewport" content="width=device-width, initial-scale=1" />
+                <title>카드 뽑기 - 점심메뉴 선택기</title>
+                <meta name="description" content="운명의 카드를 뽑아서 점심메뉴를 선택해보세요!" />
+                <link rel="icon" href="/favicon.ico" />
             </Head>
-            <div className="App">
-                <div className="container">
-                    <div className="header">
-                        <h1 className="title">🎰 슬롯머신</h1>
-                        <a href="/" className="home-btn">
-                            <span className="home-icon">🏠</span>
-                            메인으로
-                        </a>
-                    </div>
 
-                    {/* 슬롯머신 */}
-                    <div className="slot-machine">
-                        <div className="slot-machine-frame">
-                            <div className="slot-reels">
-                                {reels.map((reel, reelIndex) => (
-                                    <div key={reelIndex} className="slot-reel-container">
-                                        <div className="slot-reel-window">
-                                            <div 
-                                                ref={reelRefs[reelIndex]}
-                                                className={`slot-reel ${reel.isSpinning ? 'spinning' : ''}`}
-                                            >
-                                                {reel.items.map((restaurant, itemIndex) => (
-                                                    <div key={itemIndex} className="slot-item">
-                                                        <div className="slot-restaurant-info">
-                                                            <div className="slot-restaurant-name">{restaurant.name}</div>
-                                                            <div className="slot-restaurant-details">
-                                                                <span className="slot-category">{restaurant.category}</span>
-                                                                <span className="slot-distance">{restaurant.distance}</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                ))}
+            <div className="app">
+                <div className="container">
+                    {/* 헤더 */}
+                    <header className="header subpage-header">
+                        <div className="header-content">
+                            <div className="header-left">
+                                <button
+                                    onClick={() => router.push('/')}
+                                    className="btn-back"
+                                >
+                                    ← 돌아가기
+                                </button>
+                                <h1 className="title">🃏 카드 뽑기</h1>
+                                {currentUser && (
+                                    <div className="user-info">
+                                        <span className="user-greeting">안녕하세요, <strong>{currentUser.name}</strong>님!</span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </header>
+
+                    {/* 메인 콘텐츠 */}
+                    <main className="main-content">
+                        {/* 카드 게임 섹션 */}
+                        <section className="card-game-section">
+                            <div className="card-game-container">
+                                <div className="game-instructions">
+                                    <h2>🔮 운명의 카드를 선택하세요!</h2>
+                                    <p>카드 중 하나를 클릭하여 오늘의 점심메뉴를 결정해보세요</p>
+                                </div>
+
+                                <div className="cards-grid">
+                                    {cards.slice(0, 12).map((card) => (
+                                        <div
+                                            key={card.id}
+                                            className={`card ${flippedCard === card.id ? 'flipped' : ''} ${isDrawing && flippedCard !== card.id ? 'disabled' : ''}`}
+                                            onClick={() => drawCard(card.id)}
+                                        >
+                                            <div className="card-inner">
+                                                <div className="card-back">
+                                                    <div className="card-pattern">🃏</div>
+                                                    <div className="card-text">?</div>
+                                                </div>
+                                                <div className="card-front">
+                                                    <div className="restaurant-emoji">🍽️</div>
+                                                    <div className="restaurant-name">{card.restaurant.name}</div>
+                                                    <div className="restaurant-category">{card.restaurant.category}</div>
+                                                </div>
                                             </div>
                                         </div>
-                                        <div className="slot-label">
-                                            {reelIndex === 0 ? '🎰 릴 1' : 
-                                             reelIndex === 1 ? '🎰 릴 2' : '🎰 릴 3'}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
+                                    ))}
+                                </div>
 
-                        {/* 스핀 버튼 */}
-                        <button
-                            className={`slot-spin-btn ${isSpinning ? 'spinning' : ''}`}
-                            onClick={spinSlots}
-                            disabled={isSpinning || restaurants.length === 0}
-                        >
-                            {isSpinning ? '🎰 스핀 중...' : '🎰 SPIN!'}
-                        </button>
-                    </div>
-
-                    {/* 결과 표시 */}
-                    {selectedRestaurant && !isSpinning && (
-                        <div className="slot-result">
-                            <h2>🎉 당첨!</h2>
-                            <div className="selected-restaurant-card">
-                                <img 
-                                    src={selectedRestaurant.image} 
-                                    alt={selectedRestaurant.name}
-                                    className="result-image"
-                                />
-                                <div className="result-info">
-                                    <h3>{selectedRestaurant.name}</h3>
-                                    <p className="result-category">{selectedRestaurant.category}</p>
-                                    <p className="result-distance">{selectedRestaurant.distance}</p>
-                                    {selectedRestaurant.description && (
-                                        <p className="result-description">{selectedRestaurant.description}</p>
-                                    )}
+                                <div className="game-controls">
+                                    <button
+                                        onClick={shuffleCards}
+                                        disabled={isDrawing || restaurants.length === 0}
+                                        className="btn-shuffle"
+                                    >
+                                        🔄 카드 다시 섞기
+                                    </button>
                                 </div>
                             </div>
-                            <div className="result-actions">
-                                <button 
-                                    className="modern-btn primary"
-                                    onClick={spinSlots}
-                                    disabled={isSpinning}
-                                >
-                                    🎰 다시 스핀
-                                </button>
-                                <a 
-                                    href={`/?restaurantId=${selectedRestaurant._id}`}
-                                    className="modern-btn secondary"
-                                >
-                                    📍 가게 상세보기
-                                </a>
-                            </div>
-                        </div>
-                    )}
+                        </section>
 
-                    {/* 게임 설명 */}
-                    <div className="slot-info">
-                        <h3>🎰 가게 슬롯머신 게임 방법</h3>
-                        <ul>
-                            <li>🎯 <strong>SPIN!</strong> 버튼을 눌러 슬롯머신을 시작하세요</li>
-                            <li>🎪 3개의 릴에 실제 등록된 가게들이 빠르게 돌아갑니다</li>
-                            <li>⏰ 릴이 순차적으로 멈춥니다 (2초 → 2.5초 → 3초)</li>
-                            <li>🎯 각 릴의 <span style={{color: '#f39c12', fontWeight: 'bold'}}>황금 테두리 가운데 칸</span>을 주목하세요!</li>
-                            <li>🏆 가운데 릴의 가운데 칸에 있는 가게가 당첨됩니다</li>
-                            <li>🎊 당첨된 가게가 오늘의 점심 메뉴로 선택됩니다!</li>
-                        </ul>
-                    </div>
+                        {/* 결과 섹션 */}
+                        {selectedRestaurant && (
+                            <section className="result-section">
+                                <div className="result-card">
+                                    <h2>🎉 선택된 가게</h2>
+                                    <div className="selected-restaurant">
+                                        <img
+                                            src={selectedRestaurant.image}
+                                            alt={selectedRestaurant.name}
+                                            onError={(e) => {
+                                                e.target.src = 'https://via.placeholder.com/300x200?text=No+Image';
+                                            }}
+                                        />
+                                        <div className="restaurant-info">
+                                            <h3>{selectedRestaurant.name}</h3>
+                                            <p className="category">{selectedRestaurant.category}</p>
+                                            <p className="distance">🚶‍♂️ {selectedRestaurant.distance}</p>
+                                            {selectedRestaurant.description && (
+                                                <p className="description">{selectedRestaurant.description}</p>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+                        )}
+
+                        {/* 설명 섹션 */}
+                        <section className="info-section">
+                            <div className="info-card">
+                                <h3>🃏 카드 뽑기 게임 방법</h3>
+                                <ul>
+                                    <li>🎯 <strong>카드 선택</strong>: 12장의 카드 중 하나를 클릭하여 선택하세요</li>
+                                    <li>🔮 <strong>운명의 카드</strong>: 선택한 카드가 뒤집히면서 가게가 공개됩니다</li>
+                                    <li>✨ <strong>애니메이션</strong>: 카드가 뒤집히는 멋진 애니메이션을 즐기세요</li>
+                                    <li>🔄 <strong>다시 섞기</strong>: 마음에 들지 않으면 카드를 다시 섞을 수 있습니다</li>
+                                    <li>📊 <strong>기록</strong>: 선택된 가게는 자동으로 기록됩니다</li>
+                                    <li>🍀 <strong>직감</strong>: 직감을 믿고 운명의 카드를 선택해보세요!</li>
+                                </ul>
+                            </div>
+                        </section>
+                    </main>
                 </div>
             </div>
+
             <Modal />
         </>
     );

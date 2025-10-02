@@ -1,7 +1,8 @@
 import connectDB from '../../../lib/mongodb';
 import Restaurant from '../../../models/Restaurant';
+import { createApiHandler, sendError, sendSuccess } from '../../../lib/apiHelpers';
 
-export default async function handler(req, res) {
+async function handler(req, res) {
     try {
         await connectDB();
     } catch (error) {
@@ -17,12 +18,12 @@ export default async function handler(req, res) {
         case 'GET':
             try {
                 const { category, sortBy = 'name', search } = req.query;
-                
+
                 let query = { isActive: true };
                 if (category && category !== 'all') {
                     query.category = category;
                 }
-                
+
                 // 검색 기능 추가
                 if (search && search.trim()) {
                     query.$or = [
@@ -76,9 +77,9 @@ export default async function handler(req, res) {
                 }
 
                 // 중복 가게명 검증
-                const existingRestaurant = await Restaurant.findOne({ 
+                const existingRestaurant = await Restaurant.findOne({
                     name: name.trim(),
-                    isActive: true 
+                    isActive: true
                 });
 
                 if (existingRestaurant) {
@@ -127,3 +128,10 @@ export default async function handler(req, res) {
             });
     }
 }
+
+// 미들웨어 적용
+export default createApiHandler(handler, {
+    methods: ['GET', 'POST'],
+    rateLimit: true,
+    requiredFields: ['name', 'distance', 'category', 'image', 'createdBy'] // POST 요청에만 적용
+});

@@ -2,152 +2,96 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 
+// Components
+import ErrorBoundary from '../components/ErrorBoundary';
+import Modal from '../components/Modal';
+import UserLogin from '../components/UserLogin';
+import RestaurantCard from '../components/RestaurantCard';
+import RestaurantForm from '../components/RestaurantForm';
+import { RestaurantListSkeleton } from '../components/SkeletonLoader';
+
+// Hooks
+import { useUser } from '../hooks/useUser';
+import { useRestaurants } from '../hooks/useRestaurants';
+import { useModal } from '../hooks/useModal';
+import { useAnalytics } from '../lib/analytics';
+
 export default function Home() {
     const router = useRouter();
+    const analytics = useAnalytics();
     
-    // 상태 관리
-    const [restaurants, setRestaurants] = useState([]);
-    const [users, setUsers] = useState([]);
-    const [currentUser, setCurrentUser] = useState(null);
+    // 커스텀 훅들
+    const {
+        currentUser,
+        isUserNameSet,
+        isAdmin,
+        loading: userLoading,
+        isInitializing,
+        nameCheckStatus,
+        nameCheckMessage,
+        showAdminPassword,
+        checkUserName,
+        createOrLoginUser,
+        logout,
+        apiCall
+    } = useUser();
 
-    const [stats, setStats] = useState(null);
-    const [loading, setLoading] = useState(false);
+    const {
+        restaurants,
+        filteredAndSortedRestaurants,
+        categories,
+        loading: restaurantsLoading,
+        filterCategory,
+        setFilterCategory,
+        sortBy,
+        setSortBy,
+        searchQuery,
+        setSearchQuery,
+        loadRestaurants
+    } = useRestaurants();
 
-    // UI 상태
+    const { modal, showModal, closeModal, confirmModal } = useModal();
+
+    // 로컬 상태
     const [currentView, setCurrentView] = useState('main');
     const [selectedRestaurant, setSelectedRestaurant] = useState(null);
     const [selectedRestaurantDetail, setSelectedRestaurantDetail] = useState(null);
     const [isSpinning, setIsSpinning] = useState(false);
-    const [modal, setModal] = useState({ isOpen: false, type: '', title: '', message: '', onConfirm: null });
-    const [showHelpModal, setShowHelpModal] = useState(false);
-
-    // 필터 및 정렬
-    const [filterCategory, setFilterCategory] = useState('all');
-    const [sortBy, setSortBy] = useState('name');
-    const [searchQuery, setSearchQuery] = useState('');
-    const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage] = useState(5);
-
+    const [stats, setStats] = useState(null);
+    const [editingRestaurant, setEditingRestaurant] = useState(null);
+    
     // 폼 상태
-    const [newRestaurant, setNewRestaurant] = useState('');
-    const [newWalkTime, setNewWalkTime] = useState('');
-    const [newImage, setNewImage] = useState('');
-    const [newCategory, setNewCategory] = useState('');
-    const [newDescription, setNewDescription] = useState('');
-    const [newWebsiteUrl, setNewWebsiteUrl] = useState('');
-
-    // 사용자 관리
     const [userName, setUserName] = useState('');
-    const [isUserNameSet, setIsUserNameSet] = useState(false);
-    const [nameCheckStatus, setNameCheckStatus] = useState(''); // 'checking', 'available', 'exists', 'invalid'
-    const [nameCheckMessage, setNameCheckMessage] = useState('');
     const [adminPassword, setAdminPassword] = useState('');
-    const [showAdminPassword, setShowAdminPassword] = useState(false);
-    const [isInitializing, setIsInitializing] = useState(true);
+
+    // 페이지네이션
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 6;
 
     // 리뷰 관련 상태
     const [reviews, setReviews] = useState([]);
     const [newReview, setNewReview] = useState({ rating: 5, content: '' });
     const [showReviewForm, setShowReviewForm] = useState(false);
-    const [recommendations, setRecommendations] = useState([]);
 
-    // 관리자 및 선호도 관련 상태
-    const [isAdmin, setIsAdmin] = useState(false);
+    // 사용자 선호도 상태
     const [userPreferences, setUserPreferences] = useState(null);
-    const [showPreferences, setShowPreferences] = useState(false);
-    const [preferencesTimer, setPreferencesTimer] = useState(null);
 
-    // 가게 수정 관련 상태
-    const [showEditRestaurant, setShowEditRestaurant] = useState(false);
-    const [editingRestaurant, setEditingRestaurant] = useState(null);
-
-    // API 호출 함수들
-    const apiCall = async (endpoint, options = {}) => {
-        try {
-            // 절대 경로로 변환
-            const url = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-
-            const response = await fetch(url, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...options.headers
-                },
-                ...options
-            });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error(`API 오류 [${response.status}]:`, errorText);
-                throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error('API 호출 오류:', error);
-            showModal('error', '오류', `API 호출 중 오류가 발생했습니다: ${error.message}`);
-            throw error;
-        }
-    };
-
-    // 데이터 로딩 함수들
-    const loadRestaurants = async () => {
-        try {
-            const params = new URLSearchParams();
-            if (filterCategory && filterCategory !== 'all') {
-                params.append('category', filterCategory);
-            }
-            if (sortBy) {
-                params.append('sortBy', sortBy);
-            }
-            if (searchQuery && searchQuery.trim()) {
-                params.append('search', searchQuery.trim());
-            }
-            
-            const queryString = params.toString();
-            const url = queryString ? `/api/restaurants?${queryString}` : '/api/restaurants';
-            
-            const result = await apiCall(url);
-            if (result.success) {
-                setRestaurants(result.data);
-            }
-        } catch (error) {
-            console.error('가게 목록 로딩 실패:', error);
-        }
-    };
-
-    const loadUserData = async (userId) => {
+    // 사용자 데이터 로딩
+    const loadUserData = useCallback(async (userId) => {
         if (!userId) return;
 
         try {
             const statsResult = await apiCall(`/api/stats?userId=${userId}`);
-
             if (statsResult.success) {
                 setStats(statsResult.data);
             }
         } catch (error) {
             console.error('사용자 데이터 로딩 실패:', error);
         }
-    };
+    }, [apiCall]);
 
-    const initializeSampleData = async () => {
-        try {
-            setLoading(true);
-            const result = await apiCall('/api/init/sample-data', { method: 'POST', body: JSON.stringify({}) });
-            if (result.success) {
-                showModal('success', '초기화 완료', '샘플 데이터가 생성되었습니다!');
-                await loadRestaurants();
-            }
-        } catch (error) {
-            console.error('샘플 데이터 초기화 실패:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-
-
-    // 리뷰 관련 함수들
-    const loadReviews = async (restaurantId) => {
+    // 리뷰 로딩
+    const loadReviews = useCallback(async (restaurantId) => {
         try {
             const result = await apiCall(`/api/reviews?restaurantId=${restaurantId}&sortBy=newest`);
             if (result.success) {
@@ -156,88 +100,10 @@ export default function Home() {
         } catch (error) {
             console.error('리뷰 로딩 실패:', error);
         }
-    };
-
-    const submitReview = async () => {
-        if (!currentUser || !selectedRestaurantDetail) {
-            showModal('error', '오류', '사용자 정보나 가게 정보가 없습니다.');
-            return;
-        }
-
-        if (!newReview.content.trim()) {
-            showModal('error', '입력 오류', '리뷰 내용을 입력해주세요.');
-            return;
-        }
-
-        try {
-            setLoading(true);
-            const result = await apiCall('/api/reviews', {
-                method: 'POST',
-                body: JSON.stringify({
-                    userId: currentUser._id,
-                    userName: currentUser.name,
-                    restaurantId: selectedRestaurantDetail._id,
-                    rating: newReview.rating,
-                    content: newReview.content.trim()
-                })
-            });
-
-            if (result.success) {
-                showModal('success', '리뷰 작성 완료', '리뷰가 성공적으로 작성되었습니다!');
-                setNewReview({ rating: 5, content: '' });
-                setShowReviewForm(false);
-                await Promise.all([
-                    loadReviews(selectedRestaurantDetail._id),
-                    loadRestaurants() // 가게 평점 업데이트 반영
-                ]);
-            }
-        } catch (error) {
-            console.error('리뷰 작성 실패:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const toggleReviewLike = async (reviewId) => {
-        if (!currentUser) {
-            showModal('error', '오류', '로그인이 필요합니다.');
-            return;
-        }
-
-        try {
-            const result = await apiCall(`/api/reviews/${reviewId}/like`, {
-                method: 'POST',
-                body: JSON.stringify({
-                    userId: currentUser._id,
-                    userName: currentUser.name
-                })
-            });
-
-            if (result.success) {
-                // 리뷰 목록에서 해당 리뷰의 좋아요 수 업데이트
-                setReviews(prevReviews =>
-                    prevReviews.map(review =>
-                        review._id === reviewId
-                            ? {
-                                ...review,
-                                likeCount: result.data.likeCount,
-                                likes: result.data.action === 'liked'
-                                    ? [...review.likes, { userId: currentUser._id, userName: currentUser.name }]
-                                    : review.likes.filter(like => like.userId !== currentUser._id)
-                            }
-                            : review
-                    )
-                );
-            }
-        } catch (error) {
-            console.error('좋아요 처리 실패:', error);
-        }
-    };
-
-
+    }, [apiCall]);
 
     // 사용자 선호도 로딩
-    const loadUserPreferences = async () => {
+    const loadUserPreferences = useCallback(async () => {
         if (!currentUser) return;
 
         try {
@@ -248,354 +114,16 @@ export default function Home() {
         } catch (error) {
             console.error('선호도 로딩 실패:', error);
         }
-    };
+    }, [currentUser, apiCall]);
 
-    // 선호도 업데이트 (디바운싱 적용) - useCallback으로 최적화
-    const updateUserPreferences = useCallback((newPreferences) => {
-        if (!currentUser) return;
-
-        // 기존 타이머 취소
-        if (preferencesTimer) {
-            clearTimeout(preferencesTimer);
-        }
-
-        // 즉시 UI 업데이트 (깜빡임 방지)
-        setUserPreferences(prev => ({
-            ...prev,
-            preferences: {
-                ...prev?.preferences,
-                ...newPreferences
-            }
-        }));
-
-        // 새 타이머 설정 (API 호출)
-        const timer = setTimeout(async () => {
-            try {
-                const result = await apiCall('/api/preferences', {
-                    method: 'PUT',
-                    body: JSON.stringify({
-                        userId: currentUser._id,
-                        preferences: newPreferences
-                    })
-                });
-
-                // API 응답으로 최종 상태 업데이트
-                if (result.success) {
-                    setUserPreferences(result.data);
-                }
-            } catch (error) {
-                console.error('선호도 업데이트 실패:', error);
-                // 실패 시 이전 상태로 복원
-                loadUserPreferences();
-            }
-        }, 500);
-
-        setPreferencesTimer(timer);
-    }, [currentUser, preferencesTimer, apiCall, loadUserPreferences]);
-
-    // 가게 수정
-    const updateRestaurant = async (restaurantData) => {
-        if (!currentUser) {
-            showModal('error', '오류', '로그인이 필요합니다.');
-            return;
-        }
-
-        try {
-            setLoading(true);
-            const result = await apiCall(`/api/restaurants/${restaurantData._id}`, {
-                method: 'PUT',
-                body: JSON.stringify({
-                    name: restaurantData.name,
-                    distance: restaurantData.distance,
-                    category: restaurantData.category,
-                    image: restaurantData.image,
-                    description: restaurantData.description,
-                    websiteUrl: restaurantData.websiteUrl
-                })
-            });
-
-            if (result.success) {
-                showModal('success', '수정 완료', '가게 정보가 수정되었습니다!');
-                setShowEditRestaurant(false);
-                setEditingRestaurant(null);
-                await loadRestaurants();
-
-                // 상세보기 중인 가게라면 업데이트
-                if (selectedRestaurantDetail && selectedRestaurantDetail._id === restaurantData._id) {
-                    setSelectedRestaurantDetail(result.data);
-                }
-            }
-        } catch (error) {
-            console.error('가게 수정 실패:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // 리뷰 삭제 (관리자 또는 본인)
-    const deleteReview = async (reviewId, isOwnReview = false) => {
-        if (!currentUser) {
-            showModal('error', '로그인 필요', '로그인이 필요합니다.');
-            return;
-        }
-
-        if (!isAdmin && !isOwnReview) {
-            showModal('error', '권한 없음', '본인의 리뷰만 삭제할 수 있습니다.');
-            return;
-        }
-
-        try {
-            setLoading(true);
-            const result = await apiCall(`/api/reviews/${reviewId}`, {
-                method: 'DELETE',
-                body: JSON.stringify({
-                    userId: currentUser._id
-                })
-            });
-
-            if (result.success) {
-                showModal('success', '삭제 완료', '리뷰가 삭제되었습니다!');
-                if (selectedRestaurantDetail) {
-                    await loadReviews(selectedRestaurantDetail._id);
-                }
-            }
-        } catch (error) {
-            console.error('리뷰 삭제 실패:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // 가게 제외/포함
-    const toggleRestaurantExclusion = async (restaurantId, action, reason = '') => {
-        if (!currentUser) {
-            showModal('error', '오류', '로그인이 필요합니다.');
-            return;
-        }
-
-        try {
-            setLoading(true);
-            const result = await apiCall('/api/preferences/exclude', {
-                method: 'POST',
-                body: JSON.stringify({
-                    userId: currentUser._id,
-                    restaurantId,
-                    action,
-                    reason
-                })
-            });
-
-            if (result.success) {
-                setUserPreferences(result.data);
-                showModal('success', '설정 완료', result.message);
-            }
-        } catch (error) {
-            console.error('가게 제외/포함 실패:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // 사용자 관리 함수들
-    const createOrLoginUser = async (name) => {
-        try {
-            const result = await apiCall('/api/users', {
-                method: 'POST',
-                body: JSON.stringify({ name: name.trim() })
-            });
-
-            if (result.success) {
-                setCurrentUser(result.data);
-                setUserName(result.data.name);
-                setIsUserNameSet(true);
-                setIsAdmin(result.data.role === 'admin');
-                localStorage.setItem('currentUserId', result.data._id);
-                localStorage.setItem('currentUserName', result.data.name);
-                await Promise.all([
-                    loadUserData(result.data._id),
-                    loadUserPreferences()
-                ]);
-                return result.data;
-            }
-        } catch (error) {
-            console.error('사용자 생성/로그인 실패:', error);
-            throw error;
-        }
-    };
-
-    // 사용자 이름 중복체크
-    const checkUserName = async (name) => {
-        if (!name || name.trim().length < 2) {
-            setNameCheckStatus('invalid');
-            setNameCheckMessage('이름은 2글자 이상 입력해주세요');
-            return;
-        }
-
-        try {
-            setNameCheckStatus('checking');
-            setNameCheckMessage('확인 중...');
-
-            const result = await apiCall('/api/users/check', {
-                method: 'POST',
-                body: JSON.stringify({ name: name.trim() })
-            });
-
-            if (result.success) {
-                if (result.exists) {
-                    setNameCheckStatus('exists');
-                    if (name.trim() === '관리자') {
-                        setNameCheckMessage('관리자 계정입니다. 비밀번호를 입력해주세요.');
-                        setShowAdminPassword(true);
-                    } else {
-                        setNameCheckMessage(`기존 사용자입니다 (마지막 로그인: ${new Date(result.data.lastLoginAt).toLocaleDateString()})`);
-                        setShowAdminPassword(false);
-                    }
-                } else {
-                    setNameCheckStatus('available');
-                    if (name.trim() === '관리자') {
-                        setNameCheckMessage('새 관리자 계정을 생성합니다. 비밀번호를 설정해주세요.');
-                        setShowAdminPassword(true);
-                    } else {
-                        setNameCheckMessage('사용 가능한 이름입니다');
-                        setShowAdminPassword(false);
-                    }
-                }
-            }
-        } catch (error) {
-            console.error('이름 확인 오류:', error);
-            setNameCheckStatus('available'); // 오류 시에도 진행할 수 있도록
-            setNameCheckMessage('이름 확인 중 오류가 발생했지만 계속 진행할 수 있습니다');
-        }
-    };
-
-    const setUserNameHandler = async (name) => {
-        if (!name.trim()) {
-            showModal('error', '입력 오류', '사용자 이름을 입력해주세요.');
-            return;
-        }
-
-        // 이름 체크가 아직 안 되었거나 진행 중인 경우 먼저 체크 실행
-        if (!nameCheckStatus || nameCheckStatus === 'checking') {
-            await checkUserName(name.trim());
-            // 체크 후 다시 한 번 확인
-            if (nameCheckStatus !== 'available' && nameCheckStatus !== 'exists') {
-                return; // 체크 결과를 기다림
-            }
-        }
-
-        // 유효하지 않은 이름인 경우
-        if (nameCheckStatus === 'invalid') {
-            showModal('error', '입력 오류', nameCheckMessage || '올바른 사용자 이름을 입력해주세요.');
-            return;
-        }
-
-        // 관리자 계정인 경우 비밀번호 확인
-        if (name.trim() === '관리자') {
-            if (!adminPassword.trim()) {
-                showModal('error', '비밀번호 필요', '관리자 비밀번호를 입력해주세요.');
-                return;
-            }
-
-            if (adminPassword.trim() !== '123') {
-                showModal('error', '비밀번호 오류', '관리자 비밀번호가 올바르지 않습니다.');
-                return;
-            }
-        }
-
-        try {
-            await createOrLoginUser(name.trim());
-        } catch (error) {
-            showModal('error', '오류', '사용자 설정에 실패했습니다.');
-        }
-    };
-
-    const changeUserName = () => {
-        showModal('confirm', '사용자 변경', '사용자를 변경하시겠습니까?', () => {
-            setIsUserNameSet(false);
-            setCurrentUser(null);
-            setUserName('');
-            setStats(null);
-            setIsAdmin(false);
-            setUserPreferences(null);
-            setNameCheckStatus('');
-            setNameCheckMessage('');
-            setShowAdminPassword(false);
-            setAdminPassword('');
-            setIsInitializing(false); // 로그아웃 시에는 초기화 상태를 false로 설정
-            localStorage.removeItem('currentUserId');
-            localStorage.removeItem('currentUserName');
-        });
-    };
-
-    // 가게 관리 함수들
-    const addRestaurant = async () => {
-        if (!newRestaurant.trim() || !newWalkTime.trim() || !newCategory || !newImage.trim()) {
-            showModal('error', '입력 오류', '모든 필드를 입력해주세요.');
-            return;
-        }
-
+    // 랜덤 선택
+    const selectRandomRestaurant = useCallback(async () => {
         if (!currentUser) {
             showModal('error', '오류', '사용자 정보가 없습니다.');
             return;
         }
 
-        try {
-            setLoading(true);
-            const result = await apiCall('/api/restaurants', {
-                method: 'POST',
-                body: JSON.stringify({
-                    name: newRestaurant.trim(),
-                    distance: newWalkTime.trim(),
-                    category: newCategory,
-                    image: newImage.trim(),
-                    description: newDescription.trim(),
-                    websiteUrl: newWebsiteUrl.trim(),
-                    createdBy: currentUser._id
-                })
-            });
-
-            if (result.success) {
-                showModal('success', '추가 완료', `${newRestaurant}이(가) 추가되었습니다!`);
-                setNewRestaurant('');
-                setNewWalkTime('');
-                setNewImage('');
-                setNewCategory('');
-                setNewDescription('');
-                setNewWebsiteUrl('');
-                setCurrentView('main');
-                await loadRestaurants();
-            }
-        } catch (error) {
-            console.error('가게 추가 실패:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const deleteRestaurant = async (id) => {
-        try {
-            setLoading(true);
-            const result = await apiCall(`/api/restaurants/${id}`, { method: 'DELETE' });
-
-            if (result.success) {
-                showModal('success', '삭제 완료', '가게가 삭제되었습니다!');
-                await loadRestaurants();
-            }
-        } catch (error) {
-            console.error('가게 삭제 실패:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // 랜덤 선택 함수
-    const selectRandomRestaurant = async () => {
-        if (!currentUser) {
-            showModal('error', '오류', '사용자 정보가 없습니다.');
-            return;
-        }
-
-        const availableRestaurants = getFilteredAndSortedRestaurants();
+        const availableRestaurants = filteredAndSortedRestaurants;
         if (availableRestaurants.length === 0) {
             showModal('error', '선택 불가', '선택 가능한 가게가 없습니다.');
             return;
@@ -619,6 +147,8 @@ export default function Home() {
 
                 if (result.success) {
                     setSelectedRestaurant(result.data.restaurant);
+                    analytics.trackRestaurantSelection(result.data.restaurant, 'random');
+                    
                     // 데이터 새로고침
                     await Promise.all([
                         loadUserData(currentUser._id),
@@ -630,1559 +160,711 @@ export default function Home() {
             } catch (error) {
                 console.error('랜덤 선택 실패:', error);
                 showModal('error', '오류', '랜덤 선택 중 오류가 발생했습니다.');
+                analytics.trackError(error, { context: 'random_selection' });
             } finally {
                 setIsSpinning(false);
             }
         }, 2000);
-    };
-    // 유틸리티 함수들
-    const getAllCategories = () => {
-        const categories = [...new Set(restaurants.map(r => r.category))];
-        return categories.sort();
-    };
+    }, [currentUser, filteredAndSortedRestaurants, filterCategory, apiCall, showModal, analytics, loadUserData, loadRestaurants]);
 
-    const getFilteredAndSortedRestaurants = () => {
-        let filtered = restaurants.filter(restaurant => {
-            const matchesCategory = filterCategory === 'all' || restaurant.category === filterCategory;
-            const matchesSearch = restaurant.name.toLowerCase().includes(searchQuery.toLowerCase());
-            return matchesCategory && matchesSearch;
-        });
-
-        filtered.sort((a, b) => {
-            if (sortBy === 'name') {
-                return a.name.localeCompare(b.name);
-            } else if (sortBy === 'distance') {
-                return parseInt(a.distance) - parseInt(b.distance);
-            }
-            return 0;
-        });
-
-        return filtered;
-    };
-
-    const showModal = (type, title, message, onConfirm = null) => {
-        setModal({ isOpen: true, type, title, message, onConfirm });
-    };
-
-    const closeModal = () => {
-        setModal({ isOpen: false, type: '', title: '', message: '', onConfirm: null });
-    };
-
-    const confirmModal = () => {
-        if (modal.onConfirm) {
-            modal.onConfirm();
+    // 가게 추가
+    const addRestaurant = useCallback(async (formData) => {
+        if (!currentUser) {
+            showModal('error', '오류', '사용자 정보가 없습니다.');
+            return;
         }
-        closeModal();
-    };
 
-    // 초기 로딩
-    useEffect(() => {
-        const initializeApp = async () => {
-            try {
-                // 저장된 사용자 정보 확인
-                const savedUserId = localStorage.getItem('currentUserId');
-                const savedUserName = localStorage.getItem('currentUserName');
+        try {
+            const result = await apiCall('/api/restaurants', {
+                method: 'POST',
+                body: JSON.stringify({
+                    ...formData,
+                    createdBy: currentUser._id
+                })
+            });
 
-                if (savedUserId && savedUserName) {
-                    // 사용자 정보를 다시 가져와서 최신 권한 확인
-                    try {
-                        const userResult = await apiCall('/api/users', {
-                            method: 'POST',
-                            body: JSON.stringify({ name: savedUserName })
-                        });
-
-                        if (userResult.success) {
-                            setCurrentUser(userResult.data);
-                            setUserName(userResult.data.name);
-                            setIsUserNameSet(true);
-                            setIsAdmin(userResult.data.role === 'admin');
-                            await Promise.all([
-                                loadUserData(savedUserId),
-                                loadUserPreferences()
-                            ]);
-                        }
-                    } catch (error) {
-                        // 실패 시 기본 정보로 설정
-                        setCurrentUser({ _id: savedUserId, name: savedUserName });
-                        setUserName(savedUserName);
-                        setIsUserNameSet(true);
-                        await loadUserData(savedUserId);
-                    }
-                }
-
+            if (result.success) {
+                showModal('success', '추가 완료', `${formData.name}이(가) 추가되었습니다!`);
+                analytics.trackRestaurantAdd(result.data);
+                setCurrentView('main');
                 await loadRestaurants();
-            } finally {
-                // 초기화 완료
-                setIsInitializing(false);
             }
-        };
+        } catch (error) {
+            console.error('가게 추가 실패:', error);
+            analytics.trackError(error, { context: 'add_restaurant' });
+        }
+    }, [currentUser, apiCall, showModal, analytics, loadRestaurants]);
 
-        initializeApp();
-    }, []);
+    // 가게 수정
+    const updateRestaurant = useCallback(async (formData) => {
+        if (!editingRestaurant) return;
 
-    // URL 파라미터 처리 (restaurantId가 있으면 해당 가게 상세보기 열기)
+        try {
+            const result = await apiCall(`/api/restaurants/${editingRestaurant._id}`, {
+                method: 'PUT',
+                body: JSON.stringify(formData)
+            });
+
+            if (result.success) {
+                showModal('success', '수정 완료', '가게 정보가 수정되었습니다!');
+                setEditingRestaurant(null);
+                setCurrentView('main');
+                await loadRestaurants();
+
+                // 상세보기 중인 가게라면 업데이트
+                if (selectedRestaurantDetail && selectedRestaurantDetail._id === editingRestaurant._id) {
+                    setSelectedRestaurantDetail(result.data);
+                }
+            }
+        } catch (error) {
+            console.error('가게 수정 실패:', error);
+            analytics.trackError(error, { context: 'update_restaurant' });
+        }
+    }, [editingRestaurant, apiCall, showModal, analytics, loadRestaurants, selectedRestaurantDetail]);
+
+    // 가게 삭제
+    const deleteRestaurant = useCallback(async (id, name) => {
+        showModal('confirm', '가게 삭제', `${name}을(를) 삭제하시겠습니까?`, async () => {
+            try {
+                const result = await apiCall(`/api/restaurants/${id}`, { method: 'DELETE' });
+
+                if (result.success) {
+                    showModal('success', '삭제 완료', '가게가 삭제되었습니다!');
+                    await loadRestaurants();
+                }
+            } catch (error) {
+                console.error('가게 삭제 실패:', error);
+                analytics.trackError(error, { context: 'delete_restaurant' });
+            }
+        });
+    }, [apiCall, showModal, analytics, loadRestaurants]);
+
+    // 가게 상세보기
+    const viewRestaurantDetail = useCallback(async (restaurant) => {
+        setSelectedRestaurantDetail(restaurant);
+        setCurrentView('detail');
+        await loadReviews(restaurant._id);
+    }, [loadReviews]);
+
+    // 리뷰 작성
+    const submitReview = useCallback(async () => {
+        if (!currentUser || !selectedRestaurantDetail) {
+            showModal('error', '오류', '사용자 정보나 가게 정보가 없습니다.');
+            return;
+        }
+
+        if (!newReview.content.trim()) {
+            showModal('error', '입력 오류', '리뷰 내용을 입력해주세요.');
+            return;
+        }
+
+        try {
+            const result = await apiCall('/api/reviews', {
+                method: 'POST',
+                body: JSON.stringify({
+                    userId: currentUser._id,
+                    userName: currentUser.name,
+                    restaurantId: selectedRestaurantDetail._id,
+                    rating: newReview.rating,
+                    content: newReview.content.trim()
+                })
+            });
+
+            if (result.success) {
+                showModal('success', '리뷰 작성 완료', '리뷰가 성공적으로 작성되었습니다!');
+                setNewReview({ rating: 5, content: '' });
+                setShowReviewForm(false);
+                await Promise.all([
+                    loadReviews(selectedRestaurantDetail._id),
+                    loadRestaurants() // 가게 평점 업데이트 반영
+                ]);
+                analytics.trackReviewSubmit(result.data);
+            }
+        } catch (error) {
+            console.error('리뷰 작성 실패:', error);
+            analytics.trackError(error, { context: 'submit_review' });
+        }
+    }, [currentUser, selectedRestaurantDetail, newReview, apiCall, showModal, loadReviews, loadRestaurants, analytics]);
+
+    // 사용자 로그인 처리
+    const handleUserLogin = useCallback(async (name, password = '') => {
+        try {
+            // 관리자인 경우 전달받은 password 사용, 아니면 기존 adminPassword 사용
+            const passwordToUse = name.trim() === '관리자' ? (password || adminPassword) : '';
+            const user = await createOrLoginUser(name, passwordToUse);
+            analytics.setUserId(user._id);
+            analytics.trackUserLogin(user);
+            await Promise.all([
+                loadUserData(user._id),
+                loadUserPreferences()
+            ]);
+        } catch (error) {
+            // 관리자 비밀번호 오류인 경우에만 모달 표시
+            if (error.message && error.message.includes('관리자 비밀번호')) {
+                showModal('error', '로그인 실패', error.message);
+            } else {
+                console.error('로그인 오류:', error);
+                showModal('error', '오류', error.message || '사용자 설정에 실패했습니다.');
+            }
+            analytics.trackError(error, { context: 'user_login' });
+        }
+    }, [createOrLoginUser, adminPassword, analytics, loadUserData, loadUserPreferences, showModal]);
+
+    // 사용자 변경
+    const changeUser = useCallback(() => {
+        showModal('confirm', '사용자 변경', '사용자를 변경하시겠습니까?', () => {
+            logout();
+            setStats(null);
+            setUserName('');
+            setAdminPassword('');
+            setUserPreferences(null);
+        });
+    }, [showModal, logout]);
+
+    // 초기 로딩 완료 후 사용자 데이터 로딩
+    useEffect(() => {
+        if (currentUser && !isInitializing) {
+            loadUserData(currentUser._id);
+            loadUserPreferences();
+            analytics.setUserId(currentUser._id);
+        }
+    }, [currentUser, isInitializing, loadUserData, loadUserPreferences, analytics]);
+
+    // URL 파라미터 처리
     useEffect(() => {
         if (router.isReady && router.query.restaurantId && restaurants.length > 0) {
             const restaurantId = router.query.restaurantId;
             const restaurant = restaurants.find(r => r._id === restaurantId);
             if (restaurant) {
-                setSelectedRestaurantDetail(restaurant);
-                setCurrentView('detail');
-                // URL에서 파라미터 제거
+                viewRestaurantDetail(restaurant);
                 router.replace('/', undefined, { shallow: true });
             }
         }
-    }, [router.isReady, router.query.restaurantId, restaurants]);
+    }, [router.isReady, router.query.restaurantId, restaurants, router, viewRestaurantDetail]);
 
-    // 검색어나 정렬 옵션이 변경될 때마다 가게 목록 다시 로드
-    useEffect(() => {
-        if (restaurants.length > 0 || currentView === 'list') {
-            loadRestaurants();
-        }
-    }, [searchQuery, sortBy, filterCategory]);
+    // 페이지네이션 계산
+    const totalPages = Math.ceil(filteredAndSortedRestaurants.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const paginatedRestaurants = filteredAndSortedRestaurants.slice(startIndex, startIndex + itemsPerPage);
 
-    // 방문기록 삭제
-    const clearVisitHistory = () => {
-        showModal('confirm', '방문기록 삭제', '내 방문기록을 모두 삭제하시겠습니까?', async () => {
-            try {
-                const result = await apiCall('/api/visits', {
-                    method: 'DELETE',
-                    body: JSON.stringify({ userId: currentUser._id })
-                });
-
-                if (result.success) {
-                    setVisitHistory([]);
-                    showModal('success', '삭제 완료', `${result.deletedCount}개의 방문기록이 모두 삭제되었습니다!`);
-                } else {
-                    showModal('error', '삭제 실패', result.message || '방문기록 삭제에 실패했습니다.');
-                }
-            } catch (error) {
-                console.error('방문기록 삭제 실패:', error);
-                showModal('error', '삭제 실패', '방문기록 삭제 중 오류가 발생했습니다.');
-            }
-        });
-    };
-
-    // 모달 컴포넌트
-    const Modal = () => {
-        if (!modal.isOpen) return null;
-
-        return (
-            <div className="modal-overlay" onClick={closeModal}>
-                <div className="modal-content" onClick={e => e.stopPropagation()}>
-                    <div className={`modal-header ${modal.type}`}>
-                        <h3>{modal.title}</h3>
-                    </div>
-                    <div className="modal-body">
-                        <p>{modal.message}</p>
-                    </div>
-                    <div className="modal-footer">
-                        {modal.type === 'confirm' ? (
-                            <>
-                                <button className="modal-btn cancel" onClick={closeModal}>취소</button>
-                                <button className="modal-btn confirm" onClick={confirmModal}>확인</button>
-                            </>
-                        ) : (
-                            <button className="modal-btn confirm" onClick={closeModal}>확인</button>
-                        )}
-                    </div>
-                </div>
-            </div>
-        );
-    };
-
-
-
-    // 선호도 핸들러들 (useCallback으로 최적화)
-    const handleExcludeRecentChange = useCallback((checked) => {
-        updateUserPreferences({
-            ...userPreferences?.preferences,
-            excludeRecentVisits: checked
-        });
-    }, [updateUserPreferences, userPreferences?.preferences]);
-
-    const handleRecentDaysChange = useCallback((days) => {
-        updateUserPreferences({
-            ...userPreferences?.preferences,
-            recentVisitDays: days
-        });
-    }, [updateUserPreferences, userPreferences?.preferences]);
-
-    const closePreferencesModal = useCallback(() => {
-        setShowPreferences(false);
-        document.body.style.overflow = 'unset';
-    }, []);
-
-    // 모달이 열릴 때 body 스크롤 방지
-    useEffect(() => {
-        if (showPreferences) {
-            document.body.style.overflow = 'hidden';
-            return () => {
-                document.body.style.overflow = 'unset';
-            };
-        }
-    }, [showPreferences]);
-
-    // 선호도 설정 모달 (useMemo로 최적화)
-    const PreferencesPanel = useMemo(() => {
-        if (!showPreferences) return null;
-
-        return (
-            <div className="modal-overlay" onClick={closePreferencesModal}>
-                <div className="modal-content large" onClick={e => e.stopPropagation()}>
-                    <div className="modal-header">
-                        <h3>⚙️ 선호도 설정</h3>
-                    </div>
-                    <div className="modal-body">
-                        <div className="preferences-content">
-                            {/* 제외된 가게 목록 */}
-                            <div className="preference-section">
-                                <h4>❌ 제외된 가게 ({userPreferences?.excludedRestaurants?.length || 0}개)</h4>
-                                {userPreferences?.excludedRestaurants?.length > 0 ? (
-                                    <div className="excluded-list">
-                                        {userPreferences.excludedRestaurants.map(excluded => (
-                                            <div key={excluded.restaurantId._id} className="excluded-item">
-                                                <img
-                                                    src={excluded.restaurantId.image}
-                                                    alt={excluded.restaurantId.name}
-                                                    className="excluded-image"
-                                                />
-                                                <div className="excluded-info">
-                                                    <span className="excluded-name">{excluded.restaurantId.name}</span>
-                                                    <span className="excluded-category">{excluded.restaurantId.category}</span>
-                                                    <span className="excluded-date">
-                                                        {new Date(excluded.excludedAt).toLocaleDateString()}
-                                                    </span>
-                                                </div>
-                                                <button
-                                                    className="include-btn small"
-                                                    onClick={() => toggleRestaurantExclusion(excluded.restaurantId._id, 'include')}
-                                                    disabled={loading}
-                                                >
-                                                    포함
-                                                </button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <p className="no-excluded">제외된 가게가 없습니다.</p>
-                                )}
-                            </div>
-
-                            {/* 기타 설정 */}
-                            <div className="preference-section">
-                                <h4>🔄 랜덤 선택 설정</h4>
-                                <div className="preference-options">
-                                    <label className="preference-option">
-                                        <input
-                                            type="checkbox"
-                                            checked={userPreferences?.preferences?.excludeRecentVisits || false}
-                                            onChange={(e) => handleExcludeRecentChange(e.target.checked)}
-                                        />
-                                        <span>최근 방문한 가게 제외</span>
-                                    </label>
-
-                                    {userPreferences?.preferences?.excludeRecentVisits && (
-                                        <div className="sub-option">
-                                            <label>
-                                                제외 기간:
-                                                <select
-                                                    value={userPreferences?.preferences?.recentVisitDays || 7}
-                                                    onChange={(e) => handleRecentDaysChange(parseInt(e.target.value))}
-                                                >
-                                                    <option value={1}>1일</option>
-                                                    <option value={3}>3일</option>
-                                                    <option value={7}>7일</option>
-                                                    <option value={14}>14일</option>
-                                                    <option value={30}>30일</option>
-                                                </select>
-                                            </label>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="modal-footer">
-                        <button
-                            className="modal-btn confirm"
-                            onClick={closePreferencesModal}
-                        >
-                            닫기
-                        </button>
-                    </div>
-                </div>
-            </div>
-        );
-    }, [showPreferences, userPreferences, loading, closePreferencesModal, handleExcludeRecentChange, handleRecentDaysChange, toggleRestaurantExclusion]);
-
-    // 가게 수정 핸들러들 (useCallback으로 최적화)
-    const handleEditNameChange = useCallback((e) => {
-        setEditingRestaurant(prev => prev ? { ...prev, name: e.target.value } : null);
-    }, []);
-
-    const handleEditDistanceChange = useCallback((e) => {
-        setEditingRestaurant(prev => prev ? { ...prev, distance: e.target.value } : null);
-    }, []);
-
-    const handleEditCategoryChange = useCallback((e) => {
-        setEditingRestaurant(prev => prev ? { ...prev, category: e.target.value } : null);
-    }, []);
-
-    const handleEditImageChange = useCallback((e) => {
-        setEditingRestaurant(prev => prev ? { ...prev, image: e.target.value } : null);
-    }, []);
-
-    const handleEditDescriptionChange = useCallback((e) => {
-        setEditingRestaurant(prev => prev ? { ...prev, description: e.target.value } : null);
-    }, []);
-
-    const handleEditSubmit = useCallback(() => {
-        if (!editingRestaurant?.name.trim() || !editingRestaurant?.distance.trim() || !editingRestaurant?.category || !editingRestaurant?.image.trim()) {
-            showModal('error', '입력 오류', '모든 필수 필드를 입력해주세요.');
-            return;
-        }
-        updateRestaurant(editingRestaurant);
-    }, [editingRestaurant, updateRestaurant, showModal]);
-
-    const closeEditModal = useCallback(() => {
-        setShowEditRestaurant(false);
-        setEditingRestaurant(null);
-    }, []);
-
-    // 가게 수정 모달 (useMemo로 최적화)
-    const EditRestaurantModal = useMemo(() => {
-        if (!showEditRestaurant || !editingRestaurant) return null;
-
-        return (
-            <div className="modal-overlay" onClick={closeEditModal}>
-                <div className="modal-content large" onClick={e => e.stopPropagation()}>
-                    <div className="modal-header">
-                        <h3>✏️ 가게 정보 수정</h3>
-                    </div>
-                    <div className="modal-body">
-                        <div className="edit-form">
-                            <div className="form-group">
-                                <label>가게 이름 *</label>
-                                <input
-                                    type="text"
-                                    value={editingRestaurant.name}
-                                    onChange={handleEditNameChange}
-                                    placeholder="가게 이름을 입력하세요"
-                                    disabled={loading}
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label>거리 *</label>
-                                <input
-                                    type="text"
-                                    value={editingRestaurant.distance}
-                                    onChange={handleEditDistanceChange}
-                                    placeholder="예: 50m 또는 2분"
-                                    disabled={loading}
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label>카테고리 *</label>
-                                <select
-                                    value={editingRestaurant.category}
-                                    onChange={handleEditCategoryChange}
-                                    disabled={loading}
-                                >
-                                    <option value="한식">한식</option>
-                                    <option value="중식">중식</option>
-                                    <option value="일식">일식</option>
-                                    <option value="양식">양식</option>
-                                    <option value="분식">분식</option>
-                                    <option value="치킨">치킨</option>
-                                    <option value="카페">카페</option>
-                                    <option value="베트남식">베트남식</option>
-                                    <option value="기타">기타</option>
-                                </select>
-                            </div>
-
-                            <div className="form-group">
-                                <label>이미지 URL *</label>
-                                <input
-                                    type="url"
-                                    value={editingRestaurant.image}
-                                    onChange={handleEditImageChange}
-                                    placeholder="https://example.com/image.jpg"
-                                    disabled={loading}
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label>웹사이트 URL</label>
-                                <input
-                                    type="url"
-                                    value={editingRestaurant.websiteUrl || ''}
-                                    onChange={(e) => setEditingRestaurant(prev => prev ? { ...prev, websiteUrl: e.target.value } : null)}
-                                    placeholder="https://example.com"
-                                    disabled={loading}
-                                />
-                                <small>가게 홈페이지, 인스타그램, 블로그 등의 링크</small>
-                            </div>
-
-                            <div className="form-group">
-                                <label>설명</label>
-                                <textarea
-                                    value={editingRestaurant.description || ''}
-                                    onChange={handleEditDescriptionChange}
-                                    placeholder="가게에 대한 간단한 설명"
-                                    rows="3"
-                                    disabled={loading}
-                                />
-                            </div>
-                        </div>
-                    </div>
-                    <div className="modal-footer">
-                        <button className="modal-btn cancel" onClick={closeEditModal}>취소</button>
-                        <button
-                            className="modal-btn confirm"
-                            onClick={handleEditSubmit}
-                            disabled={loading || !editingRestaurant.name.trim() || !editingRestaurant.distance.trim() || !editingRestaurant.category || !editingRestaurant.image.trim()}
-                        >
-                            {loading ? '수정 중...' : '수정 완료'}
-                        </button>
-                    </div>
-                </div>
-            </div>
-        );
-    }, [showEditRestaurant, editingRestaurant, loading, closeEditModal, handleEditSubmit, handleEditNameChange, handleEditDistanceChange, handleEditCategoryChange, handleEditImageChange, handleEditDescriptionChange]);
-
-    // 초기화 중일 때는 로딩 화면 표시
+    // 로딩 중이면 스켈레톤 표시
     if (isInitializing) {
         return (
-            <>
-                <Head>
-                    <title>점심메뉴 선택기</title>
-                    <meta name="description" content="로딩 중..." />
-                    <meta name="viewport" content="width=device-width, initial-scale=1" />
-                </Head>
-                <div className="App">
-                    <div className="container">
-                        <div className="user-setup">
-                            <div className="spinner spinning" style={{width: '60px', height: '60px', margin: '0 auto 20px'}}></div>
-                            <h1 className="setup-title">로딩 중...</h1>
-                            <p className="setup-description">
-                                사용자 정보를 확인하고 있습니다
-                            </p>
-                        </div>
-                    </div>
+            <div className="app">
+                <div className="container">
+                    <RestaurantListSkeleton count={6} />
                 </div>
-            </>
+            </div>
         );
     }
 
-    // 사용자 이름 입력 화면
+    // 사용자 로그인이 필요한 경우
     if (!isUserNameSet) {
         return (
-            <>
+            <ErrorBoundary>
                 <Head>
-                    <title>사용자 설정 - 점심메뉴 선택기</title>
-                    <meta name="description" content="사용자 이름을 입력하세요" />
-                    <meta name="viewport" content="width=device-width, initial-scale=1" />
+                    <title>점심메뉴 선택기 - 로그인</title>
+                    <meta name="description" content="점심메뉴를 랜덤으로 선택해주는 서비스" />
+                    <link rel="icon" href="/favicon.ico" />
                 </Head>
-                <div className="App">
-                    <div className="container">
-                        <div className="user-setup">
-                            <div className="setup-icon">👋</div>
-                            <h1 className="setup-title">환영합니다!</h1>
-                            <p className="setup-description">
-                                점심메뉴 선택기를 사용하기 위해<br />
-                                사용자 이름을 입력해주세요
-                            </p>
-
-                            <div className="setup-form">
-                                <div className="input-container">
-                                    <input
-                                        type="text"
-                                        value={userName}
-                                        onChange={(e) => {
-                                            setUserName(e.target.value);
-                                            setNameCheckStatus('');
-                                            setNameCheckMessage('');
-                                            setShowAdminPassword(false);
-                                            setAdminPassword('');
-                                        }}
-                                        onBlur={() => userName.trim() && checkUserName(userName)}
-                                        placeholder="사용할 닉네임을 입력하세요 (예: 이름 or 닉네임)"
-                                        className={`setup-input ${nameCheckStatus}`}
-                                        onKeyPress={(e) => e.key === 'Enter' && setUserNameHandler(userName)}
-                                        autoFocus
-                                        disabled={loading}
-                                        maxLength="20"
-                                    />
-                                    {nameCheckStatus && (
-                                        <div className={`name-check-message ${nameCheckStatus}`}>
-                                            {nameCheckStatus === 'checking' && '🔄'}
-                                            {nameCheckStatus === 'available' && '✅'}
-                                            {nameCheckStatus === 'exists' && '👤'}
-                                            {nameCheckStatus === 'invalid' && '❌'}
-                                            <span>{nameCheckMessage}</span>
-                                        </div>
-                                    )}
-                                </div>
-
-                                {showAdminPassword && (
-                                    <div className="input-container">
-                                        <input
-                                            type="password"
-                                            value={adminPassword}
-                                            onChange={(e) => setAdminPassword(e.target.value)}
-                                            placeholder="관리자 비밀번호"
-                                            className="setup-input"
-                                            onKeyPress={(e) => e.key === 'Enter' && setUserNameHandler(userName)}
-                                            disabled={loading}
-                                        />
-                                    </div>
-                                )}
-
-                                <button
-                                    className="setup-btn"
-                                    onClick={() => setUserNameHandler(userName)}
-                                    disabled={!userName.trim() || loading || (nameCheckStatus === 'invalid') || (showAdminPassword && !adminPassword.trim())}
-                                >
-                                    {loading ? '처리 중...' :
-                                        nameCheckStatus === 'checking' ? '확인 중...' :
-                                            userName.trim() === '관리자' ? '관리자로 로그인' :
-                                                nameCheckStatus === 'exists' ? '기존 사용자로 로그인' : '새 사용자로 시작하기'}
-                                </button>
-                            </div>
-
-                            <div className="setup-info">
-                                <p>💡 개인 방문기록이 따로 저장됩니다</p>
-                                <p>🤝 가게 목록은 모든 사용자가 공유합니다</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <Modal />
-            </>
+                
+                <UserLogin
+                    userName={userName}
+                    setUserName={setUserName}
+                    nameCheckStatus={nameCheckStatus}
+                    nameCheckMessage={nameCheckMessage}
+                    showAdminPassword={showAdminPassword}
+                    adminPassword={adminPassword}
+                    setAdminPassword={setAdminPassword}
+                    onCheckUserName={checkUserName}
+                    onSetUserName={handleUserLogin}
+                />
+                
+                <Modal 
+                    modal={modal} 
+                    closeModal={closeModal} 
+                    confirmModal={confirmModal} 
+                />
+            </ErrorBoundary>
         );
     }
 
-    // 가게 상세 화면
-    if (currentView === 'detail' && selectedRestaurantDetail) {
-        return (
-            <>
-                <Head>
-                    <title>{selectedRestaurantDetail.name} - 점심메뉴 선택기</title>
-                    <meta name="description" content={`${selectedRestaurantDetail.name} 상세 정보`} />
-                    <meta name="viewport" content="width=device-width, initial-scale=1" />
-                </Head>
-                <div className="App">
-                    <div className="container">
-                        <div className="header">
-                            <h1 className="title">🍽️ 가게 상세</h1>
-                            <button className="home-btn" onClick={() => setCurrentView('list')}>
-                                <span className="home-icon">📋</span>
-                                목록으로
-                            </button>
-                        </div>
-
-                        <div className="restaurant-detail">
-                            <div className="detail-image-container">
-                                <img
-                                    src={selectedRestaurantDetail.image}
-                                    alt={selectedRestaurantDetail.name}
-                                    className="detail-image"
-                                />
-                            </div>
-                            <div className="detail-info">
-                                <h2 className="detail-name">{selectedRestaurantDetail.name}</h2>
-                                <div className="detail-meta">
-                                    <span className="detail-category">{selectedRestaurantDetail.category}</span>
-                                    <span className="detail-distance">🚶‍♂️ {selectedRestaurantDetail.distance}</span>
-                                    {selectedRestaurantDetail.averageRating > 0 && (
-                                        <span className="detail-rating">
-                                            ⭐ {selectedRestaurantDetail.averageRating} ({selectedRestaurantDetail.reviewCount}개 리뷰)
-                                        </span>
-                                    )}
-                                </div>
-                                {selectedRestaurantDetail.description && (
-                                    <p className="detail-description">{selectedRestaurantDetail.description}</p>
-                                )}
-
-                                {/* 웹사이트 링크 */}
-                                {selectedRestaurantDetail.websiteUrl && (
-                                    <div className="detail-website">
-                                        <a 
-                                            href={selectedRestaurantDetail.websiteUrl} 
-                                            target="_blank" 
-                                            rel="noopener noreferrer"
-                                            className="website-link"
-                                        >
-                                            🔗 웹사이트 바로가기
-                                        </a>
-                                    </div>
-                                )}
-
-                                {/* 빠른 액션 버튼들 */}
-                                <div className="detail-actions">
-                                    <button
-                                        className="action-btn primary"
-                                        onClick={() => window.location.href = `/reviews?restaurant=${selectedRestaurantDetail._id}`}
-                                    >
-                                        📝 리뷰 작성
-                                    </button>
-                                    <button
-                                        className="action-btn secondary"
-                                        onClick={() => {
-                                            setEditingRestaurant({ ...selectedRestaurantDetail });
-                                            setShowEditRestaurant(true);
-                                        }}
-                                    >
-                                        ✏️ 가게 정보 수정
-                                    </button>
-
-                                    {isAdmin && (
-                                        <button
-                                            className="action-btn danger"
-                                            onClick={() => showModal('confirm', '가게 삭제', `${selectedRestaurantDetail.name}을(를) 완전히 삭제하시겠습니까?\\n관리자만 가게를 삭제할 수 있습니다.`, async () => {
-                                                await deleteRestaurant(selectedRestaurantDetail._id);
-                                                setCurrentView('main');
-                                            })}
-                                            disabled={loading}
-                                        >
-                                            🗑️ 가게 삭제
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* 리뷰 섹션 */}
-                        <div className="detail-reviews">
-                            <div className="reviews-header">
-                                <h3>📝 리뷰 ({reviews.length})</h3>
-                                <button
-                                    className="refresh-btn"
-                                    onClick={() => loadReviews(selectedRestaurantDetail._id)}
-                                >
-                                    🔄 새로고침
-                                </button>
-                            </div>
-
-                            {reviews.length === 0 ? (
-                                <div className="no-reviews">
-                                    <p>아직 리뷰가 없습니다.</p>
-                                    <p>첫 번째 리뷰를 작성해보세요! ✍️</p>
-                                </div>
-                            ) : (
-                                <div className="reviews-preview">
-                                    {reviews.slice(0, 3).map(review => (
-                                        <div key={review._id} className="review-preview-item">
-                                            <div className="review-preview-header">
-                                                <strong>{review.userName}</strong>
-                                                <div className="review-preview-rating">
-                                                    {'⭐'.repeat(review.rating)}
-                                                </div>
-                                            </div>
-                                            <p className="review-preview-content">{review.content}</p>
-                                            <div className="review-preview-footer">
-                                                <span className="review-preview-date">
-                                                    {new Date(review.createdAt).toLocaleDateString('ko-KR')}
-                                                </span>
-                                                <div className="review-actions">
-                                                    <button
-                                                        className={`preview-like-btn ${review.likes?.some(like => like.userId === currentUser?._id) ? 'liked' : ''}`}
-                                                        onClick={() => toggleReviewLike(review._id)}
-                                                    >
-                                                        👍 {review.likeCount || 0}
-                                                    </button>
-                                                    
-                                                    {/* 본인 리뷰인 경우 수정/삭제 버튼 */}
-                                                    {review.userId === currentUser?._id && (
-                                                        <>
-                                                            <button
-                                                                className="preview-edit-btn"
-                                                                onClick={() => window.location.href = '/reviews'}
-                                                                title="리뷰 페이지에서 수정"
-                                                            >
-                                                                ✏️
-                                                            </button>
-                                                            <button
-                                                                className="preview-delete-btn own"
-                                                                onClick={() => showModal('confirm', '내 리뷰 삭제', '내 리뷰를 삭제하시겠습니까?', () => deleteReview(review._id, true))}
-                                                                disabled={loading}
-                                                            >
-                                                                🗑️
-                                                            </button>
-                                                        </>
-                                                    )}
-                                                    
-                                                    {/* 관리자인 경우 타인 리뷰 삭제 버튼 */}
-                                                    {isAdmin && review.userId !== currentUser?._id && (
-                                                        <button
-                                                            className="preview-delete-btn admin"
-                                                            onClick={() => showModal('confirm', '리뷰 삭제', `${review.userName}님의 리뷰를 삭제하시겠습니까?`, () => deleteReview(review._id))}
-                                                            disabled={loading}
-                                                        >
-                                                            🗑️
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-
-                                    {reviews.length > 3 && (
-                                        <div className="more-reviews">
-                                            <button
-                                                className="more-reviews-btn"
-                                                onClick={() => window.location.href = `/reviews?restaurant=${selectedRestaurantDetail._id}`}
-                                            >
-                                                더 많은 리뷰 보기 ({reviews.length - 3}개 더)
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="detail-stats">
-                            <span>생성일: {new Date(selectedRestaurantDetail.createdAt).toLocaleDateString()}</span>
-                        </div>
-                    </div>
-                </div>
-                <Modal />
-                {EditRestaurantModal}
-            </>
-        );
-    }
-
-    // 가게 추가 화면
-    if (currentView === 'add') {
-        return (
-            <>
-                <Head>
-                    <title>가게 추가 - 점심메뉴 선택기</title>
-                    <meta name="description" content="새로운 점심 가게를 추가하세요" />
-                    <meta name="viewport" content="width=device-width, initial-scale=1" />
-                </Head>
-                <div className="App">
-                    <div className="container">
-                        <div className="header">
-                            <h1 className="title">🏪 가게 추가</h1>
-                            <button className="home-btn" onClick={() => setCurrentView('main')}>
-                                <span className="home-icon">🏠</span>
-                                메인으로
-                            </button>
-                        </div>
-
-                        <div className="add-form">
-                            <div className="form-group">
-                                <label>가게 이름</label>
-                                <input
-                                    type="text"
-                                    value={newRestaurant}
-                                    onChange={(e) => setNewRestaurant(e.target.value)}
-                                    placeholder="예: 김밥천국"
-                                    disabled={loading}
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label>거리</label>
-                                <input
-                                    type="text"
-                                    value={newWalkTime}
-                                    onChange={(e) => setNewWalkTime(e.target.value)}
-                                    placeholder="예: 50m 또는 2분"
-                                    disabled={loading}
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label>카테고리</label>
-                                <select
-                                    value={newCategory}
-                                    onChange={(e) => setNewCategory(e.target.value)}
-                                    disabled={loading}
-                                >
-                                    <option value="">카테고리 선택</option>
-                                    <option value="한식">한식</option>
-                                    <option value="중식">중식</option>
-                                    <option value="일식">일식</option>
-                                    <option value="양식">양식</option>
-                                    <option value="분식">분식</option>
-                                    <option value="치킨">치킨</option>
-                                    <option value="카페">카페</option>
-                                    <option value="베트남식">베트남식</option>
-                                    <option value="기타">기타</option>
-                                </select>
-                            </div>
-
-                            <div className="form-group">
-                                <label>이미지 URL</label>
-                                <input
-                                    type="url"
-                                    value={newImage}
-                                    onChange={(e) => setNewImage(e.target.value)}
-                                    placeholder="https://example.com/image.jpg"
-                                    disabled={loading}
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label>웹사이트 URL (선택사항)</label>
-                                <input
-                                    type="url"
-                                    value={newWebsiteUrl}
-                                    onChange={(e) => setNewWebsiteUrl(e.target.value)}
-                                    placeholder="https://example.com"
-                                    disabled={loading}
-                                />
-                                <small>가게 홈페이지, 인스타그램, 블로그 등의 링크</small>
-                            </div>
-
-                            <div className="form-group">
-                                <label>설명 (선택사항)</label>
-                                <textarea
-                                    value={newDescription}
-                                    onChange={(e) => setNewDescription(e.target.value)}
-                                    placeholder="가게에 대한 간단한 설명"
-                                    rows="3"
-                                    disabled={loading}
-                                />
-                            </div>
-
-                            <div className="form-actions">
-                                <button
-                                    className="add-btn"
-                                    onClick={addRestaurant}
-                                    disabled={loading || !newRestaurant.trim() || !newWalkTime.trim() || !newCategory || !newImage.trim()}
-                                >
-                                    {loading ? '추가 중...' : '가게 추가'}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <Modal />
-            </>
-        );
-    }
-
-    // 가게 목록 화면
-    if (currentView === 'list') {
-        const filteredRestaurants = getFilteredAndSortedRestaurants();
-        const totalPages = Math.ceil(filteredRestaurants.length / itemsPerPage);
-        const startIndex = (currentPage - 1) * itemsPerPage;
-        const paginatedRestaurants = filteredRestaurants.slice(startIndex, startIndex + itemsPerPage);
-
-        return (
-            <>
-                <Head>
-                    <title>가게 목록 - 점심메뉴 선택기</title>
-                    <meta name="description" content="등록된 점심 가게 목록을 확인하세요" />
-                    <meta name="viewport" content="width=device-width, initial-scale=1" />
-                </Head>
-                <div className="App">
-                    <div className="container">
-                        <div className="header">
-                            <h1 className="title">📋 가게 목록</h1>
-                            <button className="home-btn" onClick={() => setCurrentView('main')}>
-                                <span className="home-icon">🏠</span>
-                                메인으로
-                            </button>
-                        </div>
-
-                        {/* 검색 및 필터 */}
-                        <div className="filters">
-                            <div className="search-box">
-                                <input
-                                    type="text"
-                                    placeholder="가게 이름 검색..."
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                />
-                            </div>
-
-                            <div className="filter-controls">
-                                <select
-                                    value={filterCategory}
-                                    onChange={(e) => setFilterCategory(e.target.value)}
-                                >
-                                    <option value="all">전체 카테고리</option>
-                                    {getAllCategories().map(category => (
-                                        <option key={category} value={category}>{category}</option>
-                                    ))}
-                                </select>
-
-                                <select
-                                    value={sortBy}
-                                    onChange={(e) => setSortBy(e.target.value)}
-                                >
-                                    <option value="name">이름순</option>
-                                    <option value="distance">거리순</option>
-                                    <option value="newest">최신순</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        {/* 가게 목록 */}
-                        <div className="restaurant-list">
-                            {paginatedRestaurants.length === 0 ? (
-                                <div className="empty-state">
-                                    <p>조건에 맞는 가게가 없습니다.</p>
-                                    {restaurants.length === 0 && (
-                                        <button
-                                            className="sample-btn"
-                                            onClick={initializeSampleData}
-                                            disabled={loading}
-                                        >
-                                            {loading ? '생성 중...' : '샘플 데이터 생성'}
-                                        </button>
-                                    )}
-                                </div>
-                            ) : (
-                                paginatedRestaurants.map(restaurant => (
-                                    <div key={restaurant._id} className="restaurant-item">
-                                        <img
-                                            src={restaurant.image}
-                                            alt={restaurant.name}
-                                            className="restaurant-image"
-                                        />
-                                        <div className="restaurant-info">
-                                            <h3 className="restaurant-name">{restaurant.name}</h3>
-                                            <div className="restaurant-meta">
-                                                <span className="restaurant-category">{restaurant.category}</span>
-                                                <span className="restaurant-distance">🚶‍♂️ {restaurant.distance}</span>
-                                                {restaurant.averageRating > 0 && (
-                                                    <span className="restaurant-rating">
-                                                        ⭐ {restaurant.averageRating} ({restaurant.reviewCount})
-                                                    </span>
-                                                )}
-                                            </div>
-                                            {restaurant.description && (
-                                                <p className="restaurant-description">{restaurant.description}</p>
-                                            )}
-                                            {restaurant.websiteUrl && (
-                                                <div className="restaurant-website">
-                                                    <a 
-                                                        href={restaurant.websiteUrl} 
-                                                        target="_blank" 
-                                                        rel="noopener noreferrer"
-                                                        className="restaurant-link"
-                                                    >
-                                                        🔗 웹사이트
-                                                    </a>
-                                                </div>
-                                            )}
-                                        </div>
-                                        <div className="restaurant-actions">
-                                            <button
-                                                className="detail-btn"
-                                                onClick={async () => {
-                                                    setSelectedRestaurantDetail(restaurant);
-                                                    setCurrentView('detail');
-                                                    await loadReviews(restaurant._id);
-                                                }}
-                                            >
-                                                상세
-                                            </button>
-
-                                            {isAdmin ? (
-                                                <button
-                                                    className="delete-btn"
-                                                    onClick={() => showModal('confirm', '가게 삭제', `${restaurant.name}을(를) 삭제하시겠습니까?\\n관리자만 가게를 삭제할 수 있습니다.`, () => deleteRestaurant(restaurant._id))}
-                                                    disabled={loading}
-                                                >
-                                                    🗑️ 삭제
-                                                </button>
-                                            ) : (
-                                                <>
-                                                    {userPreferences?.excludedRestaurants?.some(excluded => excluded.restaurantId._id === restaurant._id) ? (
-                                                        <button
-                                                            className="include-btn"
-                                                            onClick={() => toggleRestaurantExclusion(restaurant._id, 'include')}
-                                                            disabled={loading}
-                                                        >
-                                                            ✅ 포함
-                                                        </button>
-                                                    ) : (
-                                                        <button
-                                                            className="exclude-btn"
-                                                            onClick={() => showModal('confirm', '가게 제외', `${restaurant.name}을(를) 랜덤 선택에서 제외하시겠습니까?`, () => toggleRestaurantExclusion(restaurant._id, 'exclude', '사용자 선택'))}
-                                                            disabled={loading}
-                                                        >
-                                                            ❌ 제외
-                                                        </button>
-                                                    )}
-                                                </>
-                                            )}
-                                        </div>
-                                    </div>
-                                ))
-                            )}
-                        </div>
-
-                        {/* 페이지네이션 */}
-                        {totalPages > 1 && (
-                            <div className="pagination">
-                                <button
-                                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                                    disabled={currentPage === 1}
-                                >
-                                    이전
-                                </button>
-                                <span>{currentPage} / {totalPages}</span>
-                                <button
-                                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                                    disabled={currentPage === totalPages}
-                                >
-                                    다음
-                                </button>
-                            </div>
-                        )}
-                    </div>
-                </div>
-                <Modal />
-            </>
-        );
-    }
-    // 방문기록 화면
-    if (currentView === 'history') {
-        return (
-            <>
-                <Head>
-                    <title>방문기록 - 점심메뉴 선택기</title>
-                    <meta name="description" content="나의 점심 가게 방문 기록을 확인하세요" />
-                    <meta name="viewport" content="width=device-width, initial-scale=1" />
-                </Head>
-                <div className="App">
-                    <div className="container">
-                        <div className="header">
-                            <h1 className="title">📊 {userName}님의 방문기록</h1>
-                            <button className="home-btn" onClick={() => setCurrentView('main')}>
-                                <span className="home-icon">🏠</span>
-                                메인으로
-                            </button>
-                        </div>
-
-                        {/* 최근 공유 선택 */}
-                        {recentSelections.length > 0 && (
-                            <div className="recent-selections">
-                                <h3>🌟 최근 모든 선택</h3>
-                                <div className="recent-list">
-                                    {recentSelections.slice(0, 5).map(selection => (
-                                        <div key={selection._id} className="recent-item">
-                                            <img src={selection.restaurantImage} alt={selection.restaurantName} className="recent-image" />
-                                            <div className="recent-info">
-                                                <span className="recent-restaurant">{selection.restaurantName}</span>
-                                                <span className="recent-user">by {selection.userName}</span>
-                                                <span className="recent-time">{new Date(selection.selectedAt).toLocaleString('ko-KR', {
-                                                    month: 'short',
-                                                    day: 'numeric',
-                                                    hour: '2-digit',
-                                                    minute: '2-digit'
-                                                })}</span>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* 간단한 통계 */}
-                        <div className="stats-section">
-                            <div className="stat-item">
-                                <span className="stat-number">{restaurants.length}</span>
-                                <span className="stat-label">총 가게 수</span>
-                            </div>
-                            <div className="stat-item">
-                                <span className="stat-number">{getAllCategories().length}</span>
-                                <span className="stat-label">카테고리 수</span>
-                            </div>
-                            <div className="stat-item">
-                                <span className="stat-number">{visitHistory.length}</span>
-                                <span className="stat-label">내 방문 횟수</span>
-                            </div>
-                            <div className="stat-item">
-                                <span className="stat-number">{recentSelections.length}</span>
-                                <span className="stat-label">전체 선택 횟수</span>
-                            </div>
-                        </div>
-
-                        {/* 개인 방문 기록 */}
-                        <div className="history-section">
-                            <div className="history-header">
-                                <h3>📈 내 방문 기록</h3>
-                                {visitHistory.length > 0 && (
-                                    <button className="clear-btn" onClick={clearVisitHistory}>
-                                        기록 삭제
-                                    </button>
-                                )}
-                            </div>
-
-                            {visitHistory.length === 0 ? (
-                                <div className="empty-history">
-                                    <p>아직 방문 기록이 없습니다.</p>
-                                    <p>랜덤 선택을 해보세요! 🎲</p>
-                                </div>
-                            ) : (
-                                <div className="history-list">
-                                    {visitHistory.map(visit => (
-                                        <div key={visit._id} className="history-item">
-                                            {visit.restaurantId && (
-                                                <img
-                                                    src={visit.restaurantId.image}
-                                                    alt={visit.restaurantName}
-                                                    className="history-image"
-                                                />
-                                            )}
-                                            <div className="history-info">
-                                                <span className="history-restaurant">{visit.restaurantName}</span>
-                                                <span className="history-time">
-                                                    {new Date(visit.visitedAt).toLocaleString('ko-KR')}
-                                                </span>
-                                                <span className="history-type">
-                                                    {visit.visitType === 'random' ? '🎲 랜덤 선택' : '👆 직접 선택'}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-                <Modal />
-            </>
-        );
-    }
-
-    // 메인 화면
     return (
-        <>
+        <ErrorBoundary>
             <Head>
                 <title>점심메뉴 선택기</title>
-                <meta name="description" content="회사 점심 가게를 랜덤으로 선택해주는 앱" />
-                <meta name="viewport" content="width=device-width, initial-scale=1" />
+                <meta name="description" content="점심메뉴를 랜덤으로 선택해주는 서비스" />
+                <link rel="icon" href="/favicon.ico" />
             </Head>
-            <div className="App">
+
+            <div className="app">
                 <div className="container">
-                    <div className="user-header">
-                        <div className="user-info">
-                            <span className="user-greeting">안녕하세요, <strong>{userName}</strong>님! 👋</span>
-                            <button className="change-user-btn" onClick={changeUserName}>
-                                사용자 변경
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className="title-container">
-                        <h1 className="title">🍽️ 점심메뉴 선택기</h1>
-                        <button 
-                            className="help-icon-btn"
-                            onClick={() => setShowHelpModal(true)}
-                            title="사용법 도움말"
-                        >
-                            ❓
-                        </button>
-                    </div>
-
-
-
-                    {/* 필터 섹션 */}
-                    <div className="glass-card" style={{ 
-                        padding: 'var(--space-6)', 
-                        marginBottom: 'var(--space-8)',
-                        textAlign: 'center'
-                    }}>
-                        <h3 style={{ 
-                            marginBottom: 'var(--space-4)', 
-                            color: 'var(--gray-800)', 
-                            fontSize: '1.25rem', 
-                            fontWeight: '700',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: 'var(--space-2)'
-                        }}>
-                            <span className="emoji">🔍</span> 필터 설정
-                        </h3>
-                        <div style={{ marginBottom: 'var(--space-4)' }}>
-                            <select
-                                className="modern-select"
-                                value={filterCategory}
-                                onChange={(e) => setFilterCategory(e.target.value)}
-                                style={{ maxWidth: '300px', margin: '0 auto' }}
-                            >
-                                <option value="all">전체 카테고리</option>
-                                {getAllCategories().map(category => (
-                                    <option key={category} value={category}>{category}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <p style={{ 
-                            color: 'var(--gray-600)', 
-                            fontSize: '0.9rem',
-                            fontWeight: '500',
-                            margin: '0'
-                        }}>
-                            {filterCategory === 'all'
-                                ? `전체 ${restaurants.length}개 가게`
-                                : `${filterCategory} ${getFilteredAndSortedRestaurants().length}개 가게`
-                            }
-                        </p>
-                    </div>
-
-                    {/* 랜덤 선택 섹션 */}
-                    <div className="random-section">
-                        <div className={`spinner ${isSpinning ? 'spinning' : ''}`}>
-                            {selectedRestaurant ? (
-                                <div className="selected-restaurant">
-                                    <img src={selectedRestaurant.image} alt={selectedRestaurant.name} />
-                                    <h3>{selectedRestaurant.name}</h3>
-                                    <p>{selectedRestaurant.category} • {selectedRestaurant.distance}</p>
+                    {/* 헤더 */}
+                    <header className="header">
+                        <div className="header-content">
+                            <div className="header-left">
+                                <h1 className="title">🍽️ 점심메뉴 선택기</h1>
+                                <div className="user-info">
+                                    <span className="user-greeting">안녕하세요, <strong>{currentUser?.name}</strong>님!</span>
+                                    {isAdmin && <span className="admin-badge">관리자</span>}
                                 </div>
-                            ) : (
-                                <div className="spinner-placeholder">
-                                    <span className="spinner-icon">🍽️</span>
-                                    <p>{isSpinning ? '선택 중...' : '랜덤으로 가게를 선택해보세요!'}</p>
+                            </div>
+                            <div className="header-right">
+                                <button onClick={changeUser} className="btn-change-user">
+                                    👤 사용자 변경
+                                </button>
+                            </div>
+                        </div>
+                    </header>
+
+                    {/* 메인 뷰 */}
+                    {currentView === 'main' && (
+                        <main className="main-content">
+                            {/* 랜덤 선택 섹션 */}
+                            <section className="hero-section">
+                                <div className="hero-content">
+                                    {isSpinning ? (
+                                        <div className="spinning-wheel">
+                                            <div className="spinner"></div>
+                                            <h2>🎲 선택 중...</h2>
+                                            <p>잠시만 기다려주세요!</p>
+                                        </div>
+                                    ) : selectedRestaurant ? (
+                                        <div className="selected-result">
+                                            <h2>🎉 오늘의 선택!</h2>
+                                            <div className="selected-card">
+                                                <RestaurantCard
+                                                    restaurant={selectedRestaurant}
+                                                    onViewDetail={viewRestaurantDetail}
+                                                    isAdmin={isAdmin}
+                                                    currentUser={currentUser}
+                                                    onEdit={(restaurant) => {
+                                                        setEditingRestaurant(restaurant);
+                                                        setCurrentView('edit');
+                                                    }}
+                                                    onDelete={deleteRestaurant}
+                                                />
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="hero-placeholder">
+                                            <h2>🎲 오늘 뭐 먹을까요?</h2>
+                                            <p>버튼을 눌러 오늘의 점심을 선택해보세요!</p>
+                                        </div>
+                                    )}
+                                    
+                                    <button 
+                                        onClick={selectRandomRestaurant}
+                                        disabled={isSpinning || filteredAndSortedRestaurants.length === 0}
+                                        className="btn-random"
+                                    >
+                                        {isSpinning ? '선택 중...' : '🎲 랜덤 선택'}
+                                    </button>
                                 </div>
-                            )}
+                            </section>
+
+                            {/* 액션 버튼들 */}
+                            <section className="action-section">
+                                <div className="action-grid">
+                                    <button 
+                                        onClick={() => setCurrentView('add')}
+                                        className="action-btn add-btn"
+                                    >
+                                        <span className="action-icon">➕</span>
+                                        <span className="action-text">가게 추가</span>
+                                    </button>
+                                    
+                                    <button 
+                                        onClick={() => router.push('/slot')}
+                                        className="action-btn game-btn"
+                                    >
+                                        <span className="action-icon">🃏</span>
+                                        <span className="action-text">카드 뽑기</span>
+                                    </button>
+                                    
+                                    <button 
+                                        onClick={() => router.push('/worldcup')}
+                                        className="action-btn game-btn"
+                                    >
+                                        <span className="action-icon">🏆</span>
+                                        <span className="action-text">월드컵</span>
+                                    </button>
+                                    
+                                    <button 
+                                        onClick={() => router.push('/reviews')}
+                                        className="action-btn review-btn"
+                                    >
+                                        <span className="action-icon">⭐</span>
+                                        <span className="action-text">리뷰 보기</span>
+                                    </button>
+                                    
+                                    <button 
+                                        onClick={() => router.push('/feedback')}
+                                        className="action-btn feedback-btn"
+                                    >
+                                        <span className="action-icon">📝</span>
+                                        <span className="action-text">피드백</span>
+                                    </button>
+                                    
+                                    <button 
+                                        onClick={() => router.push('/calendar')}
+                                        className="action-btn calendar-btn"
+                                    >
+                                        <span className="action-icon">📅</span>
+                                        <span className="action-text">방문 달력</span>
+                                    </button>
+                                    
+
+                                </div>
+                            </section>
+
+                            {/* 필터 및 검색 */}
+                            <section className="filter-section">
+                                <div className="filter-header">
+                                    <h3>🔍 가게 찾기</h3>
+                                </div>
+                                <div className="filter-controls">
+                                    <div className="search-box">
+                                        <input
+                                            type="text"
+                                            placeholder="가게 이름 검색..."
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                            className="search-input"
+                                        />
+                                    </div>
+                                    
+                                    <select
+                                        value={filterCategory}
+                                        onChange={(e) => setFilterCategory(e.target.value)}
+                                        className="filter-select"
+                                    >
+                                        <option value="all">전체 카테고리</option>
+                                        {categories.map(category => (
+                                            <option key={category} value={category}>
+                                                {category}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    
+                                    <select
+                                        value={sortBy}
+                                        onChange={(e) => setSortBy(e.target.value)}
+                                        className="sort-select"
+                                    >
+                                        <option value="name">이름순</option>
+                                        <option value="distance">거리순</option>
+                                        <option value="newest">최신순</option>
+                                    </select>
+                                </div>
+                            </section>
+
+                            {/* 가게 목록 */}
+                            <section className="restaurants-section">
+                                <div className="section-header">
+                                    <h3>🏪 가게 목록</h3>
+                                    <span className="count-badge">{filteredAndSortedRestaurants.length}개</span>
+                                </div>
+                                
+                                {restaurantsLoading ? (
+                                    <RestaurantListSkeleton count={6} />
+                                ) : paginatedRestaurants.length > 0 ? (
+                                    <>
+                                        <div className="restaurants-grid">
+                                            {paginatedRestaurants.map(restaurant => (
+                                                <RestaurantCard
+                                                    key={restaurant._id}
+                                                    restaurant={restaurant}
+                                                    onViewDetail={viewRestaurantDetail}
+                                                    isAdmin={isAdmin}
+                                                    currentUser={currentUser}
+                                                    onEdit={(restaurant) => {
+                                                        setEditingRestaurant(restaurant);
+                                                        setCurrentView('edit');
+                                                    }}
+                                                    onDelete={deleteRestaurant}
+                                                />
+                                            ))}
+                                        </div>
+                                        
+                                        {/* 페이지네이션 */}
+                                        {totalPages > 1 && (
+                                            <div className="pagination">
+                                                <button
+                                                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                                                    disabled={currentPage === 1}
+                                                    className="pagination-btn"
+                                                >
+                                                    ← 이전
+                                                </button>
+                                                
+                                                <span className="pagination-info">
+                                                    {currentPage} / {totalPages}
+                                                </span>
+                                                
+                                                <button
+                                                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                                                    disabled={currentPage === totalPages}
+                                                    className="pagination-btn"
+                                                >
+                                                    다음 →
+                                                </button>
+                                            </div>
+                                        )}
+                                    </>
+                                ) : (
+                                    <div className="empty-state">
+                                        <div className="empty-icon">🔍</div>
+                                        <h4>조건에 맞는 가게가 없습니다</h4>
+                                        <p>다른 검색어나 카테고리를 시도해보세요</p>
+                                        <button 
+                                            onClick={() => {
+                                                setFilterCategory('all');
+                                                setSearchQuery('');
+                                            }}
+                                            className="btn-reset-filter"
+                                        >
+                                            필터 초기화
+                                        </button>
+                                    </div>
+                                )}
+                            </section>
+
+
+                        </main>
+                    )}
+
+                    {/* 가게 추가 뷰 */}
+                    {currentView === 'add' && (
+                        <div className="form-view">
+                            <div className="form-header">
+                                <button 
+                                    onClick={() => setCurrentView('main')}
+                                    className="btn-back"
+                                >
+                                    ← 돌아가기
+                                </button>
+                                <h2>새 가게 추가</h2>
+                            </div>
+                            <RestaurantForm
+                                onSubmit={addRestaurant}
+                                onCancel={() => setCurrentView('main')}
+                                loading={userLoading}
+                            />
                         </div>
+                    )}
 
-                        <div className="random-buttons">
-                            <button
-                                className="random-btn"
-                                onClick={selectRandomRestaurant}
-                                disabled={isSpinning || loading || restaurants.length === 0}
-                            >
-                                {isSpinning ? '선택 중...' : '🎲 랜덤으로 가게 선택하기'}
-                            </button>
-                            
-                            <button
-                                className="worldcup-btn"
-                                onClick={() => window.location.href = '/worldcup'}
-                                disabled={loading || restaurants.length < 2}
-                            >
-                                🏆 점식 식당 월드컵
-                            </button>
-                            
-                            <button
-                                className="slot-btn"
-                                onClick={() => window.location.href = '/slot'}
-                                disabled={loading || restaurants.length === 0}
-                            >
-                                🎰 슬롯머신
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* 메뉴 버튼들 */}
-                    <div style={{ 
-                        display: 'grid', 
-                        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', 
-                        gap: 'var(--space-6)', 
-                        marginBottom: 'var(--space-8)' 
-                    }}>
-                        <button 
-                            className="glass-card" 
-                            onClick={() => setCurrentView('list')}
-                            style={{ 
-                                padding: 'var(--space-6)', 
-                                border: 'none', 
-                                cursor: 'pointer',
-                                textAlign: 'left',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 'var(--space-4)',
-                                fontSize: '1rem',
-                                fontWeight: '600',
-                                color: 'var(--gray-800)'
-                            }}
-                        >
-                            <span className="emoji" style={{ fontSize: '2rem' }}>📋</span>
-                            <div>
-                                <div>가게 목록</div>
-                                <small style={{ color: 'var(--gray-600)', fontWeight: '500' }}>
-                                    {restaurants.length}개 가게
-                                </small>
+                    {/* 가게 수정 뷰 */}
+                    {currentView === 'edit' && editingRestaurant && (
+                        <div className="form-view">
+                            <div className="form-header">
+                                <button 
+                                    onClick={() => {
+                                        setEditingRestaurant(null);
+                                        setCurrentView('main');
+                                    }}
+                                    className="btn-back"
+                                >
+                                    ← 돌아가기
+                                </button>
+                                <h2>가게 정보 수정</h2>
                             </div>
-                        </button>
-                        
-                        <button 
-                            className="glass-card" 
-                            onClick={() => setCurrentView('add')}
-                            style={{ 
-                                padding: 'var(--space-6)', 
-                                border: 'none', 
-                                cursor: 'pointer',
-                                textAlign: 'left',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 'var(--space-4)',
-                                fontSize: '1rem',
-                                fontWeight: '600',
-                                color: 'var(--gray-800)'
-                            }}
-                        >
-                            <span className="emoji" style={{ fontSize: '2rem' }}>➕</span>
-                            <div>
-                                <div>가게 추가</div>
-                                <small style={{ color: 'var(--gray-600)', fontWeight: '500' }}>
-                                    새로운 맛집 등록
-                                </small>
-                            </div>
-                        </button>
-                        
-
-                        
-                        <button 
-                            className="glass-card" 
-                            onClick={() => window.location.href = '/reviews'}
-                            style={{ 
-                                padding: 'var(--space-6)', 
-                                border: 'none', 
-                                cursor: 'pointer',
-                                textAlign: 'left',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 'var(--space-4)',
-                                fontSize: '1rem',
-                                fontWeight: '600',
-                                color: 'var(--gray-800)'
-                            }}
-                        >
-                            <span className="emoji" style={{ fontSize: '2rem' }}>📝</span>
-                            <div>
-                                <div>리뷰 작성</div>
-                                <small style={{ color: 'var(--gray-600)', fontWeight: '500' }}>
-                                    맛집 후기 공유
-                                </small>
-                            </div>
-                        </button>
-                        
-                        <button 
-                            className="glass-card" 
-                            onClick={() => window.location.href = '/feedback'}
-                            style={{ 
-                                padding: 'var(--space-6)', 
-                                border: 'none', 
-                                cursor: 'pointer',
-                                textAlign: 'left',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 'var(--space-4)',
-                                fontSize: '1rem',
-                                fontWeight: '600',
-                                color: 'var(--gray-800)'
-                            }}
-                        >
-                            <span className="emoji" style={{ fontSize: '2rem' }}>💭</span>
-                            <div>
-                                <div>피드백</div>
-                                <small style={{ color: 'var(--gray-600)', fontWeight: '500' }}>
-                                    기능 요청 & 건의
-                                </small>
-                            </div>
-                        </button>
-                        
-                        <button 
-                            className="glass-card" 
-                            onClick={() => setShowPreferences(true)}
-                            style={{ 
-                                padding: 'var(--space-6)', 
-                                border: 'none', 
-                                cursor: 'pointer',
-                                textAlign: 'left',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 'var(--space-4)',
-                                fontSize: '1rem',
-                                fontWeight: '600',
-                                color: 'var(--gray-800)'
-                            }}
-                        >
-                            <span className="emoji" style={{ fontSize: '2rem' }}>⚙️</span>
-                            <div>
-                                <div>선호도 설정</div>
-                                <small style={{ color: 'var(--gray-600)', fontWeight: '500' }}>
-                                    개인 맞춤 설정
-                                </small>
-                            </div>
-                        </button>
-                        
-                        {isAdmin && (
-                            <button 
-                                className="glass-card" 
-                                style={{ 
-                                    padding: 'var(--space-6)', 
-                                    border: 'none', 
-                                    cursor: 'pointer',
-                                    textAlign: 'left',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: 'var(--space-4)',
-                                    fontSize: '1rem',
-                                    fontWeight: '600',
-                                    color: 'var(--gray-800)',
-                                    background: 'linear-gradient(135deg, var(--warning-50) 0%, var(--warning-100) 100%)',
-                                    border: '1px solid var(--warning-200)'
+                            <RestaurantForm
+                                initialData={editingRestaurant}
+                                onSubmit={updateRestaurant}
+                                onCancel={() => {
+                                    setEditingRestaurant(null);
+                                    setCurrentView('main');
                                 }}
-                            >
-                                <span className="emoji" style={{ fontSize: '2rem' }}>👑</span>
-                                <div>
-                                    <div>관리자 메뉴</div>
-                                    <small style={{ color: 'var(--warning-600)', fontWeight: '500' }}>
-                                        시스템 관리
-                                    </small>
-                                </div>
-                            </button>
-                        )}
-                    </div>
+                                loading={userLoading}
+                            />
+                        </div>
+                    )}
 
-                    {/* 초기화 버튼 (가게가 없을 때만) */}
-                    {restaurants.length === 0 && (
-                        <div className="glass-card" style={{ 
-                            padding: 'var(--space-6)', 
-                            marginBottom: 'var(--space-8)',
-                            textAlign: 'center'
-                        }}>
-                            <h3 style={{ 
-                                marginBottom: 'var(--space-4)', 
-                                color: 'var(--gray-800)', 
-                                fontSize: '1.25rem', 
-                                fontWeight: '700',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: 'var(--space-2)'
-                            }}>
-                                <span className="emoji">🏪</span> 가게 데이터가 없습니다
-                            </h3>
+                    {/* 가게 상세보기 뷰 */}
+                    {currentView === 'detail' && selectedRestaurantDetail && (
+                        <div className="detail-view">
+                            <div className="detail-header">
+                                <button 
+                                    onClick={() => {
+                                        setSelectedRestaurantDetail(null);
+                                        setCurrentView('main');
+                                    }}
+                                    className="btn-back"
+                                >
+                                    ← 돌아가기
+                                </button>
+                                <h2>{selectedRestaurantDetail.name}</h2>
+                            </div>
                             
-                            <p style={{ 
-                                marginBottom: 'var(--space-4)', 
-                                color: 'var(--gray-600)', 
-                                fontSize: '1rem'
-                            }}>
-                                샘플 데이터를 생성하거나 직접 가게를 추가해보세요!
-                            </p>
-                            
-                            <button
-                                className="modern-btn warning"
-                                onClick={initializeSampleData}
-                                disabled={loading}
-                                style={{ opacity: loading ? '0.6' : '1' }}
-                            >
-                                <span className="emoji">🎲</span> {loading ? '생성 중...' : '샘플 데이터 생성'}
-                            </button>
+                            <div className="detail-content">
+                                <div className="detail-main">
+                                    <div className="restaurant-image-large">
+                                        <img 
+                                            src={selectedRestaurantDetail.image} 
+                                            alt={selectedRestaurantDetail.name}
+                                            onError={(e) => {
+                                                e.target.src = 'https://via.placeholder.com/600x400?text=No+Image';
+                                            }}
+                                        />
+                                        <div className="restaurant-category-large">
+                                            {selectedRestaurantDetail.category}
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="restaurant-info-large">
+                                        <div className="info-row">
+                                            <span className="info-label">🚶‍♂️ 거리</span>
+                                            <span className="info-value">{selectedRestaurantDetail.distance}</span>
+                                        </div>
+                                        
+                                        {selectedRestaurantDetail.description && (
+                                            <div className="info-row">
+                                                <span className="info-label">📝 설명</span>
+                                                <span className="info-value">{selectedRestaurantDetail.description}</span>
+                                            </div>
+                                        )}
+                                        
+                                        {selectedRestaurantDetail.websiteUrl && (
+                                            <div className="info-row">
+                                                <span className="info-label">🌐 웹사이트</span>
+                                                <a 
+                                                    href={selectedRestaurantDetail.websiteUrl} 
+                                                    target="_blank" 
+                                                    rel="noopener noreferrer"
+                                                    className="info-link"
+                                                >
+                                                    방문하기
+                                                </a>
+                                            </div>
+                                        )}
+                                        
+                                        <div className="restaurant-stats-large">
+                                            <div className="stat-item">
+                                                <span className="stat-icon">⭐</span>
+                                                <span className="stat-text">
+                                                    {selectedRestaurantDetail.averageRating?.toFixed(1) || '0.0'}
+                                                </span>
+                                            </div>
+                                            <div className="stat-item">
+                                                <span className="stat-icon">💬</span>
+                                                <span className="stat-text">
+                                                    {selectedRestaurantDetail.reviewCount || 0}개 리뷰
+                                                </span>
+                                            </div>
+                                            <div className="stat-item">
+                                                <span className="stat-icon">👍</span>
+                                                <span className="stat-text">
+                                                    {selectedRestaurantDetail.totalLikes || 0}개 좋아요
+                                                </span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="detail-actions">
+                                            <button 
+                                                onClick={() => setShowReviewForm(true)}
+                                                className="btn-write-review"
+                                            >
+                                                ⭐ 리뷰 작성
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                {/* 리뷰 섹션 */}
+                                <div className="reviews-section">
+                                    <div className="reviews-header">
+                                        <h3>💬 리뷰 ({reviews.length}개)</h3>
+                                    </div>
+                                    
+                                    {showReviewForm && (
+                                        <div className="review-form">
+                                            <h4>리뷰 작성</h4>
+                                            <div className="rating-input">
+                                                <label>평점:</label>
+                                                <div className="star-rating">
+                                                    {[1, 2, 3, 4, 5].map(star => (
+                                                        <button
+                                                            key={star}
+                                                            type="button"
+                                                            onClick={() => setNewReview(prev => ({ ...prev, rating: star }))}
+                                                            className={`star ${star <= newReview.rating ? 'active' : ''}`}
+                                                        >
+                                                            ⭐
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            <textarea
+                                                value={newReview.content}
+                                                onChange={(e) => setNewReview(prev => ({ ...prev, content: e.target.value }))}
+                                                placeholder="리뷰를 작성해주세요..."
+                                                className="review-textarea"
+                                                rows={4}
+                                            />
+                                            <div className="review-form-actions">
+                                                <button 
+                                                    onClick={() => setShowReviewForm(false)}
+                                                    className="btn-cancel"
+                                                >
+                                                    취소
+                                                </button>
+                                                <button 
+                                                    onClick={submitReview}
+                                                    className="btn-submit"
+                                                    disabled={!newReview.content.trim()}
+                                                >
+                                                    작성
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                    
+                                    <div className="reviews-list">
+                                        {reviews.length > 0 ? (
+                                            reviews.map(review => (
+                                                <div key={review._id} className="review-item">
+                                                    <div className="review-header">
+                                                        <div className="review-author">
+                                                            <span className="author-name">{review.userName}</span>
+                                                            <div className="review-rating">
+                                                                {'⭐'.repeat(review.rating)}
+                                                            </div>
+                                                        </div>
+                                                        <span className="review-date">
+                                                            {new Date(review.createdAt).toLocaleDateString()}
+                                                        </span>
+                                                    </div>
+                                                    <div className="review-content">
+                                                        {review.content}
+                                                    </div>
+                                                    <div className="review-actions">
+                                                        <span className="like-count">
+                                                            👍 {review.likeCount || 0}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="no-reviews">
+                                                <p>아직 리뷰가 없습니다. 첫 번째 리뷰를 작성해보세요!</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     )}
                 </div>
             </div>
-            <Modal />
-            {PreferencesPanel}
-            {EditRestaurantModal}
-            {showHelpModal && (
-                <div className="modal-overlay open">
-                    <div className="help-modal">
-                        <div className="help-header">
-                            <h2>📖 점심메뉴 선택기 사용법</h2>
-                            <button 
-                                className="close-help-btn"
-                                onClick={() => setShowHelpModal(false)}
-                            >
-                                ✕
-                            </button>
-                        </div>
-                        
-                        <div className="help-content">
-                            <div className="help-section">
-                                <h3>🎯 기본 기능</h3>
-                                <ul>
-                                    <li><strong>🎲 랜덤으로 가게 선택하기</strong>: 등록된 가게 중에서 랜덤하게 하나를 선택해줍니다</li>
-                                    <li><strong>🏆 점식 식당 월드컵</strong>: 토너먼트 방식으로 가게들을 비교해서 최종 선택할 수 있습니다</li>
-                                    <li><strong>📋 가게 목록</strong>: 등록된 모든 가게를 카테고리별로 확인할 수 있습니다</li>
-                                </ul>
-                            </div>
 
-                            <div className="help-section">
-                                <h3>➕ 가게 관리</h3>
-                                <ul>
-                                    <li><strong>가게 추가</strong>: 새로운 가게를 등록할 수 있습니다 (이름, 거리, 카테고리, 이미지, 설명, 웹사이트)</li>
-                                    <li><strong>이미지 추가 방법</strong>: 
-                                        <br />• 구글에서 가게 사진 검색 → 우클릭 → "이미지 주소 복사" → 붙여넣기
-                                        <br />• 네이버/다음에서 가게 사진 → 우클릭 → "이미지 주소 복사" → 붙여넣기
-                                        <br />• 이미지 URL은 반드시 http:// 또는 https://로 시작해야 합니다
-                                    </li>
-                                    <li><strong>가게 수정</strong>: 등록된 가게 정보를 수정할 수 있습니다</li>
-                                    <li><strong>가게 제외</strong>: 랜덤 선택에서 특정 가게를 제외할 수 있습니다</li>
-                                </ul>
-                            </div>
 
-                            <div className="help-section">
-                                <h3>📝 리뷰 시스템</h3>
-                                <ul>
-                                    <li><strong>리뷰 작성</strong>: 가게에 대한 평점과 리뷰를 작성할 수 있습니다</li>
-                                    <li><strong>리뷰 수정/삭제</strong>: 본인이 작성한 리뷰는 수정하거나 삭제할 수 있습니다</li>
-                                    <li><strong>리뷰 좋아요</strong>: 다른 사용자의 리뷰에 좋아요를 누를 수 있습니다</li>
-                                </ul>
-                            </div>
 
-                            <div className="help-section">
-                                <h3>⚙️ 개인 설정</h3>
-                                <ul>
-                                    <li><strong>선호도 설정</strong>: 가게 제외 목록을 관리할 수 있습니다</li>
-                                    <li><strong>방문기록</strong>: 랜덤 선택한 가게들의 기록을 확인할 수 있습니다</li>
-                                    <li><strong>사용자 이름</strong>: 로그인 후 개인화된 서비스를 이용할 수 있습니다</li>
-                                </ul>
-                            </div>
-
-                            <div className="help-section">
-                                <h3>💭 피드백 & 관리자</h3>
-                                <ul>
-                                    <li><strong>피드백 제출</strong>: 기능 요청이나 버그 신고를 할 수 있습니다</li>
-                                    <li><strong>관리자 모드</strong>: 관리자는 모든 가게와 리뷰를 관리할 수 있습니다</li>
-                                    <li><strong>피드백 답변</strong>: 관리자가 피드백에 답변을 달아줍니다</li>
-                                </ul>
-                            </div>
-
-                            <div className="help-section">
-                                <h3>🏆 월드컵 게임</h3>
-                                <ul>
-                                    <li><strong>토너먼트 방식</strong>: 가게들을 2개씩 비교해서 최종 우승자를 선택합니다</li>
-                                    <li><strong>웹사이트 링크</strong>: 월드컵 중에도 가게의 웹사이트나 네이버 링크를 확인할 수 있습니다</li>
-                                    <li><strong>경기 기록</strong>: 모든 대결 결과를 확인할 수 있습니다</li>
-                                </ul>
-                            </div>
-
-                            <div className="help-tips">
-                                <h3>💡 사용 팁</h3>
-                                <ul>
-                                    <li><strong>이미지 추가 팁</strong>: 
-                                        <br />• 구글 이미지 검색에서 "크기" → "큰 이미지" 선택하면 고화질 사진을 찾을 수 있습니다
-                                        <br />• 가게 외관이나 음식 사진을 사용하면 더 직관적입니다
-                                        <br />• 이미지가 안 보이면 다른 이미지 URL을 시도해보세요
-                                    </li>
-                                    <li>가게를 추가할 때는 정확한 정보를 입력해주세요</li>
-                                    <li>리뷰를 작성하면 다른 사용자들에게 도움이 됩니다</li>
-                                    <li>선호도 설정으로 자주 가고 싶지 않은 가게를 제외할 수 있습니다</li>
-                                    <li>월드컵은 2개 이상의 가게가 있을 때만 이용 가능합니다</li>
-                                </ul>
-                            </div>
-                        </div>
-                        
-                        <div className="help-footer">
-                            <button 
-                                className="close-help-btn-large"
-                                onClick={() => setShowHelpModal(false)}
-                            >
-                                확인
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-        </>
+            <Modal 
+                modal={modal} 
+                closeModal={closeModal} 
+                confirmModal={confirmModal} 
+            />
+        </ErrorBoundary>
     );
 }

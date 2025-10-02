@@ -21,7 +21,7 @@ export default async function handler(req, res) {
         case 'GET':
             try {
                 const restaurant = await Restaurant.findById(id);
-                
+
                 if (!restaurant || !restaurant.isActive) {
                     return res.status(404).json({
                         success: false,
@@ -47,7 +47,7 @@ export default async function handler(req, res) {
                 const { name, distance, category, image, description, websiteUrl } = req.body;
 
                 const restaurant = await Restaurant.findById(id);
-                
+
                 if (!restaurant || !restaurant.isActive) {
                     return res.status(404).json({
                         success: false,
@@ -57,7 +57,7 @@ export default async function handler(req, res) {
 
                 // 가게명 중복 검증 (자기 자신 제외)
                 if (name && name.trim() !== restaurant.name) {
-                    const existingRestaurant = await Restaurant.findOne({ 
+                    const existingRestaurant = await Restaurant.findOne({
                         name: name.trim(),
                         isActive: true,
                         _id: { $ne: id }
@@ -109,7 +109,7 @@ export default async function handler(req, res) {
         case 'DELETE':
             try {
                 const restaurant = await Restaurant.findById(id);
-                
+
                 if (!restaurant || !restaurant.isActive) {
                     return res.status(404).json({
                         success: false,
@@ -119,7 +119,7 @@ export default async function handler(req, res) {
 
                 // 실제 삭제 (DB에서 완전히 제거)
                 await Restaurant.findByIdAndDelete(id);
-                
+
                 // 관련된 리뷰와 방문기록도 삭제
                 await Promise.all([
                     Review.deleteMany({ restaurantId: id }),

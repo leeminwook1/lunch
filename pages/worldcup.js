@@ -8,7 +8,6 @@ export default function WorldCup() {
     const [currentUser, setCurrentUser] = useState(null);
     const [loading, setLoading] = useState(false);
     const [modal, setModal] = useState({ isOpen: false, type: '', title: '', message: '', onConfirm: null });
-    const modalTimeoutRef = useRef(null);
 
     // 월드컵 관련 상태
     const [gameStarted, setGameStarted] = useState(false);
@@ -19,19 +18,32 @@ export default function WorldCup() {
     const [winner, setWinner] = useState(null);
     const [gameHistory, setGameHistory] = useState([]);
 
-    // 모달 관련 함수들
+    // API 호출 함수
+    const apiCall = async (endpoint, options = {}) => {
+        try {
+            const response = await fetch(endpoint, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...options.headers
+                },
+                ...options
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            return await response.json();
+        } catch (error) {
+            console.error('API 호출 오류:', error);
+            showModal('error', '오류', `API 호출 중 오류가 발생했습니다: ${error.message}`);
+            throw error;
+        }
+    };
+
+    // 모달 함수
     const showModal = (type, title, message, onConfirm = null) => {
-        if (modalTimeoutRef.current) {
-            clearTimeout(modalTimeoutRef.current);
-        }
-        if (modal.isOpen) {
-            setModal({ isOpen: false, type: '', title: '', message: '', onConfirm: null });
-            modalTimeoutRef.current = setTimeout(() => {
-                setModal({ isOpen: true, type, title, message, onConfirm });
-            }, 100);
-        } else {
-            setModal({ isOpen: true, type, title, message, onConfirm });
-        }
+        setModal({ isOpen: true, type, title, message, onConfirm });
     };
 
     const closeModal = () => {
@@ -45,197 +57,124 @@ export default function WorldCup() {
         closeModal();
     };
 
-    // API 호출 함수
-    const apiCall = async (endpoint, options = {}) => {
-        try {
-            const response = await fetch(endpoint, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...options.headers
-                },
-                ...options
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error('API 호출 오류:', error);
-            showModal('error', '오류', `API 호출 중 오류가 발생했습니다: ${error.message}`);
-            throw error;
-        }
-    };
-
-    // 초기 로딩
+    // 데이터 로딩
     useEffect(() => {
         const initializeData = async () => {
-            const savedUserId = localStorage.getItem('currentUserId');
-            const savedUserName = localStorage.getItem('currentUserName');
+            try {
+                // 사용자 정보 복원
+                const savedUserId = localStorage.getItem('currentUserId');
+                const savedUserName = localStorage.getItem('currentUserName');
+                
+                if (savedUserId && savedUserName) {
+                    setCurrentUser({ _id: savedUserId, name: savedUserName });
+                }
 
-            if (savedUserId && savedUserName) {
-                setCurrentUser({ _id: savedUserId, name: savedUserName });
+                // 가게 목록 로딩
+                const result = await apiCall('/api/restaurants');
+                if (result.success) {
+                    setRestaurants(result.data);
+                }
+            } catch (error) {
+                console.error('데이터 로딩 실패:', error);
             }
-            await loadRestaurants();
         };
 
         initializeData();
-
-        return () => {
-            if (modalTimeoutRef.current) {
-                clearTimeout(modalTimeoutRef.current);
-            }
-        };
     }, []);
 
-    const loadRestaurants = async () => {
-        try {
-            setLoading(true);
-            const result = await apiCall('/api/restaurants');
-            if (result.success) {
-                setRestaurants(result.data.filter(restaurant => restaurant.isActive));
-            }
-        } catch (error) {
-            console.error('가게 목록 로딩 실패:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // 배열 섞기 함수
-    const shuffleArray = (array) => {
-        const shuffled = [...array];
-        for (let i = shuffled.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-        }
-        return shuffled;
-    };
-
-    // 월드컵 시작
-    const startWorldCup = () => {
+    // 게임 시작
+    const startGame = () => {
         if (restaurants.length < 2) {
-            showModal('error', '가게 부족', '월드컵을 진행하려면 최소 2개의 가게가 필요합니다.');
+            showModal('error', '오류', '최소 2개 이상의 가게가 필요합니다.');
             return;
         }
 
-        // 전체 가게를 사용하여 토너먼트 진행
-        const totalRestaurants = restaurants.length;
+        const shuffled = [...restaurants].sort(() => Math.random() - 0.5);
+        let gameSize = 16;
         
-        // 모든 가게를 섞음
-        const shuffledRestaurants = shuffleArray([...restaurants]);
+        if (shuffled.length >= 32) gameSize = 32;
+        else if (shuffled.length >= 16) gameSize = 16;
+        else if (shuffled.length >= 8) gameSize = 8;
+        else if (shuffled.length >= 4) gameSize = 4;
+        else gameSize = 2;
+
+        const gameRestaurants = shuffled.slice(0, gameSize);
         
-        // 32개를 초과하면 랜덤하게 32개만 선택
-        let tournamentRestaurants = shuffledRestaurants.length > 32 
-            ? shuffledRestaurants.slice(0, 32)
-            : shuffledRestaurants;
-
-        // 홀수개 가게 처리: 마지막 가게를 다음 라운드로 자동 진출
-        let autoAdvanced = [];
-        if (tournamentRestaurants.length % 2 === 1) {
-            autoAdvanced = [tournamentRestaurants.pop()]; // 마지막 가게를 제거하고 자동 진출
-        }
-
-        setCurrentRound(tournamentRestaurants);
-        setNextRound(autoAdvanced);
+        setCurrentRound(gameRestaurants);
+        setNextRound([]);
         setCurrentMatch(0);
-        setRoundName(getRoundName(tournamentRestaurants.length + autoAdvanced.length));
+        setRoundName(getRoundName(gameSize));
         setGameStarted(true);
         setWinner(null);
-        
-        // 자동 진출 히스토리 추가
-        const initialHistory = autoAdvanced.length > 0 ? [{
-            round: getRoundName(tournamentRestaurants.length + autoAdvanced.length),
-            match: 'auto',
-            winner: autoAdvanced[0],
-            loser: null,
-            isAutoAdvanced: true
-        }] : [];
-        
-        setGameHistory(initialHistory);
+        setGameHistory([]);
     };
 
     // 라운드 이름 가져오기
     const getRoundName = (size) => {
-        if (size <= 1) return '우승';
-        if (size === 2) return '결승';
-        if (size === 3 || size === 4) return '준결승';
-        if (size <= 8) return '8강';
-        if (size <= 16) return '16강';
-        if (size <= 32) return '32강';
-        return `${size}강`;
+        switch (size) {
+            case 32: return '32강';
+            case 16: return '16강';
+            case 8: return '8강';
+            case 4: return '준결승';
+            case 2: return '결승';
+            default: return '결승';
+        }
     };
 
     // 가게 선택
-    const selectRestaurant = (selectedRestaurant) => {
-        if (!selectedRestaurant) {
-            console.error('Selected restaurant is null');
-            return;
-        }
-
-        const opponent1 = currentRound[currentMatch * 2];
-        const opponent2 = currentRound[currentMatch * 2 + 1];
-        const loser = opponent1 === selectedRestaurant ? opponent2 : opponent1;
-
-        // 게임 히스토리에 추가
-        setGameHistory(prev => [...prev, {
+    const selectRestaurant = async (restaurant) => {
+        const newHistory = [...gameHistory, {
             round: roundName,
             match: currentMatch + 1,
-            winner: selectedRestaurant,
-            loser: loser
-        }]);
+            winner: restaurant,
+            loser: currentRound[currentMatch * 2] === restaurant ? 
+                   currentRound[currentMatch * 2 + 1] : 
+                   currentRound[currentMatch * 2]
+        }];
+        setGameHistory(newHistory);
 
-        const nextMatchIndex = currentMatch + 1;
-        const totalMatches = Math.floor(currentRound.length / 2);
+        const newNextRound = [...nextRound, restaurant];
+        setNextRound(newNextRound);
 
-        if (nextMatchIndex >= totalMatches) {
-            // 현재 라운드 종료
-            setNextRound(prev => {
-                const newRound = [...prev, selectedRestaurant];
+        if (currentMatch + 1 >= currentRound.length / 2) {
+            // 라운드 완료
+            if (newNextRound.length === 1) {
+                // 게임 완료
+                setWinner(newNextRound[0]);
+                showModal('success', '🏆 우승!', `${newNextRound[0].name}이(가) 우승했습니다!`);
                 
-                if (newRound.length === 1) {
-                    // 최종 우승자
-                    setWinner(selectedRestaurant);
-                    setGameStarted(false);
-                } else {
-                    // 홀수개 처리: 마지막 가게를 자동진출로 처리
-                    let finalRound = newRound;
-                    let autoAdvanced = [];
-                    
-                    if (newRound.length % 2 === 1) {
-                        autoAdvanced = [newRound.pop()]; // 마지막 가게를 자동진출
-                        finalRound = newRound;
-                        
-                        // 자동진출 히스토리 추가
-                        setGameHistory(prevHistory => [...prevHistory, {
-                            round: getRoundName(newRound.length + autoAdvanced.length),
-                            match: 'auto',
-                            winner: autoAdvanced[0],
-                            loser: null,
-                            isAutoAdvanced: true
-                        }]);
+                // 우승 기록 저장
+                if (currentUser) {
+                    try {
+                        await apiCall('/api/selections', {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                userId: currentUser._id,
+                                userName: currentUser.name,
+                                restaurantId: newNextRound[0]._id,
+                                restaurantName: newNextRound[0].name,
+                                method: 'worldcup'
+                            })
+                        });
+                    } catch (error) {
+                        console.error('우승 기록 저장 실패:', error);
                     }
-                    
-                    // 다음 라운드로 진행
-                    setCurrentRound(finalRound);
-                    setNextRound(autoAdvanced);
-                    setCurrentMatch(0);
-                    setRoundName(getRoundName(finalRound.length + autoAdvanced.length));
                 }
-                
-                return []; // nextRound 초기화
-            });
+            } else {
+                // 다음 라운드로
+                setCurrentRound(newNextRound);
+                setNextRound([]);
+                setCurrentMatch(0);
+                setRoundName(getRoundName(newNextRound.length));
+            }
         } else {
-            // 같은 라운드 다음 매치 - 승자를 nextRound에 추가
-            setNextRound(prev => [...prev, selectedRestaurant]);
-            setCurrentMatch(nextMatchIndex);
+            // 다음 매치로
+            setCurrentMatch(currentMatch + 1);
         }
     };
 
-    // 게임 재시작
-    const restartGame = () => {
+    // 게임 리셋
+    const resetGame = () => {
         setGameStarted(false);
         setCurrentRound([]);
         setNextRound([]);
@@ -245,21 +184,18 @@ export default function WorldCup() {
         setGameHistory([]);
     };
 
-    // 현재 대결 가게들
+    // 현재 매치 가져오기
     const getCurrentMatch = () => {
         if (!gameStarted || currentMatch * 2 + 1 >= currentRound.length) {
-            return [null, null];
+            return null;
         }
-        return [
-            currentRound[currentMatch * 2],
-            currentRound[currentMatch * 2 + 1]
-        ];
+        return {
+            restaurant1: currentRound[currentMatch * 2],
+            restaurant2: currentRound[currentMatch * 2 + 1]
+        };
     };
 
-
-    const [restaurant1, restaurant2] = getCurrentMatch();
-    const progress = gameStarted ? 
-        ((currentMatch + (currentRound.length > nextRound.length * 2 ? 0 : 1)) / Math.floor(currentRound.length / 2)) * 100 : 0;
+    const currentMatchData = getCurrentMatch();
 
     // 모달 컴포넌트
     const Modal = () => {
@@ -267,17 +203,21 @@ export default function WorldCup() {
 
         return (
             <div className="modal-overlay" onClick={closeModal}>
-                <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                    <h3>{modal.title}</h3>
-                    <p>{modal.message}</p>
-                    <div className="modal-buttons">
+                <div className="modal-content" onClick={e => e.stopPropagation()}>
+                    <div className={`modal-header ${modal.type}`}>
+                        <h3>{modal.title}</h3>
+                    </div>
+                    <div className="modal-body">
+                        <p>{modal.message}</p>
+                    </div>
+                    <div className="modal-footer">
                         {modal.type === 'confirm' ? (
                             <>
-                                <button onClick={confirmModal} className="confirm-btn">확인</button>
-                                <button onClick={closeModal} className="cancel-btn">취소</button>
+                                <button className="modal-btn cancel" onClick={closeModal}>취소</button>
+                                <button className="modal-btn confirm" onClick={confirmModal}>확인</button>
                             </>
                         ) : (
-                            <button onClick={closeModal} className="confirm-btn">확인</button>
+                            <button className="modal-btn confirm" onClick={closeModal}>확인</button>
                         )}
                     </div>
                 </div>
@@ -285,213 +225,232 @@ export default function WorldCup() {
         );
     };
 
-    if (!currentUser) {
-        return (
-            <div className="App">
-                <div className="container">
-                    <h1>🏆 점식 식당 월드컵</h1>
-                    <p>이상형 월드컵을 플레이하려면 먼저 메인 페이지에서 로그인해주세요.</p>
-                    <a href="/" className="home-btn">
-                        <span className="home-icon">🏠</span>
-                        메인으로
-                    </a>
-                </div>
-            </div>
-        );
-    }
-
     return (
         <>
             <Head>
-                <title>점식 식당 월드컵 - 점심메뉴 선택기</title>
-                <meta name="description" content="점식 식당 월드컵으로 선택 장애 해결!" />
-                <meta name="viewport" content="width=device-width, initial-scale=1" />
+                <title>월드컵 - 점심메뉴 선택기</title>
+                <meta name="description" content="가게 월드컵으로 최고의 점심메뉴를 선택해보세요!" />
+                <link rel="icon" href="/favicon.ico" />
             </Head>
-            <div className="App">
+
+            <div className="app">
                 <div className="container">
-                    <div className="header">
-                        <h1 className="title">🏆 점식 식당 월드컵</h1>
-                        <a href="/" className="home-btn">
-                            <span className="home-icon">🏠</span>
-                            메인으로
-                        </a>
-                    </div>
-
-                    {!gameStarted && !winner ? (
-                        // 게임 시작 화면
-                        <div className="worldcup-start">
-                            <div className="start-info">
-                                <h2>🥊 토너먼트 대전 준비!</h2>
-                                <p>등록된 가게들 중에서 토너먼트 방식으로 최고의 가게를 선택해보세요!</p>
-                                <div className="game-stats">
-                                    <div className="stat-item">
-                                        <span className="stat-number">{Math.min(restaurants.length, 32)}</span>
-                                        <span className="stat-label">참가 가게</span>
-                                    </div>
-                                    <div className="stat-item">
-                                        <span className="stat-number">{getRoundName(Math.min(restaurants.length, 32))}</span>
-                                        <span className="stat-label">시작 라운드</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <button 
-                                className="start-worldcup-btn" 
-                                onClick={startWorldCup}
-                                disabled={loading || restaurants.length < 2}
-                            >
-                                {loading ? '로딩 중...' : '🚀 월드컵 시작!'}
-                            </button>
-                        </div>
-                    ) : winner ? (
-                        // 게임 결과 화면
-                        <div className="worldcup-result">
-                            <div className="winner-announcement">
-                                <h2>🏆 우승 가게</h2>
-                                <div className="winner-card">
-                                    <div className="winner-image">
-                                        {winner.image ? (
-                                            <img src={winner.image} alt={winner.name} />
-                                        ) : (
-                                            <div className="no-image">🍽️</div>
-                                        )}
-                                    </div>
-                                    <div className="winner-info">
-                                        <h3>{winner.name}</h3>
-                                        <p className="winner-category">{winner.category}</p>
-                                        <p className="winner-rating">⭐ {winner.averageRating?.toFixed(1) || 'N/A'}</p>
-                                    </div>
-                                </div>
-                                <div className="result-actions">
-                                    <button className="restart-btn" onClick={restartGame}>
-                                        🔄 다시 플레이
-                                    </button>
-                                    <button 
-                                        className="goto-restaurant-btn" 
-                                        onClick={() => router.push(`/?restaurantId=${winner._id}`)}
-                                    >
-                                        🍽️ 가게 상세보기
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            {gameHistory.length > 0 && (
-                                <div className="game-history">
-                                    <h3>🏆 경기 결과</h3>
-                                    <div className="history-list">
-                                        {gameHistory.map((match, index) => (
-                                            <div key={index} className={`history-item ${match.isAutoAdvanced ? 'auto-advanced' : ''}`}>
-                                                <span className="round-name">{match.round}</span>
-                                                <span className="match-result">
-                                                    {match.isAutoAdvanced ? (
-                                                        <>
-                                                            <strong>{match.winner?.name || '알 수 없음'}</strong> <span className="auto-indicator">🎟️ 자동진출</span>
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <strong>{match.winner?.name || '알 수 없음'}</strong> vs {match.loser?.name || '알 수 없음'}
-                                                        </>
-                                                    )}
-                                                </span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    ) : (
-                        // 게임 진행 화면
-                        <div className="worldcup-game">
-                            <div className="game-header">
-                                <div className="round-info">
-                                    <h2>{roundName}</h2>
-                                    <p>{currentMatch + 1} / {Math.floor(currentRound.length / 2)} 경기</p>
-                                </div>
-                                <div className="progress-bar">
-                                    <div className="progress-fill" style={{ width: `${progress}%` }}></div>
-                                </div>
-                            </div>
-
-                            <div className="vs-container">
-                                <div className="restaurant-option">
-                                    <div className="restaurant-image">
-                                        {restaurant1?.image ? (
-                                            <img src={restaurant1.image} alt={restaurant1.name} />
-                                        ) : (
-                                            <div className="no-image">🍽️</div>
-                                        )}
-                                    </div>
-                                    <div className="restaurant-details">
-                                        <h3>{restaurant1?.name}</h3>
-                                        <p className="category">{restaurant1?.category}</p>
-                                        <p className="rating">⭐ {restaurant1?.averageRating?.toFixed(1) || 'N/A'}</p>
-                                    </div>
-                                    <div className="restaurant-actions">
-                                        <button 
-                                            className="select-restaurant-btn"
-                                            onClick={() => selectRestaurant(restaurant1)}
-                                        >
-                                            🏆 선택
-                                        </button>
-                                        {restaurant1?.websiteUrl && (
-                                            <a 
-                                                href={restaurant1.websiteUrl}
-                                                className="website-link-btn"
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                            >
-                                                🔗 웹사이트
-                                            </a>
-                                        )}
-                                    </div>
-                                </div>
-
-                                <div className="vs-divider">
-                                    <span>VS</span>
-                                </div>
-
-                                <div className="restaurant-option">
-                                    <div className="restaurant-image">
-                                        {restaurant2?.image ? (
-                                            <img src={restaurant2.image} alt={restaurant2.name} />
-                                        ) : (
-                                            <div className="no-image">🍽️</div>
-                                        )}
-                                    </div>
-                                    <div className="restaurant-details">
-                                        <h3>{restaurant2?.name}</h3>
-                                        <p className="category">{restaurant2?.category}</p>
-                                        <p className="rating">⭐ {restaurant2?.averageRating?.toFixed(1) || 'N/A'}</p>
-                                    </div>
-                                    <div className="restaurant-actions">
-                                        <button 
-                                            className="select-restaurant-btn"
-                                            onClick={() => selectRestaurant(restaurant2)}
-                                        >
-                                            🏆 선택
-                                        </button>
-                                        {restaurant2?.websiteUrl && (
-                                            <a 
-                                                href={restaurant2.websiteUrl}
-                                                className="website-link-btn"
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                            >
-                                                🔗 웹사이트
-                                            </a>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="game-actions">
-                                <button className="quit-btn" onClick={restartGame}>
-                                    ❌ 게임 종료
+                    {/* 헤더 */}
+                    <header className="header subpage-header">
+                        <div className="header-content">
+                            <div className="header-left">
+                                <button 
+                                    onClick={() => router.push('/')}
+                                    className="btn-back"
+                                >
+                                    ← 돌아가기
                                 </button>
+                                <h1 className="title">🏆 가게 월드컵</h1>
+                                {currentUser && (
+                                    <div className="user-info">
+                                        <span className="user-greeting">안녕하세요, <strong>{currentUser.name}</strong>님!</span>
+                                    </div>
+                                )}
                             </div>
                         </div>
-                    )}
+                    </header>
+
+                    {/* 메인 콘텐츠 */}
+                    <main className="main-content">
+                        {!gameStarted ? (
+                            /* 게임 시작 화면 */
+                            <section className="worldcup-start-section">
+                                <div className="start-content">
+                                    <div className="start-header">
+                                        <h2>🏆 가게 월드컵</h2>
+                                        <p>두 가게 중 더 좋아하는 곳을 선택하여 최고의 가게를 찾아보세요!</p>
+                                    </div>
+                                    
+                                    <div className="game-info">
+                                        <div className="info-item">
+                                            <span className="info-icon">🏪</span>
+                                            <span className="info-text">총 {restaurants.length}개 가게</span>
+                                        </div>
+                                        <div className="info-item">
+                                            <span className="info-icon">🎯</span>
+                                            <span className="info-text">토너먼트 방식</span>
+                                        </div>
+                                        <div className="info-item">
+                                            <span className="info-icon">⏱️</span>
+                                            <span className="info-text">약 3-5분 소요</span>
+                                        </div>
+                                    </div>
+
+                                    <button 
+                                        onClick={startGame}
+                                        disabled={restaurants.length < 2}
+                                        className="btn-start-game"
+                                    >
+                                        🚀 게임 시작
+                                    </button>
+
+                                    {restaurants.length < 2 && (
+                                        <p className="warning-text">
+                                            게임을 시작하려면 최소 2개 이상의 가게가 필요합니다.
+                                        </p>
+                                    )}
+                                </div>
+                            </section>
+                        ) : winner ? (
+                            /* 게임 완료 화면 */
+                            <section className="worldcup-result-section">
+                                <div className="result-content">
+                                    <h2>🏆 우승!</h2>
+                                    <div className="winner-card">
+                                        <img 
+                                            src={winner.image} 
+                                            alt={winner.name}
+                                            onError={(e) => {
+                                                e.target.src = 'https://via.placeholder.com/300x200?text=No+Image';
+                                            }}
+                                        />
+                                        <div className="winner-info">
+                                            <h3>{winner.name}</h3>
+                                            <p className="category">{winner.category}</p>
+                                            <p className="distance">🚶‍♂️ {winner.distance}</p>
+                                            {winner.description && (
+                                                <p className="description">{winner.description}</p>
+                                            )}
+                                            {winner.websiteUrl && (
+                                                <a 
+                                                    href={winner.websiteUrl} 
+                                                    target="_blank" 
+                                                    rel="noopener noreferrer"
+                                                    className="winner-website-link"
+                                                >
+                                                    🌐 웹사이트 방문하기
+                                                </a>
+                                            )}
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="result-actions">
+                                        <button onClick={resetGame} className="btn-play-again">
+                                            🔄 다시 플레이
+                                        </button>
+                                        <button 
+                                            onClick={() => router.push('/')}
+                                            className="btn-go-home"
+                                        >
+                                            🏠 홈으로
+                                        </button>
+                                    </div>
+                                </div>
+                            </section>
+                        ) : currentMatchData ? (
+                            /* 게임 진행 화면 */
+                            <section className="worldcup-game-section">
+                                <div className="game-header">
+                                    <h2>{roundName}</h2>
+                                    <p>{currentMatch + 1} / {Math.ceil(currentRound.length / 2)} 매치</p>
+                                    <div className="progress-bar">
+                                        <div 
+                                            className="progress-fill"
+                                            style={{ 
+                                                width: `${((currentMatch + 1) / Math.ceil(currentRound.length / 2)) * 100}%` 
+                                            }}
+                                        ></div>
+                                    </div>
+                                </div>
+
+                                <div className="match-container">
+                                    <div className="vs-text">VS</div>
+                                    
+                                    <div className="restaurant-options">
+                                        <div 
+                                            className="restaurant-option"
+                                            onClick={() => selectRestaurant(currentMatchData.restaurant1)}
+                                        >
+                                            <img 
+                                                src={currentMatchData.restaurant1.image} 
+                                                alt={currentMatchData.restaurant1.name}
+                                                onError={(e) => {
+                                                    e.target.src = 'https://via.placeholder.com/300x200?text=No+Image';
+                                                }}
+                                            />
+                                            <div className="restaurant-info">
+                                                <h3>{currentMatchData.restaurant1.name}</h3>
+                                                <p className="category">{currentMatchData.restaurant1.category}</p>
+                                                <p className="distance">🚶‍♂️ {currentMatchData.restaurant1.distance}</p>
+                                                {currentMatchData.restaurant1.websiteUrl && (
+                                                    <a 
+                                                        href={currentMatchData.restaurant1.websiteUrl} 
+                                                        target="_blank" 
+                                                        rel="noopener noreferrer"
+                                                        className="website-link"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    >
+                                                        🌐 웹사이트 방문
+                                                    </a>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <div 
+                                            className="restaurant-option"
+                                            onClick={() => selectRestaurant(currentMatchData.restaurant2)}
+                                        >
+                                            <img 
+                                                src={currentMatchData.restaurant2.image} 
+                                                alt={currentMatchData.restaurant2.name}
+                                                onError={(e) => {
+                                                    e.target.src = 'https://via.placeholder.com/300x200?text=No+Image';
+                                                }}
+                                            />
+                                            <div className="restaurant-info">
+                                                <h3>{currentMatchData.restaurant2.name}</h3>
+                                                <p className="category">{currentMatchData.restaurant2.category}</p>
+                                                <p className="distance">🚶‍♂️ {currentMatchData.restaurant2.distance}</p>
+                                                {currentMatchData.restaurant2.websiteUrl && (
+                                                    <a 
+                                                        href={currentMatchData.restaurant2.websiteUrl} 
+                                                        target="_blank" 
+                                                        rel="noopener noreferrer"
+                                                        className="website-link"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    >
+                                                        🌐 웹사이트 방문
+                                                    </a>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="game-controls">
+                                    <button onClick={resetGame} className="btn-reset">
+                                        🔄 게임 리셋
+                                    </button>
+                                </div>
+                            </section>
+                        ) : null}
+
+                        {/* 게임 히스토리 */}
+                        {gameHistory.length > 0 && (
+                            <section className="history-section">
+                                <h3>📊 게임 기록</h3>
+                                <div className="history-list">
+                                    {gameHistory.slice(-5).map((record, index) => (
+                                        <div key={index} className="history-item">
+                                            <span className="round">{record.round}</span>
+                                            <span className="match">매치 {record.match}</span>
+                                            <span className="winner">🏆 {record.winner.name}</span>
+                                            <span className="vs">vs</span>
+                                            <span className="loser">{record.loser.name}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </section>
+                        )}
+                    </main>
                 </div>
             </div>
+
             <Modal />
         </>
     );

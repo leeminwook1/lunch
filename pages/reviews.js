@@ -1,7 +1,9 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import Head from 'next/head';
+import { useRouter } from 'next/router';
 
 export default function Reviews() {
+    const router = useRouter();
     const [reviews, setReviews] = useState([]);
     const [restaurants, setRestaurants] = useState([]);
     const [currentUser, setCurrentUser] = useState(null);
@@ -11,47 +13,10 @@ export default function Reviews() {
     const [sortBy, setSortBy] = useState('newest');
     const [modal, setModal] = useState({ isOpen: false, type: '', title: '', message: '', onConfirm: null });
     const [isAdmin, setIsAdmin] = useState(false);
-    const modalTimeoutRef = useRef(null);
     
     // 페이지네이션 상태
     const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage] = useState(5);
-    
-    // 리뷰 수정 상태
-    const [editingReview, setEditingReview] = useState(null);
-    const [editReview, setEditReview] = useState({ rating: 5, content: '' });
-
-    // 모달 관련 함수들
-    const showModal = (type, title, message, onConfirm = null) => {
-        // 기존 타이머가 있으면 취소
-        if (modalTimeoutRef.current) {
-            clearTimeout(modalTimeoutRef.current);
-        }
-        
-        // 기존 모달이 열려있으면 먼저 닫기
-        if (modal.isOpen) {
-            setModal({ isOpen: false, type: '', title: '', message: '', onConfirm: null });
-            
-            // 잠시 대기 후 새 모달 열기
-            modalTimeoutRef.current = setTimeout(() => {
-                setModal({ isOpen: true, type, title, message, onConfirm });
-            }, 100);
-        } else {
-            // 모달이 열려있지 않으면 바로 열기
-            setModal({ isOpen: true, type, title, message, onConfirm });
-        }
-    };
-
-    const closeModal = () => {
-        setModal({ isOpen: false, type: '', title: '', message: '', onConfirm: null });
-    };
-
-    const confirmModal = () => {
-        if (modal.onConfirm) {
-            modal.onConfirm();
-        }
-        closeModal();
-    };
+    const itemsPerPage = 10;
 
     // API 호출 함수
     const apiCall = async (endpoint, options = {}) => {
@@ -76,82 +41,103 @@ export default function Reviews() {
         }
     };
 
+    // 모달 함수
+    const showModal = (type, title, message, onConfirm = null) => {
+        setModal({ isOpen: true, type, title, message, onConfirm });
+    };
+
+    const closeModal = () => {
+        setModal({ isOpen: false, type: '', title: '', message: '', onConfirm: null });
+    };
+
+    const confirmModal = () => {
+        if (modal.onConfirm) {
+            modal.onConfirm();
+        }
+        closeModal();
+    };
+
     // 데이터 로딩
     useEffect(() => {
         const initializeData = async () => {
-            // 저장된 사용자 정보 확인
-            const savedUserId = localStorage.getItem('currentUserId');
-            const savedUserName = localStorage.getItem('currentUserName');
-            
-            if (savedUserId && savedUserName) {
-                setCurrentUser({ _id: savedUserId, name: savedUserName });
-                // 관리자 권한 확인
-                setIsAdmin(savedUserName === '관리자');
+            try {
+                setLoading(true);
+                
+                // 사용자 정보 복원
+                const savedUserId = localStorage.getItem('currentUserId');
+                const savedUserName = localStorage.getItem('currentUserName');
+                
+                if (savedUserId && savedUserName) {
+                    const userResult = await apiCall('/api/users', {
+                        method: 'POST',
+                        body: JSON.stringify({ name: savedUserName })
+                    });
+                    
+                    if (userResult.success) {
+                        setCurrentUser(userResult.data);
+                        setIsAdmin(userResult.data.role === 'admin');
+                    }
+                }
+
+                // 가게 목록 로딩
+                const restaurantsResult = await apiCall('/api/restaurants');
+                if (restaurantsResult.success) {
+                    setRestaurants(restaurantsResult.data);
+                }
+
+                // 리뷰 목록 로딩
+                await loadReviews();
+            } catch (error) {
+                console.error('데이터 로딩 실패:', error);
+            } finally {
+                setLoading(false);
             }
-            
-            await Promise.all([
-                loadRestaurants(),
-                loadReviews()
-            ]);
         };
 
         initializeData();
-        
-        // cleanup: 컴포넌트 언마운트 시 타이머 정리
-        return () => {
-            if (modalTimeoutRef.current) {
-                clearTimeout(modalTimeoutRef.current);
-            }
-        };
     }, []);
 
-    const loadRestaurants = async () => {
-        try {
-            const result = await apiCall('/api/restaurants');
-            if (result.success) {
-                setRestaurants(result.data);
-            }
-        } catch (error) {
-            console.error('가게 목록 로딩 실패:', error);
-        }
-    };
-
+    // 리뷰 로딩
     const loadReviews = async () => {
         try {
-            const query = selectedRestaurant ? `restaurantId=${selectedRestaurant}&` : '';
-            const result = await apiCall(`/api/reviews?${query}sortBy=${sortBy}&limit=100`);
+            const params = new URLSearchParams();
+            if (selectedRestaurant) {
+                params.append('restaurantId', selectedRestaurant);
+            }
+            params.append('sortBy', sortBy);
+            
+            const queryString = params.toString();
+            const url = queryString ? `/api/reviews?${queryString}` : '/api/reviews';
+            
+            const result = await apiCall(url);
             if (result.success) {
                 setReviews(result.data);
-                setCurrentPage(1); // 새로운 데이터 로드 시 첫 페이지로 이동
+                setCurrentPage(1);
             }
         } catch (error) {
             console.error('리뷰 로딩 실패:', error);
         }
     };
 
+    // 리뷰 작성
     const submitReview = async () => {
-        // 이미 처리 중이면 중복 실행 방지
-        if (loading) return;
-        
         if (!currentUser) {
-            showModal('error', '로그인 필요', '리뷰를 작성하려면 로그인이 필요합니다.');
+            showModal('error', '오류', '로그인이 필요합니다.');
             return;
         }
 
         if (!selectedRestaurant) {
-            showModal('error', '가게 선택 필요', '리뷰를 작성할 가게를 선택해주세요.');
+            showModal('error', '입력 오류', '가게를 선택해주세요.');
             return;
         }
 
         if (!newReview.content.trim()) {
-            showModal('error', '내용 입력 필요', '리뷰 내용을 입력해주세요.');
+            showModal('error', '입력 오류', '리뷰 내용을 입력해주세요.');
             return;
         }
 
         try {
             setLoading(true);
-            const restaurant = restaurants.find(r => r._id === selectedRestaurant);
-            
             const result = await apiCall('/api/reviews', {
                 method: 'POST',
                 body: JSON.stringify({
@@ -175,92 +161,10 @@ export default function Reviews() {
         }
     };
 
-    // 리뷰 삭제 (관리자 또는 본인)
-    const deleteReview = async (reviewId, isOwnReview = false) => {
+    // 리뷰 좋아요 토글
+    const toggleReviewLike = async (reviewId) => {
         if (!currentUser) {
-            showModal('error', '로그인 필요', '로그인이 필요합니다.');
-            return;
-        }
-
-        if (!isAdmin && !isOwnReview) {
-            showModal('error', '권한 없음', '본인의 리뷰만 삭제할 수 있습니다.');
-            return;
-        }
-
-        try {
-            setLoading(true);
-            const result = await apiCall(`/api/reviews/${reviewId}`, {
-                method: 'DELETE',
-                body: JSON.stringify({
-                    userId: currentUser._id
-                })
-            });
-
-            if (result.success) {
-                showModal('success', '삭제 완료', '리뷰가 삭제되었습니다!');
-                await loadReviews();
-            }
-        } catch (error) {
-            console.error('리뷰 삭제 실패:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // 리뷰 수정 시작
-    const startEditReview = (review) => {
-        setEditingReview(review._id);
-        setEditReview({
-            rating: review.rating,
-            content: review.content
-        });
-    };
-
-    // 리뷰 수정 취소
-    const cancelEditReview = () => {
-        setEditingReview(null);
-        setEditReview({ rating: 5, content: '' });
-    };
-
-    // 리뷰 수정 저장
-    const updateReview = async (reviewId) => {
-        if (!currentUser) {
-            showModal('error', '로그인 필요', '로그인이 필요합니다.');
-            return;
-        }
-
-        if (!editReview.content.trim()) {
-            showModal('error', '내용 입력 필요', '리뷰 내용을 입력해주세요.');
-            return;
-        }
-
-        try {
-            setLoading(true);
-            const result = await apiCall(`/api/reviews/${reviewId}`, {
-                method: 'PUT',
-                body: JSON.stringify({
-                    userId: currentUser._id,
-                    rating: editReview.rating,
-                    content: editReview.content.trim()
-                })
-            });
-
-            if (result.success) {
-                showModal('success', '수정 완료', '리뷰가 수정되었습니다!');
-                setEditingReview(null);
-                setEditReview({ rating: 5, content: '' });
-                await loadReviews();
-            }
-        } catch (error) {
-            console.error('리뷰 수정 실패:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const toggleLike = async (reviewId) => {
-        if (!currentUser) {
-            showModal('error', '로그인 필요', '좋아요를 누르려면 로그인이 필요합니다.');
+            showModal('error', '오류', '로그인이 필요합니다.');
             return;
         }
 
@@ -274,33 +178,78 @@ export default function Reviews() {
             });
 
             if (result.success) {
-                await loadReviews();
+                setReviews(prevReviews =>
+                    prevReviews.map(review =>
+                        review._id === reviewId
+                            ? {
+                                ...review,
+                                likeCount: result.data.likeCount,
+                                likes: result.data.action === 'liked'
+                                    ? [...review.likes, { userId: currentUser._id, userName: currentUser.name }]
+                                    : review.likes.filter(like => like.userId !== currentUser._id)
+                            }
+                            : review
+                    )
+                );
             }
         } catch (error) {
             console.error('좋아요 처리 실패:', error);
         }
     };
 
-    // 필터 변경 시 리뷰 다시 로드
+    // 리뷰 삭제
+    const deleteReview = async (reviewId, isOwnReview = false) => {
+        if (!currentUser) {
+            showModal('error', '로그인 필요', '로그인이 필요합니다.');
+            return;
+        }
+
+        if (!isAdmin && !isOwnReview) {
+            showModal('error', '권한 없음', '본인의 리뷰만 삭제할 수 있습니다.');
+            return;
+        }
+
+        showModal('confirm', '리뷰 삭제', '정말로 이 리뷰를 삭제하시겠습니까?', async () => {
+            try {
+                setLoading(true);
+                const result = await apiCall(`/api/reviews/${reviewId}`, {
+                    method: 'DELETE',
+                    body: JSON.stringify({
+                        userId: currentUser._id
+                    })
+                });
+
+                if (result.success) {
+                    showModal('success', '삭제 완료', '리뷰가 삭제되었습니다!');
+                    await loadReviews();
+                }
+            } catch (error) {
+                console.error('리뷰 삭제 실패:', error);
+            } finally {
+                setLoading(false);
+            }
+        });
+    };
+
+    // 필터 변경 시 리뷰 다시 로딩
     useEffect(() => {
-        loadReviews();
+        if (restaurants.length > 0) {
+            loadReviews();
+        }
     }, [selectedRestaurant, sortBy]);
 
-    const renderStars = (rating, interactive = false, onRatingChange = null) => {
-        return (
-            <div className="stars">
-                {[1, 2, 3, 4, 5].map(star => (
-                    <span
-                        key={star}
-                        className={`star ${star <= rating ? 'filled' : ''} ${interactive ? 'interactive' : ''}`}
-                        onClick={interactive ? () => onRatingChange(star) : undefined}
-                    >
-                        ⭐
-                    </span>
-                ))}
-            </div>
-        );
+    // 페이지네이션 계산
+    const totalPages = Math.ceil(reviews.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const paginatedReviews = reviews.slice(startIndex, startIndex + itemsPerPage);
+
+    // 선택된 가게 정보 가져오기
+    const getSelectedRestaurantInfo = () => {
+        if (!selectedRestaurant) return null;
+        return restaurants.find(r => r._id === selectedRestaurant);
     };
+
+    const selectedRestaurantInfo = getSelectedRestaurantInfo();
 
     // 모달 컴포넌트
     const Modal = () => {
@@ -330,347 +279,257 @@ export default function Reviews() {
         );
     };
 
-    if (!currentUser) {
-        return (
-            <div className="App">
-                <div className="container">
-                    <h1>리뷰 페이지</h1>
-                    <p>리뷰를 보려면 먼저 메인 페이지에서 로그인해주세요.</p>
-                    <a href="/">메인 페이지로 이동</a>
-                </div>
-            </div>
-        );
-    }
-
     return (
         <>
             <Head>
                 <title>리뷰 - 점심메뉴 선택기</title>
-                <meta name="description" content="가게 리뷰를 확인하고 작성하세요" />
-                <meta name="viewport" content="width=device-width, initial-scale=1" />
+                <meta name="description" content="가게 리뷰를 확인하고 작성해보세요!" />
+                <link rel="icon" href="/favicon.ico" />
             </Head>
-            <div className="App">
-                <div className="container">
-                    <div className="header">
-                        <h1 className="title">📝 리뷰</h1>
-                        <a href="/" className="home-btn">
-                            <span className="home-icon">🏠</span>
-                            메인으로
-                        </a>
-                    </div>
 
-                    {/* 리뷰 작성 폼 */}
-                    <div className="review-form-card" style={{ padding: 'var(--space-8)', marginBottom: 'var(--space-8)' }}>
-                        <h3 style={{ 
-                            marginBottom: 'var(--space-6)', 
-                            color: 'var(--gray-800)', 
-                            fontSize: '1.25rem', 
-                            fontWeight: '700',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 'var(--space-2)'
-                        }}>
-                            <span className="emoji">✍️</span> 리뷰 작성
-                        </h3>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
-                            <div>
-                                <label style={{ 
-                                    display: 'block', 
-                                    marginBottom: 'var(--space-2)', 
-                                    fontWeight: '600', 
-                                    color: 'var(--gray-700)' 
-                                }}>가게 선택</label>
+            <div className="app">
+                <div className="container">
+                    {/* 헤더 */}
+                    <header className="header subpage-header">
+                        <div className="header-content">
+                            <div className="header-left">
+                                <button 
+                                    onClick={() => router.push('/')}
+                                    className="btn-back"
+                                >
+                                    ← 돌아가기
+                                </button>
+                                <h1 className="title">⭐ 리뷰</h1>
+                                {currentUser && (
+                                    <div className="user-info">
+                                        <span className="user-greeting">안녕하세요, <strong>{currentUser.name}</strong>님!</span>
+                                        {isAdmin && <span className="admin-badge">관리자</span>}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </header>
+
+                    {/* 메인 콘텐츠 */}
+                    <main className="main-content">
+                        {/* 리뷰 작성 섹션 */}
+                        {currentUser && (
+                            <section className="review-write-section">
+                                <div className="section-header">
+                                    <h2>✍️ 리뷰 작성</h2>
+                                </div>
+                                
+                                <div className="review-form">
+                                    <div className="form-row">
+                                        <div className="input-group">
+                                            <label htmlFor="restaurant-select">가게 선택</label>
+                                            <select
+                                                id="restaurant-select"
+                                                value={selectedRestaurant}
+                                                onChange={(e) => setSelectedRestaurant(e.target.value)}
+                                                className="restaurant-select"
+                                            >
+                                                <option value="">가게를 선택하세요</option>
+                                                {restaurants.map(restaurant => (
+                                                    <option key={restaurant._id} value={restaurant._id}>
+                                                        {restaurant.name} ({restaurant.category})
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    {selectedRestaurantInfo && (
+                                        <div className="selected-restaurant-info">
+                                            <img 
+                                                src={selectedRestaurantInfo.image} 
+                                                alt={selectedRestaurantInfo.name}
+                                                onError={(e) => {
+                                                    e.target.src = 'https://via.placeholder.com/100x100?text=No+Image';
+                                                }}
+                                            />
+                                            <div className="restaurant-details">
+                                                <h3>{selectedRestaurantInfo.name}</h3>
+                                                <p className="category">{selectedRestaurantInfo.category}</p>
+                                                <p className="distance">🚶‍♂️ {selectedRestaurantInfo.distance}</p>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div className="input-group">
+                                        <label>평점</label>
+                                        <div className="star-rating">
+                                            {[1, 2, 3, 4, 5].map(star => (
+                                                <button
+                                                    key={star}
+                                                    type="button"
+                                                    onClick={() => setNewReview(prev => ({ ...prev, rating: star }))}
+                                                    className={`star ${star <= newReview.rating ? 'active' : ''}`}
+                                                >
+                                                    ⭐
+                                                </button>
+                                            ))}
+                                            <span className="rating-text">({newReview.rating}점)</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="input-group">
+                                        <label htmlFor="review-content">리뷰 내용</label>
+                                        <textarea
+                                            id="review-content"
+                                            value={newReview.content}
+                                            onChange={(e) => setNewReview(prev => ({ ...prev, content: e.target.value }))}
+                                            placeholder="가게에 대한 솔직한 리뷰를 작성해주세요..."
+                                            className="review-textarea"
+                                            rows={4}
+                                            maxLength={500}
+                                        />
+                                        <div className="char-count">
+                                            {newReview.content.length}/500
+                                        </div>
+                                    </div>
+
+                                    <div className="form-actions">
+                                        <button 
+                                            onClick={submitReview}
+                                            disabled={loading || !selectedRestaurant || !newReview.content.trim()}
+                                            className="btn-submit-review"
+                                        >
+                                            {loading ? '작성 중...' : '⭐ 리뷰 작성'}
+                                        </button>
+                                    </div>
+                                </div>
+                            </section>
+                        )}
+
+                        {/* 리뷰 목록 섹션 */}
+                        <section className="reviews-list-section">
+                            <div className="section-header">
+                                <h2>💬 리뷰 목록</h2>
+                                <span className="count-badge">{reviews.length}개</span>
+                            </div>
+
+                            {/* 필터 */}
+                            <div className="reviews-filters">
                                 <select
-                                    className="modern-select"
                                     value={selectedRestaurant}
                                     onChange={(e) => setSelectedRestaurant(e.target.value)}
+                                    className="filter-select"
                                 >
-                                    <option value="">가게를 선택하세요</option>
+                                    <option value="">전체 가게</option>
                                     {restaurants.map(restaurant => (
                                         <option key={restaurant._id} value={restaurant._id}>
-                                            {restaurant.name} ({restaurant.category})
+                                            {restaurant.name}
                                         </option>
                                     ))}
                                 </select>
+
+                                <select
+                                    value={sortBy}
+                                    onChange={(e) => setSortBy(e.target.value)}
+                                    className="sort-select"
+                                >
+                                    <option value="newest">최신순</option>
+                                    <option value="oldest">오래된순</option>
+                                    <option value="rating_high">평점 높은순</option>
+                                    <option value="rating_low">평점 낮은순</option>
+                                    <option value="likes">좋아요순</option>
+                                </select>
                             </div>
 
-                            <div>
-                                <label style={{ 
-                                    display: 'block', 
-                                    marginBottom: 'var(--space-2)', 
-                                    fontWeight: '600', 
-                                    color: 'var(--gray-700)' 
-                                }}>평점</label>
-                                {renderStars(newReview.rating, true, (rating) => 
-                                    setNewReview(prev => ({ ...prev, rating }))
-                                )}
-                            </div>
-
-                            <div>
-                                <label style={{ 
-                                    display: 'block', 
-                                    marginBottom: 'var(--space-2)', 
-                                    fontWeight: '600', 
-                                    color: 'var(--gray-700)' 
-                                }}>리뷰 내용</label>
-                                <textarea
-                                    className="modern-input"
-                                    value={newReview.content}
-                                    onChange={(e) => setNewReview(prev => ({ ...prev, content: e.target.value }))}
-                                    placeholder="가게에 대한 솔직한 리뷰를 작성해주세요..."
-                                    rows="4"
-                                    maxLength="500"
-                                    style={{ resize: 'vertical', minHeight: '120px' }}
-                                />
-                                <small style={{ color: 'var(--gray-500)', fontSize: '0.875rem' }}>
-                                    {newReview.content.length}/500
-                                </small>
-                            </div>
-
-                            <button
-                                className="modern-btn primary"
-                                onClick={submitReview}
-                                disabled={loading || !selectedRestaurant || !newReview.content.trim()}
-                                style={{ 
-                                    padding: 'var(--space-4) var(--space-8)',
-                                    fontSize: '1.1rem',
-                                    opacity: (loading || !selectedRestaurant || !newReview.content.trim()) ? '0.6' : '1',
-                                    cursor: (loading || !selectedRestaurant || !newReview.content.trim()) ? 'not-allowed' : 'pointer'
-                                }}
-                            >
-                                {loading ? '작성 중...' : '✨ 리뷰 작성'}
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* 필터 */}
-                    <div className="glass-card" style={{ 
-                        padding: 'var(--space-5)', 
-                        marginBottom: 'var(--space-8)',
-                        display: 'flex',
-                        gap: 'var(--space-6)',
-                        alignItems: 'end',
-                        flexWrap: 'wrap'
-                    }}>
-                        <div style={{ flex: '1', minWidth: '200px' }}>
-                            <label style={{ 
-                                display: 'block', 
-                                marginBottom: 'var(--space-2)', 
-                                fontWeight: '600', 
-                                color: 'var(--gray-700)',
-                                fontSize: '0.9rem'
-                            }}><span className="emoji">🏪</span> 가게 필터</label>
-                            <select
-                                className="modern-select"
-                                value={selectedRestaurant}
-                                onChange={(e) => setSelectedRestaurant(e.target.value)}
-                            >
-                                <option value="">전체 가게</option>
-                                {restaurants.map(restaurant => (
-                                    <option key={restaurant._id} value={restaurant._id}>
-                                        {restaurant.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div style={{ flex: '1', minWidth: '150px' }}>
-                            <label style={{ 
-                                display: 'block', 
-                                marginBottom: 'var(--space-2)', 
-                                fontWeight: '600', 
-                                color: 'var(--gray-700)',
-                                fontSize: '0.9rem'
-                            }}><span className="emoji">📊</span> 정렬</label>
-                            <select
-                                className="modern-select"
-                                value={sortBy}
-                                onChange={(e) => setSortBy(e.target.value)}
-                            >
-                                <option value="newest">최신순</option>
-                                <option value="likes">좋아요순</option>
-                                <option value="rating">평점순</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    {/* 리뷰 목록 */}
-                    <div className="reviews-section">
-                        <h3>리뷰 목록 ({reviews.length}개)</h3>
-                        
-                        {reviews.length === 0 ? (
-                            <div className="empty-reviews">
-                                <p>아직 리뷰가 없습니다.</p>
-                                <p>첫 번째 리뷰를 작성해보세요! ✍️</p>
-                            </div>
-                        ) : (
-                            <>
-                                <div className="reviews-list">
-                                    {(() => {
-                                        const startIndex = (currentPage - 1) * itemsPerPage;
-                                        const endIndex = startIndex + itemsPerPage;
-                                        const paginatedReviews = reviews.slice(startIndex, endIndex);
-                                        
-                                        return paginatedReviews.map(review => {
-                                            const isOwnReview = review.userId === currentUser._id;
-                                            const isEditing = editingReview === review._id;
-                                            
-                                            return (
-                                                <div key={review._id} className="review-item">
-                                                    <div className="review-header">
-                                                        <div className="review-user">
-                                                            <strong>{review.userName}</strong>
-                                                            {isOwnReview && <span className="own-review-badge">내 리뷰</span>}
-                                                            <span className="review-date">
-                                                                {new Date(review.createdAt).toLocaleDateString('ko-KR')}
-                                                                {review.updatedAt && 
-                                                                 new Date(review.updatedAt) - new Date(review.createdAt) > 60000 && (
-                                                                    <span className="edited-badge"> (수정됨)</span>
-                                                                )}
-                                                            </span>
-                                                        </div>
-                                                        <div className="review-restaurant">
-                                                            {review.restaurantName}
-                                                        </div>
-                                                    </div>
-                                                    
-                                                    {isEditing ? (
-                                                        <div className="edit-review-form">
-                                                            <div className="edit-rating">
-                                                                <label>평점</label>
-                                                                {renderStars(editReview.rating, true, (rating) => 
-                                                                    setEditReview(prev => ({ ...prev, rating }))
-                                                                )}
-                                                            </div>
-                                                            <div className="edit-content">
-                                                                <label>리뷰 내용</label>
-                                                                <textarea
-                                                                    value={editReview.content}
-                                                                    onChange={(e) => setEditReview(prev => ({ ...prev, content: e.target.value }))}
-                                                                    placeholder="리뷰 내용을 수정하세요..."
-                                                                    rows="3"
-                                                                    maxLength="500"
-                                                                />
-                                                                <small>{editReview.content.length}/500</small>
-                                                            </div>
-                                                            <div className="edit-actions">
-                                                                <button
-                                                                    className="save-edit-btn"
-                                                                    onClick={() => updateReview(review._id)}
-                                                                    disabled={loading || !editReview.content.trim()}
-                                                                >
-                                                                    {loading ? '저장 중...' : '저장'}
-                                                                </button>
-                                                                <button
-                                                                    className="cancel-edit-btn"
-                                                                    onClick={cancelEditReview}
-                                                                    disabled={loading}
-                                                                >
-                                                                    취소
-                                                                </button>
-                                                            </div>
-                                                        </div>
-                                                    ) : (
-                                                        <>
-                                                            <div className="review-rating">
-                                                                {renderStars(review.rating)}
-                                                                <span className="rating-text">({review.rating}/5)</span>
-                                                            </div>
-                                                            
-                                                            <div className="review-content">
-                                                                {review.content}
-                                                            </div>
-                                                        </>
-                                                    )}
-                                                    
-                                                    <div className="review-actions">
-                                                        <button
-                                                            className={`like-btn ${review.likes?.some(like => like.userId === currentUser._id) ? 'liked' : ''}`}
-                                                            onClick={() => toggleLike(review._id)}
-                                                        >
-                                                            👍 {review.likeCount || 0}
-                                                        </button>
-                                                        
-                                                        {isOwnReview && !isEditing && (
-                                                            <>
-                                                                <button
-                                                                    className="edit-review-btn"
-                                                                    onClick={() => startEditReview(review)}
-                                                                    disabled={loading}
-                                                                >
-                                                                    ✏️ 수정
-                                                                </button>
-                                                                <button
-                                                                    className="delete-own-review-btn"
-                                                                    onClick={() => showModal('confirm', '내 리뷰 삭제', '내 리뷰를 삭제하시겠습니까?', () => deleteReview(review._id, true))}
-                                                                    disabled={loading}
-                                                                >
-                                                                    🗑️ 삭제
-                                                                </button>
-                                                            </>
-                                                        )}
-                                                        
-                                                        {isAdmin && !isOwnReview && (
-                                                            <button
-                                                                className="delete-review-btn"
-                                                                onClick={() => showModal('confirm', '리뷰 삭제', `${review.userName}님의 리뷰를 삭제하시겠습니까?`, () => deleteReview(review._id))}
-                                                                disabled={loading}
-                                                            >
-                                                                🗑️ 관리자 삭제
-                                                            </button>
-                                                        )}
+                            {/* 리뷰 목록 */}
+                            <div className="reviews-list">
+                                {loading ? (
+                                    <div className="loading-state">
+                                        <div className="spinner"></div>
+                                        <p>리뷰를 불러오는 중...</p>
+                                    </div>
+                                ) : paginatedReviews.length > 0 ? (
+                                    paginatedReviews.map(review => (
+                                        <div key={review._id} className="review-item">
+                                            <div className="review-header">
+                                                <div className="review-author">
+                                                    <span className="author-name">{review.userName}</span>
+                                                    <div className="review-rating">
+                                                        {'⭐'.repeat(review.rating)}
+                                                        <span className="rating-number">({review.rating})</span>
                                                     </div>
                                                 </div>
-                                            );
-                                        });
-                                    })()}
-                                </div>
-                                
-                                {/* 페이지네이션 */}
-                                {Math.ceil(reviews.length / itemsPerPage) > 1 && (
-                                    <div className="pagination">
-                                        <button
-                                            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                                            disabled={currentPage === 1}
-                                        >
-                                            이전
-                                        </button>
-                                        
-                                        <div className="page-numbers">
-                                            {(() => {
-                                                const totalPages = Math.ceil(reviews.length / itemsPerPage);
-                                                const pages = [];
-                                                const startPage = Math.max(1, currentPage - 2);
-                                                const endPage = Math.min(totalPages, currentPage + 2);
-                                                
-                                                for (let i = startPage; i <= endPage; i++) {
-                                                    pages.push(
+                                                <div className="review-meta">
+                                                    <span className="review-date">
+                                                        {new Date(review.createdAt).toLocaleDateString()}
+                                                    </span>
+                                                    {(isAdmin || review.userId === currentUser?._id) && (
                                                         <button
-                                                            key={i}
-                                                            className={`page-number ${i === currentPage ? 'active' : ''}`}
-                                                            onClick={() => setCurrentPage(i)}
+                                                            onClick={() => deleteReview(review._id, review.userId === currentUser?._id)}
+                                                            className="btn-delete-review"
+                                                            title="삭제"
                                                         >
-                                                            {i}
+                                                            🗑️
                                                         </button>
-                                                    );
-                                                }
-                                                return pages;
-                                            })()}
+                                                    )}
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="review-restaurant">
+                                                <span className="restaurant-name">
+                                                    🏪 {review.restaurantName || '알 수 없는 가게'}
+                                                </span>
+                                            </div>
+                                            
+                                            <div className="review-content">
+                                                {review.content}
+                                            </div>
+                                            
+                                            <div className="review-actions">
+                                                <button
+                                                    onClick={() => toggleReviewLike(review._id)}
+                                                    className={`btn-like ${review.likes?.some(like => like.userId === currentUser?._id) ? 'liked' : ''}`}
+                                                    disabled={!currentUser}
+                                                >
+                                                    👍 {review.likeCount || 0}
+                                                </button>
+                                            </div>
                                         </div>
-                                        
-                                        <button
-                                            onClick={() => setCurrentPage(Math.min(Math.ceil(reviews.length / itemsPerPage), currentPage + 1))}
-                                            disabled={currentPage === Math.ceil(reviews.length / itemsPerPage)}
-                                        >
-                                            다음
-                                        </button>
+                                    ))
+                                ) : (
+                                    <div className="empty-state">
+                                        <div className="empty-icon">💬</div>
+                                        <h4>리뷰가 없습니다</h4>
+                                        <p>첫 번째 리뷰를 작성해보세요!</p>
                                     </div>
                                 )}
-                            </>
-                        )}
-                    </div>
+                            </div>
+
+                            {/* 페이지네이션 */}
+                            {totalPages > 1 && (
+                                <div className="pagination">
+                                    <button
+                                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                                        disabled={currentPage === 1}
+                                        className="pagination-btn"
+                                    >
+                                        ← 이전
+                                    </button>
+                                    
+                                    <span className="pagination-info">
+                                        {currentPage} / {totalPages}
+                                    </span>
+                                    
+                                    <button
+                                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                                        disabled={currentPage === totalPages}
+                                        className="pagination-btn"
+                                    >
+                                        다음 →
+                                    </button>
+                                </div>
+                            )}
+                        </section>
+                    </main>
                 </div>
             </div>
+
             <Modal />
         </>
     );
