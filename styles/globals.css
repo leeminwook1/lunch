@@ -2654,7 +2654,8 @@ body {
     }
 }
 
-/ * 리뷰 페이지 스타일 */ .review-write-section {
+/* 리뷰 페이지 스타일 */ 
+.review-write-section {
     background: white;
     border-radius: var(--radius-2xl);
     padding: var(--space-6);
@@ -3019,7 +3020,8 @@ body {
     }
 }
 
-/ * 피드백 페이지 스타일 */ .feedback-write-section {
+/* 피드백 페이지 스타일 */ 
+.feedback-write-section {
     background: white;
     border-radius: var(--radius-2xl);
     padding: var(--space-6);
