@@ -7,13 +7,13 @@ export default function Calendar() {
     const [currentUser, setCurrentUser] = useState(null);
     const [loading, setLoading] = useState(false);
     const [modal, setModal] = useState({ isOpen: false, type: '', title: '', message: '', onConfirm: null });
-    
+
     // 달력 상태
     const [currentDate, setCurrentDate] = useState(new Date());
     const [visitData, setVisitData] = useState([]);
     const [selectedDate, setSelectedDate] = useState(null);
     const [selectedVisits, setSelectedVisits] = useState([]);
-    
+
     // 방문 추가 모달 상태
     const [showAddVisit, setShowAddVisit] = useState(false);
     const [restaurants, setRestaurants] = useState([]);
@@ -34,11 +34,11 @@ export default function Calendar() {
                 },
                 ...options
             });
-            
+
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            
+
             return await response.json();
         } catch (error) {
             console.error('API 호출 오류:', error);
@@ -70,7 +70,7 @@ export default function Calendar() {
                 // 사용자 정보 복원 (세션 스토리지 우선)
                 const savedUserId = sessionStorage.getItem('currentUserId') || localStorage.getItem('currentUserId');
                 const savedUserName = sessionStorage.getItem('currentUserName') || localStorage.getItem('currentUserName');
-                
+
                 if (savedUserId && savedUserName) {
                     setCurrentUser({ _id: savedUserId, name: savedUserName });
                     await loadVisitData(savedUserId);
@@ -98,7 +98,7 @@ export default function Calendar() {
             setLoading(true);
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth() + 1;
-            
+
             const result = await apiCall(`/api/calendar?userId=${userId}&year=${year}&month=${month}`);
             if (result.success) {
                 setVisitData(result.data);
@@ -139,7 +139,7 @@ export default function Calendar() {
         try {
             setLoading(true);
             const selectedRestaurant = restaurants.find(r => r._id === newVisit.restaurantId);
-            
+
             const result = await apiCall('/api/calendar', {
                 method: 'POST',
                 body: JSON.stringify({
@@ -197,6 +197,15 @@ export default function Calendar() {
         });
     };
 
+    // 로컬 시간대 기준 오늘 날짜 가져오기
+    const getTodayLocal = () => {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
     // 달력 생성
     const generateCalendar = () => {
         const year = currentDate.getFullYear();
@@ -208,12 +217,17 @@ export default function Calendar() {
 
         const calendar = [];
         const current = new Date(startDate);
+        const todayLocal = getTodayLocal();
 
         for (let week = 0; week < 6; week++) {
             const weekDays = [];
             for (let day = 0; day < 7; day++) {
-                const dateStr = current.toISOString().split('T')[0];
-                const dayVisits = visitData.filter(visit => 
+                // 로컬 시간 기준으로 날짜 문자열 생성
+                const year = current.getFullYear();
+                const month_num = String(current.getMonth() + 1).padStart(2, '0');
+                const day_num = String(current.getDate()).padStart(2, '0');
+                const dateStr = `${year}-${month_num}-${day_num}`;
+                const dayVisits = visitData.filter(visit =>
                     visit.visitDate.split('T')[0] === dateStr
                 );
 
@@ -221,7 +235,7 @@ export default function Calendar() {
                     date: new Date(current),
                     dateStr,
                     isCurrentMonth: current.getMonth() === month,
-                    isToday: dateStr === new Date().toISOString().split('T')[0],
+                    isToday: dateStr === todayLocal,
                     visits: dayVisits
                 });
 
@@ -293,7 +307,7 @@ export default function Calendar() {
                     <header className="header subpage-header">
                         <div className="header-content">
                             <div className="header-left">
-                                <button 
+                                <button
                                     onClick={() => router.push('/')}
                                     className="btn-back"
                                 >
@@ -314,7 +328,7 @@ export default function Calendar() {
                         {/* 달력 섹션 */}
                         <section className="calendar-section">
                             <div className="calendar-header">
-                                <button 
+                                <button
                                     onClick={() => changeMonth(-1)}
                                     className="month-nav-btn"
                                 >
@@ -323,7 +337,7 @@ export default function Calendar() {
                                 <h2 className="current-month">
                                     {currentDate.getFullYear()}년 {monthNames[currentDate.getMonth()]}
                                 </h2>
-                                <button 
+                                <button
                                     onClick={() => changeMonth(1)}
                                     className="month-nav-btn"
                                 >
@@ -348,15 +362,11 @@ export default function Calendar() {
                                             {week.map((day, dayIndex) => (
                                                 <div
                                                     key={dayIndex}
-                                                    className={`calendar-day ${
-                                                        !day.isCurrentMonth ? 'other-month' : ''
-                                                    } ${
-                                                        day.isToday ? 'today' : ''
-                                                    } ${
-                                                        day.visits.length > 0 ? 'has-visits' : ''
-                                                    } ${
-                                                        selectedDate === day.dateStr ? 'selected' : ''
-                                                    }`}
+                                                    className={`calendar-day ${!day.isCurrentMonth ? 'other-month' : ''
+                                                        } ${day.isToday ? 'today' : ''
+                                                        } ${day.visits.length > 0 ? 'has-visits' : ''
+                                                        } ${selectedDate === day.dateStr ? 'selected' : ''
+                                                        }`}
                                                     onClick={() => handleDateClick(day)}
                                                 >
                                                     <span className="day-number">
@@ -389,7 +399,7 @@ export default function Calendar() {
                             </div>
 
                             <div className="calendar-actions">
-                                <button 
+                                <button
                                     onClick={() => setShowAddVisit(true)}
                                     className="btn-add-visit"
                                 >
@@ -404,12 +414,12 @@ export default function Calendar() {
                                 <div className="section-header">
                                     <h3>📍 {new Date(selectedDate).toLocaleDateString()} 방문 기록</h3>
                                 </div>
-                                
+
                                 <div className="visit-list">
                                     {selectedVisits.map(visit => (
                                         <div key={visit._id} className="visit-item">
-                                            <img 
-                                                src={visit.restaurantImage} 
+                                            <img
+                                                src={visit.restaurantImage}
                                                 alt={visit.restaurantName}
                                                 className="visit-image"
                                                 onError={(e) => {
@@ -429,9 +439,9 @@ export default function Calendar() {
                                                 )}
                                                 <span className="visit-type">
                                                     {visit.visitType === 'random' ? '🎲 랜덤 선택' :
-                                                     visit.visitType === 'slot_machine' ? '🎰 슬롯머신' :
-                                                     visit.visitType === 'worldcup' ? '🏆 월드컵' :
-                                                     '✏️ 직접 추가'}
+                                                        visit.visitType === 'slot_machine' ? '🎰 슬롯머신' :
+                                                            visit.visitType === 'worldcup' ? '🏆 월드컵' :
+                                                                '✏️ 직접 추가'}
                                                 </span>
                                             </div>
                                             <button
@@ -484,7 +494,7 @@ export default function Calendar() {
                                         value={newVisit.visitDate}
                                         onChange={(e) => setNewVisit(prev => ({ ...prev, visitDate: e.target.value }))}
                                         className="visit-input"
-                                        max={new Date().toISOString().split('T')[0]}
+                                        max={getTodayLocal()}
                                     />
                                 </div>
 
@@ -523,14 +533,14 @@ export default function Calendar() {
                             </div>
                         </div>
                         <div className="modal-footer">
-                            <button 
-                                className="modal-btn cancel" 
+                            <button
+                                className="modal-btn cancel"
                                 onClick={() => setShowAddVisit(false)}
                             >
                                 취소
                             </button>
-                            <button 
-                                className="modal-btn confirm" 
+                            <button
+                                className="modal-btn confirm"
                                 onClick={addVisit}
                                 disabled={loading || !newVisit.restaurantId || !newVisit.visitDate}
                             >
