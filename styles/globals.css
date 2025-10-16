@@ -9363,64 +9363,39 @@ textarea:focus-visible {
     background: var(--primary-700);
 }
 
-/* 투표자 목록 스타일 */
-.voters-list {
+
+/* 투표자 버튼 스타일 */
+.voters-button-container {
     margin-top: 0.75rem;
-    padding: 0.75rem;
-    background: var(--gray-50);
+}
+
+.voters-button {
+    background: var(--primary-100);
+    color: var(--primary-700);
+    border: 1px solid var(--primary-300);
+    padding: 0.5rem 0.75rem;
     border-radius: var(--radius-md);
-    border: 1px solid var(--gray-200);
-}
-
-.voters-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 0.5rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px solid var(--gray-200);
-}
-
-.voters-label {
     font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--gray-700);
-}
-
-.voters-count {
-    font-size: 0.8rem;
-    color: var(--gray-500);
-    background: var(--gray-200);
-    padding: 0.25rem 0.5rem;
-    border-radius: var(--radius-sm);
-}
-
-.voters-names {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-}
-
-.voter-name {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    padding: 0.25rem 0.5rem;
-    background: white;
-    border: 1px solid var(--gray-300);
-    border-radius: var(--radius-sm);
-    font-size: 0.8rem;
-    color: var(--gray-700);
     font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    justify-content: center;
 }
 
-.current-user-badge {
-    background: var(--primary-500);
-    color: white;
-    padding: 0.1rem 0.3rem;
-    border-radius: var(--radius-sm);
-    font-size: 0.7rem;
-    font-weight: 600;
+.voters-button:hover {
+    background: var(--primary-200);
+    border-color: var(--primary-400);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.voters-button:active {
+    background: var(--primary-300);
+    transform: translateY(0);
 }
 
 /* 반응형 디자인 */
@@ -9437,13 +9412,9 @@ textarea:focus-visible {
         padding: 0.75rem;
     }
     
-    .voters-names {
-        gap: 0.25rem;
-    }
-    
-    .voter-name {
-        font-size: 0.75rem;
-        padding: 0.2rem 0.4rem;
+    .voters-button {
+        font-size: 0.8rem;
+        padding: 0.4rem 0.6rem;
     }
 }
 

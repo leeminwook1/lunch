@@ -323,6 +323,12 @@ export default function VoteDate() {
         }
     };
 
+    // 투표자 모달 표시
+    const showVotersModal = (voters, timeSlotInfo) => {
+        const voterNames = voters.map(vote => vote.userName).join(', ');
+        showModal('info', `투표자 목록 - ${timeSlotInfo}`, `투표자: ${voterNames}`, null, '확인');
+    };
+
     // 기간 선택 토글
     const togglePeriodSelection = () => {
         setPeriodSelection(prev => ({
@@ -1064,21 +1070,18 @@ export default function VoteDate() {
                                                                                                 </span>
                                                                                             </div>
                                                                                             
-                                                                                            {/* 투표자 목록 */}
+                                                                                            {/* 투표자 목록 버튼 */}
                                                                                             {timeSlot.votes && timeSlot.votes.length > 0 && (
-                                                                                                <div className="voters-list">
-                                                                                                    <div className="voters-header">
-                                                                                                        <span className="voters-label">투표자:</span>
-                                                                                                        <span className="voters-count">{timeSlot.votes.length}명</span>
-                                                                                                    </div>
-                                                                                                    <div className="voters-names">
-                                                                                                        {timeSlot.votes.map((vote, voteIndex) => (
-                                                                                                            <span key={voteIndex} className="voter-name">
-                                                                                                                {vote.userName}
-                                                                                                                {vote.userId === currentUser?._id && <span className="current-user-badge">나</span>}
-                                                                                                            </span>
-                                                                                                        ))}
-                                                                                                    </div>
+                                                                                                <div className="voters-button-container">
+                                                                                                    <button
+                                                                                                        className="voters-button"
+                                                                                                        onClick={() => showVotersModal(timeSlot.votes, `${new Date(candidate.date).toLocaleDateString('ko-KR', { 
+                                                                            month: 'long', 
+                                                                            day: 'numeric'
+                                                                        })} ${timeSlot.startTime}~${timeSlot.endTime}`)}
+                                                                                                    >
+                                                                                                        👥 투표자 {timeSlot.votes.length}명
+                                                                                                    </button>
                                                                                                 </div>
                                                                                             )}
                                                                                         </div>
