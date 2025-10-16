@@ -19,6 +19,7 @@
 - **다양한 정렬**: 이름순/거리순/최신순
 - **가게 상세보기**: 상세 정보, 리뷰, 평점 시스템
 - **리뷰 시스템**: 별점과 텍스트 리뷰 작성 및 조회
+- **그룹 투표**: 여러 명이 함께 투표로 점심 가게 결정
 - **게임 기능**: 슬롯머신, 월드컵 게임
 - **피드백 시스템**: 사용자 의견 수집 및 관리
 
@@ -104,6 +105,14 @@ POST http://localhost:3000/api/init/sample-data
 ### 통계
 - `GET /api/stats` - 전체/개인 통계 조회
 
+### 그룹 투표
+- `GET /api/votes` - 투표 목록 조회
+- `POST /api/votes` - 투표 생성
+- `GET /api/votes/[id]` - 투표 상세 조회
+- `DELETE /api/votes/[id]` - 투표 삭제
+- `POST /api/votes/[id]/vote` - 투표하기
+- `POST /api/votes/[id]/close` - 투표 종료
+
 ### 초기화
 - `POST /api/init/sample-data` - 샘플 데이터 생성
 
@@ -159,6 +168,8 @@ POST http://localhost:3000/api/init/sample-data
 - **restaurants**: 가게 정보 (이름, 거리, 카테고리, 이미지, 설명)
 - **visits**: 개인 방문 기록 (사용자별 방문 히스토리)
 - **selections**: 공유 선택 기록 (전체 사용자 선택 히스토리)
+- **reviews**: 리뷰 정보 (평점, 내용, 좋아요)
+- **votes**: 그룹 투표 정보 (제목, 후보, 투표 결과)
 
 ### 데이터 분리
 - **공유 데이터**: 가게 목록, 선택 기록 (모든 사용자 공통)

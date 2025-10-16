@@ -19,7 +19,7 @@ import { useAnalytics } from '../lib/analytics';
 export default function Home() {
     const router = useRouter();
     const analytics = useAnalytics();
-    
+
     // 커스텀 훅들
     const {
         currentUser,
@@ -59,7 +59,7 @@ export default function Home() {
     const [isSpinning, setIsSpinning] = useState(false);
     const [stats, setStats] = useState(null);
     const [editingRestaurant, setEditingRestaurant] = useState(null);
-    
+
     // 폼 상태
     const [userName, setUserName] = useState('');
     const [adminPassword, setAdminPassword] = useState('');
@@ -75,7 +75,7 @@ export default function Home() {
 
     // 사용자 선호도 상태
     const [userPreferences, setUserPreferences] = useState(null);
-    
+
     // 로그인 에러 상태
     const [loginError, setLoginError] = useState('');
 
@@ -151,7 +151,7 @@ export default function Home() {
                 if (result.success) {
                     setSelectedRestaurant(result.data.restaurant);
                     analytics.trackRestaurantSelection(result.data.restaurant, 'random');
-                    
+
                     // 데이터 새로고침
                     await Promise.all([
                         loadUserData(currentUser._id),
@@ -304,7 +304,7 @@ export default function Home() {
         } catch (error) {
             // 에러 메시지를 사용자 친화적으로 변경
             let friendlyMessage = '로그인에 실패했습니다.';
-            
+
             if (error.message.includes('관리자 비밀번호')) {
                 friendlyMessage = '관리자 비밀번호가 올바르지 않습니다.';
             } else if (error.message.includes('비밀번호를 입력')) {
@@ -314,7 +314,7 @@ export default function Home() {
             } else if (error.message.includes('서버')) {
                 friendlyMessage = '서버에 일시적인 문제가 발생했습니다. 잠시 후 다시 시도해주세요.';
             }
-            
+
             setLoginError(friendlyMessage);
             analytics.trackError(error, { context: 'user_login' });
         }
@@ -377,7 +377,7 @@ export default function Home() {
                     <meta name="description" content="점심메뉴를 랜덤으로 선택해주는 서비스" />
                     <link rel="icon" href="/favicon.ico" />
                 </Head>
-                
+
                 <UserLogin
                     userName={userName}
                     setUserName={setUserName}
@@ -391,11 +391,11 @@ export default function Home() {
                     errorMessage={loginError}
                     onClearError={() => setLoginError('')}
                 />
-                
-                <Modal 
-                    modal={modal} 
-                    closeModal={closeModal} 
-                    confirmModal={confirmModal} 
+
+                <Modal
+                    modal={modal}
+                    closeModal={closeModal}
+                    confirmModal={confirmModal}
                 />
             </ErrorBoundary>
         );
@@ -464,8 +464,8 @@ export default function Home() {
                                             <p>버튼을 눌러 오늘의 점심을 선택해보세요!</p>
                                         </div>
                                     )}
-                                    
-                                    <button 
+
+                                    <button
                                         onClick={selectRandomRestaurant}
                                         disabled={isSpinning || filteredAndSortedRestaurants.length === 0}
                                         className="btn-random"
@@ -478,54 +478,70 @@ export default function Home() {
                             {/* 액션 버튼들 */}
                             <section className="action-section">
                                 <div className="action-grid">
-                                    <button 
+                                    <button
                                         onClick={() => setCurrentView('add')}
                                         className="action-btn add-btn"
                                     >
                                         <span className="action-icon">➕</span>
                                         <span className="action-text">가게 추가</span>
                                     </button>
-                                    
-                                    <button 
+
+                                    <button
+                                        onClick={() => router.push('/vote')}
+                                        className="action-btn vote-btn"
+                                    >
+                                        <span className="action-icon">🗳️</span>
+                                        <span className="action-text">점심 메뉴 투표</span>
+                                    </button>
+
+                                    <button
+                                        onClick={() => router.push('/vote-date')}
+                                        className="action-btn vote-date-btn"
+                                    >
+                                        <span className="action-icon">📅</span>
+                                        <span className="action-text">회식 날짜 투표</span>
+                                    </button>
+
+                                    <button
                                         onClick={() => router.push('/slot')}
                                         className="action-btn game-btn"
                                     >
                                         <span className="action-icon">🃏</span>
                                         <span className="action-text">카드 뽑기</span>
                                     </button>
-                                    
-                                    <button 
+
+                                    <button
                                         onClick={() => router.push('/worldcup')}
                                         className="action-btn game-btn"
                                     >
                                         <span className="action-icon">🏆</span>
                                         <span className="action-text">월드컵</span>
                                     </button>
-                                    
-                                    <button 
+
+                                    <button
                                         onClick={() => router.push('/reviews')}
                                         className="action-btn review-btn"
                                     >
                                         <span className="action-icon">⭐</span>
                                         <span className="action-text">리뷰 보기</span>
                                     </button>
-                                    
-                                    <button 
+
+                                    <button
                                         onClick={() => router.push('/feedback')}
                                         className="action-btn feedback-btn"
                                     >
                                         <span className="action-icon">📝</span>
                                         <span className="action-text">피드백</span>
                                     </button>
-                                    
-                                    <button 
+
+                                    <button
                                         onClick={() => router.push('/calendar')}
                                         className="action-btn calendar-btn"
                                     >
                                         <span className="action-icon">📅</span>
                                         <span className="action-text">방문 달력</span>
                                     </button>
-                                    
+
 
                                 </div>
                             </section>
@@ -545,7 +561,7 @@ export default function Home() {
                                             className="search-input"
                                         />
                                     </div>
-                                    
+
                                     <select
                                         value={filterCategory}
                                         onChange={(e) => setFilterCategory(e.target.value)}
@@ -558,7 +574,7 @@ export default function Home() {
                                             </option>
                                         ))}
                                     </select>
-                                    
+
                                     <select
                                         value={sortBy}
                                         onChange={(e) => setSortBy(e.target.value)}
@@ -577,7 +593,7 @@ export default function Home() {
                                     <h3>🏪 가게 목록</h3>
                                     <span className="count-badge">{filteredAndSortedRestaurants.length}개</span>
                                 </div>
-                                
+
                                 {restaurantsLoading ? (
                                     <RestaurantListSkeleton count={6} />
                                 ) : paginatedRestaurants.length > 0 ? (
@@ -598,7 +614,7 @@ export default function Home() {
                                                 />
                                             ))}
                                         </div>
-                                        
+
                                         {/* 페이지네이션 */}
                                         {totalPages > 1 && (
                                             <div className="pagination">
@@ -609,11 +625,11 @@ export default function Home() {
                                                 >
                                                     ← 이전
                                                 </button>
-                                                
+
                                                 <span className="pagination-info">
                                                     {currentPage} / {totalPages}
                                                 </span>
-                                                
+
                                                 <button
                                                     onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                                                     disabled={currentPage === totalPages}
@@ -629,7 +645,7 @@ export default function Home() {
                                         <div className="empty-icon">🔍</div>
                                         <h4>조건에 맞는 가게가 없습니다</h4>
                                         <p>다른 검색어나 카테고리를 시도해보세요</p>
-                                        <button 
+                                        <button
                                             onClick={() => {
                                                 setFilterCategory('all');
                                                 setSearchQuery('');
@@ -650,7 +666,7 @@ export default function Home() {
                     {currentView === 'add' && (
                         <div className="form-view">
                             <div className="form-header">
-                                <button 
+                                <button
                                     onClick={() => setCurrentView('main')}
                                     className="btn-back"
                                 >
@@ -670,7 +686,7 @@ export default function Home() {
                     {currentView === 'edit' && editingRestaurant && (
                         <div className="form-view">
                             <div className="form-header">
-                                <button 
+                                <button
                                     onClick={() => {
                                         setEditingRestaurant(null);
                                         setCurrentView('main');
@@ -697,7 +713,7 @@ export default function Home() {
                     {currentView === 'detail' && selectedRestaurantDetail && (
                         <div className="detail-view">
                             <div className="detail-header">
-                                <button 
+                                <button
                                     onClick={() => {
                                         setSelectedRestaurantDetail(null);
                                         setCurrentView('main');
@@ -708,12 +724,12 @@ export default function Home() {
                                 </button>
                                 <h2>{selectedRestaurantDetail.name}</h2>
                             </div>
-                            
+
                             <div className="detail-content">
                                 <div className="detail-main">
                                     <div className="restaurant-image-large">
-                                        <img 
-                                            src={selectedRestaurantDetail.image} 
+                                        <img
+                                            src={selectedRestaurantDetail.image}
                                             alt={selectedRestaurantDetail.name}
                                             onError={(e) => {
                                                 e.target.src = 'https://via.placeholder.com/600x400?text=No+Image';
@@ -723,26 +739,26 @@ export default function Home() {
                                             {selectedRestaurantDetail.category}
                                         </div>
                                     </div>
-                                    
+
                                     <div className="restaurant-info-large">
                                         <div className="info-row">
                                             <span className="info-label">🚶‍♂️ 거리</span>
                                             <span className="info-value">{selectedRestaurantDetail.distance}</span>
                                         </div>
-                                        
+
                                         {selectedRestaurantDetail.description && (
                                             <div className="info-row">
                                                 <span className="info-label">📝 설명</span>
                                                 <span className="info-value">{selectedRestaurantDetail.description}</span>
                                             </div>
                                         )}
-                                        
+
                                         {selectedRestaurantDetail.websiteUrl && (
                                             <div className="info-row">
                                                 <span className="info-label">🌐 웹사이트</span>
-                                                <a 
-                                                    href={selectedRestaurantDetail.websiteUrl} 
-                                                    target="_blank" 
+                                                <a
+                                                    href={selectedRestaurantDetail.websiteUrl}
+                                                    target="_blank"
                                                     rel="noopener noreferrer"
                                                     className="info-link"
                                                 >
@@ -750,7 +766,7 @@ export default function Home() {
                                                 </a>
                                             </div>
                                         )}
-                                        
+
                                         <div className="restaurant-stats-large">
                                             <div className="stat-item">
                                                 <span className="stat-icon">⭐</span>
@@ -771,9 +787,9 @@ export default function Home() {
                                                 </span>
                                             </div>
                                         </div>
-                                        
+
                                         <div className="detail-actions">
-                                            <button 
+                                            <button
                                                 onClick={() => setShowReviewForm(true)}
                                                 className="btn-write-review"
                                             >
@@ -782,13 +798,13 @@ export default function Home() {
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 {/* 리뷰 섹션 */}
                                 <div className="reviews-section">
                                     <div className="reviews-header">
                                         <h3>💬 리뷰 ({reviews.length}개)</h3>
                                     </div>
-                                    
+
                                     {showReviewForm && (
                                         <div className="review-form">
                                             <h4>리뷰 작성</h4>
@@ -815,13 +831,13 @@ export default function Home() {
                                                 rows={4}
                                             />
                                             <div className="review-form-actions">
-                                                <button 
+                                                <button
                                                     onClick={() => setShowReviewForm(false)}
                                                     className="btn-cancel"
                                                 >
                                                     취소
                                                 </button>
-                                                <button 
+                                                <button
                                                     onClick={submitReview}
                                                     className="btn-submit"
                                                     disabled={!newReview.content.trim()}
@@ -831,7 +847,7 @@ export default function Home() {
                                             </div>
                                         </div>
                                     )}
-                                    
+
                                     <div className="reviews-list">
                                         {reviews.length > 0 ? (
                                             reviews.map(review => (
@@ -872,10 +888,10 @@ export default function Home() {
 
 
 
-            <Modal 
-                modal={modal} 
-                closeModal={closeModal} 
-                confirmModal={confirmModal} 
+            <Modal
+                modal={modal}
+                closeModal={closeModal}
+                confirmModal={confirmModal}
             />
         </ErrorBoundary>
     );
