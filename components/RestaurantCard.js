@@ -9,11 +9,13 @@ const RestaurantCard = memo(({
     currentUser 
 }) => {
     const handleEdit = (e) => {
+        e.preventDefault();
         e.stopPropagation();
         onEdit(restaurant);
     };
 
     const handleDelete = (e) => {
+        e.preventDefault();
         e.stopPropagation();
         onDelete(restaurant._id, restaurant.name);
     };
@@ -29,14 +31,18 @@ const RestaurantCard = memo(({
                     <button 
                         className="btn-edit"
                         onClick={handleEdit}
+                        onMouseDown={handleEdit}
                         title="수정"
+                        type="button"
                     >
                         ✏️
                     </button>
                     <button 
                         className="btn-delete"
                         onClick={handleDelete}
+                        onMouseDown={handleDelete}
                         title="삭제"
+                        type="button"
                     >
                         🗑️
                     </button>

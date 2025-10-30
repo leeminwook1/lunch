@@ -501,21 +501,13 @@ export default function Home() {
                                         <span className="action-icon">📅</span>
                                         <span className="action-text">회식 날짜 투표</span>
                                     </button>
-
+                                    
                                     <button
-                                        onClick={() => router.push('/slot')}
-                                        className="action-btn game-btn"
+                                        onClick={() => router.push('/calendar')}
+                                        className="action-btn calendar-btn"
                                     >
-                                        <span className="action-icon">🃏</span>
-                                        <span className="action-text">카드 뽑기</span>
-                                    </button>
-
-                                    <button
-                                        onClick={() => router.push('/worldcup')}
-                                        className="action-btn game-btn"
-                                    >
-                                        <span className="action-icon">🏆</span>
-                                        <span className="action-text">월드컵</span>
+                                        <span className="action-icon">📅</span>
+                                        <span className="action-text">방문 달력</span>
                                     </button>
 
                                     <button
@@ -535,12 +527,37 @@ export default function Home() {
                                     </button>
 
                                     <button
-                                        onClick={() => router.push('/calendar')}
-                                        className="action-btn calendar-btn"
+                                        onClick={() => router.push('/slot')}
+                                        className="action-btn game-btn"
                                     >
-                                        <span className="action-icon">📅</span>
-                                        <span className="action-text">방문 달력</span>
+                                        <span className="action-icon">🃏</span>
+                                        <span className="action-text">카드 뽑기</span>
                                     </button>
+
+                                    <button
+                                        onClick={() => router.push('/worldcup')}
+                                        className="action-btn game-btn"
+                                    >
+                                        <span className="action-icon">🏆</span>
+                                        <span className="action-text">월드컵</span>
+                                    </button>
+
+                                    <button
+                                        onClick={() => router.push('/dart')}
+                                        className="action-btn dart-btn"
+                                    >
+                                        <span className="action-icon">🎯</span>
+                                        <span className="action-text">다트 게임</span>
+                                    </button>
+
+                                    <button
+                                        onClick={() => router.push('/game')}
+                                        className="action-btn runner-btn"
+                                    >
+                                        <span className="action-icon">🏃‍♂️</span>
+                                        <span className="action-text">러너 게임</span>
+                                    </button>
+
 
 
                                 </div>

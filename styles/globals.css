@@ -518,7 +518,6 @@ body {
 
 /* 가게 카드 스타일 */
 .restaurant-card {
-    background: white;
     border-radius: var(--radius-2xl);
     box-shadow: var(--shadow-md);
     overflow: hidden;
@@ -659,8 +658,9 @@ body {
     left: var(--space-3);
     display: flex;
     gap: var(--space-2);
-    opacity: 0;
+    opacity: 1;
     transition: opacity 0.3s ease;
+    z-index: 10;
 }
 
 .restaurant-card:hover .restaurant-actions {
@@ -669,37 +669,40 @@ body {
 
 .btn-edit,
 .btn-delete {
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
     border: none;
     border-radius: var(--radius-lg);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1rem;
+    font-size: 1.25rem;
     transition: all 0.2s ease;
     backdrop-filter: blur(10px);
+    box-shadow: var(--shadow-md);
+    line-height: 1;
+    padding: 0;
 }
 
 .btn-edit {
-    background: rgba(59, 130, 246, 0.9);
-    color: white;
+    background: rgba(59, 130, 246, 0.95);
 }
 
 .btn-edit:hover {
     background: rgba(59, 130, 246, 1);
-    transform: scale(1.1);
+    transform: scale(1.15);
+    box-shadow: var(--shadow-lg);
 }
 
 .btn-delete {
-    background: rgba(239, 68, 68, 0.9);
-    color: white;
+    background: rgba(239, 68, 68, 0.95);
 }
 
 .btn-delete:hover {
     background: rgba(239, 68, 68, 1);
-    transform: scale(1.1);
+    transform: scale(1.15);
+    box-shadow: var(--shadow-lg);
 }
 
 /* 페이지네이션 */
@@ -4612,6 +4615,36 @@ body {
 .calendar-btn:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow-lg);
+}
+
+.dart-btn {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+}
+
+.dart-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.runner-btn {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    animation: runnerPulse 2s ease-in-out infinite;
+}
+
+.runner-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.5);
+}
+
+@keyframes runnerPulse {
+    0%, 100% {
+        box-shadow: 0 4px 6px rgba(102, 126, 234, 0.3);
+    }
+    50% {
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.6);
+    }
 }
 
 /* 반응형 디자인 */
