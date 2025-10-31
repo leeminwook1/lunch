@@ -275,6 +275,7 @@
     justify-content: space-around;
     gap: 20px;
     margin-top: 15px;
+    flex-wrap: wrap;
 }
 
 .scoreItem {
@@ -284,6 +285,8 @@
     font-size: 1.1rem;
     color: #2d3436;
     font-weight: 600;
+    flex: 1 1 auto;
+    min-width: 150px;
 }
 
 .highScore {
@@ -689,6 +692,60 @@
     margin-top: 30px;
 }
 
+/* 모바일용 터치 버튼 */
+.mobileControls {
+    display: none;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.jumpBtn, .slideBtn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    width: 100px;
+    height: 100px;
+    border-radius: 15px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.slideBtn {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    box-shadow: 0 8px 25px rgba(240, 147, 251, 0.4);
+}
+
+.jumpBtn:active {
+    transform: scale(0.9);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.6);
+}
+
+.slideBtn:active {
+    transform: scale(0.9);
+    box-shadow: 0 5px 15px rgba(240, 147, 251, 0.6);
+}
+
+.btnIcon {
+    font-size: 2.2rem;
+    line-height: 1;
+}
+
+.btnLabel {
+    font-size: 1rem;
+    font-weight: bold;
+    line-height: 1;
+}
+
 /* 반응형 디자인 */
 @media (max-width: 900px) {
     .canvas {
@@ -714,6 +771,16 @@
 
     .retryButton, .menuButton {
         width: 100%;
+    }
+
+    /* 모바일 터치 버튼 표시 */
+    .mobileControls {
+        display: flex;
+    }
+
+    /* 게임 힌트 숨기기 (모바일에서는 버튼으로 대체) */
+    .gameHint {
+        display: none;
     }
 }
 
@@ -742,6 +809,22 @@
 
     .winnerDetails h2 {
         font-size: 1.8rem;
+    }
+
+    /* 스코어 아이템 모바일 최적화 */
+    .scoreInfo {
+        gap: 10px;
+        justify-content: center;
+    }
+
+    .scoreItem {
+        font-size: 0.95rem;
+        min-width: 120px;
+        flex: 0 1 calc(50% - 5px);
+    }
+
+    .instructions p {
+        font-size: 1rem;
     }
 }
 

@@ -1022,6 +1022,52 @@ export default function RunnerGame() {
                         <div className={styles.gameHint}>
                             💡 스페이스바/클릭: 점프 (2번 가능) | ↓: 빠르게 낙하
                         </div>
+                        
+                        {/* 모바일용 터치 버튼 */}
+                        <div className={styles.mobileControls}>
+                            <button 
+                                className={styles.jumpBtn}
+                                onPointerDown={(e) => {
+                                    e.preventDefault();
+                                    const game = gameRef.current;
+                                    if (!game) return;
+                                    
+                                    if (game.player.jumpCount < game.player.maxJumps) {
+                                        if (game.player.jumpCount === 0) {
+                                            game.player.velocityY = game.player.jumpPower;
+                                            if (soundManager.current) {
+                                                soundManager.current.playJump();
+                                            }
+                                        } else {
+                                            game.player.velocityY = game.player.doubleJumpPower;
+                                            if (soundManager.current) {
+                                                soundManager.current.playDoubleJump();
+                                            }
+                                        }
+                                        game.player.jumpCount++;
+                                        game.player.isJumping = true;
+                                    }
+                                }}
+                            >
+                                <div className={styles.btnIcon}>⬆️</div>
+                                <div className={styles.btnLabel}>점프</div>
+                            </button>
+                            <button 
+                                className={styles.slideBtn}
+                                onPointerDown={(e) => {
+                                    e.preventDefault();
+                                    const game = gameRef.current;
+                                    if (!game) return;
+                                    
+                                    if (game.player.isJumping && game.player.jumpCount > 0) {
+                                        game.player.velocityY = Math.max(game.player.velocityY, 10);
+                                    }
+                                }}
+                            >
+                                <div className={styles.btnIcon}>⬇️</div>
+                                <div className={styles.btnLabel}>낙하</div>
+                            </button>
+                        </div>
                     </div>
                 )}
 
