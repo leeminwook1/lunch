@@ -7,12 +7,16 @@ import getSoundManager from '../utils/sounds';
 export default function RunnerGame() {
     const router = useRouter();
     const canvasRef = useRef(null);
-    const [gameState, setGameState] = useState('menu'); // 'menu', 'playing', 'gameover', 'winner'
+    const [gameState, setGameState] = useState('menu'); // 'menu', 'playing', 'gameover', 'winner', 'leaderboard'
     const [score, setScore] = useState(0);
     const [highScore, setHighScore] = useState(0);
     const [topRestaurant, setTopRestaurant] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [soundEnabled, setSoundEnabled] = useState(true);
+    const [topScores, setTopScores] = useState([]);
+    const [currentUser, setCurrentUser] = useState(null);
+    const [showNicknameInput, setShowNicknameInput] = useState(false);
+    const [nickname, setNickname] = useState('');
     const gameRef = useRef(null);
     const soundManager = useRef(null);
 
@@ -68,7 +72,77 @@ export default function RunnerGame() {
 
         // 최다 방문 식당 가져오기
         fetchTopRestaurant();
+        
+        // 현재 사용자 정보 로드
+        loadCurrentUser();
+        
+        // 상위 점수 로드
+        fetchTopScores();
     }, []);
+
+    // 현재 사용자 로드
+    const loadCurrentUser = () => {
+        const savedUser = localStorage.getItem('currentUser');
+        if (savedUser) {
+            try {
+                const user = JSON.parse(savedUser);
+                setCurrentUser(user);
+                setNickname(user.name || '');
+            } catch (error) {
+                console.error('사용자 정보 로드 실패:', error);
+            }
+        }
+    };
+
+    // 상위 점수 가져오기
+    const fetchTopScores = async () => {
+        try {
+            const response = await fetch('/api/game-scores/top?limit=10');
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success) {
+                    setTopScores(data.data);
+                }
+            }
+        } catch (error) {
+            console.error('상위 점수 로드 실패:', error);
+        }
+    };
+
+    // 점수 저장
+    const saveScore = async (finalScore, userNickname) => {
+        if (!currentUser) {
+            console.error('사용자 정보가 없습니다');
+            return false;
+        }
+
+        try {
+            const response = await fetch('/api/game-scores', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    userId: currentUser._id,
+                    nickname: userNickname,
+                    score: finalScore
+                })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success) {
+                    // 상위 점수 새로고침
+                    await fetchTopScores();
+                    return true;
+                }
+            }
+            return false;
+        } catch (error) {
+            console.error('점수 저장 실패:', error);
+            return false;
+        }
+    };
 
     // 사운드 토글
     const toggleSound = () => {
@@ -839,6 +913,11 @@ export default function RunnerGame() {
                 localStorage.setItem('runnerHighScore', finalScore.toString());
             }
 
+            // 점수 저장 여부 확인 (사용자가 로그인되어 있으면 닉네임 입력 표시)
+            if (currentUser && finalScore > 0) {
+                setShowNicknameInput(true);
+            }
+
             // 목표 점수 달성 체크 (예: 1000점 이상)
             // topRestaurant가 없어도 1000점 이상이면 승리로 처리
             if (finalScore >= 1000) {
@@ -871,6 +950,27 @@ export default function RunnerGame() {
     const resetGame = () => {
         setGameState('menu');
         setScore(0);
+        setShowNicknameInput(false);
+    };
+
+    const handleSaveScore = async () => {
+        if (!nickname.trim()) {
+            alert('닉네임을 입력해주세요');
+            return;
+        }
+
+        const success = await saveScore(score, nickname);
+        if (success) {
+            setShowNicknameInput(false);
+            alert('점수가 저장되었습니다!');
+        } else {
+            alert('점수 저장에 실패했습니다');
+        }
+    };
+
+    const viewLeaderboard = () => {
+        setGameState('leaderboard');
+        fetchTopScores();
     };
 
     if (isLoading) {
@@ -996,6 +1096,42 @@ export default function RunnerGame() {
                             >
                                 게임 시작
                             </button>
+
+                            {/* 메인 메뉴 순위표 */}
+                            {topScores.length > 0 && (
+                                <div className={styles.menuLeaderboard}>
+                                    <h3 className={styles.menuLeaderboardTitle}>
+                                        🏆 TOP 5 순위표
+                                    </h3>
+                                    <div className={styles.miniScoresTable}>
+                                        {topScores.slice(0, 5).map((scoreData, index) => (
+                                            <div 
+                                                key={scoreData._id} 
+                                                className={`${styles.miniTableRow} ${index < 3 ? styles[`miniRank${index + 1}`] : ''}`}
+                                            >
+                                                <div className={styles.miniRankCol}>
+                                                    {index === 0 && '🥇'}
+                                                    {index === 1 && '🥈'}
+                                                    {index === 2 && '🥉'}
+                                                    {index > 2 && (index + 1)}
+                                                </div>
+                                                <div className={styles.miniNicknameCol}>
+                                                    {scoreData.nickname}
+                                                </div>
+                                                <div className={styles.miniScoreCol}>
+                                                    {scoreData.score.toLocaleString()}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <button 
+                                        className={styles.viewAllButton}
+                                        onClick={viewLeaderboard}
+                                    >
+                                        전체 순위 보기
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}
@@ -1096,12 +1232,47 @@ export default function RunnerGame() {
                                     {1000 - score > 0 ? `${1000 - score}점 남음` : '목표 달성!'}
                                 </p>
                             </div>
+
+                            {showNicknameInput && currentUser && (
+                                <div className={styles.scoreSubmit}>
+                                    <h4>🏆 점수를 기록하시겠습니까?</h4>
+                                    <input
+                                        type="text"
+                                        className={styles.nicknameInput}
+                                        placeholder="닉네임 입력"
+                                        value={nickname}
+                                        onChange={(e) => setNickname(e.target.value)}
+                                        maxLength={20}
+                                    />
+                                    <div className={styles.submitButtons}>
+                                        <button 
+                                            className={styles.saveButton}
+                                            onClick={handleSaveScore}
+                                        >
+                                            저장
+                                        </button>
+                                        <button 
+                                            className={styles.skipButton}
+                                            onClick={() => setShowNicknameInput(false)}
+                                        >
+                                            건너뛰기
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
                             <div className={styles.gameOverButtons}>
                                 <button 
                                     className={styles.retryButton}
                                     onClick={startGame}
                                 >
                                     다시 도전
+                                </button>
+                                <button 
+                                    className={styles.menuButton}
+                                    onClick={viewLeaderboard}
+                                >
+                                    순위표
                                 </button>
                                 <button 
                                     className={styles.menuButton}
@@ -1165,12 +1336,116 @@ export default function RunnerGame() {
                                 </div>
                             )}
 
+                            {showNicknameInput && currentUser && (
+                                <div className={styles.scoreSubmit}>
+                                    <h4>🏆 점수를 기록하시겠습니까?</h4>
+                                    <input
+                                        type="text"
+                                        className={styles.nicknameInput}
+                                        placeholder="닉네임 입력"
+                                        value={nickname}
+                                        onChange={(e) => setNickname(e.target.value)}
+                                        maxLength={20}
+                                    />
+                                    <div className={styles.submitButtons}>
+                                        <button 
+                                            className={styles.saveButton}
+                                            onClick={handleSaveScore}
+                                        >
+                                            저장
+                                        </button>
+                                        <button 
+                                            className={styles.skipButton}
+                                            onClick={() => setShowNicknameInput(false)}
+                                        >
+                                            건너뛰기
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
                             <div className={styles.winnerButtons}>
                                 <button 
                                     className={styles.retryButton}
                                     onClick={startGame}
                                 >
                                     다시 플레이
+                                </button>
+                                <button 
+                                    className={styles.menuButton}
+                                    onClick={viewLeaderboard}
+                                >
+                                    순위표
+                                </button>
+                                <button 
+                                    className={styles.menuButton}
+                                    onClick={resetGame}
+                                >
+                                    메뉴로
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {gameState === 'leaderboard' && (
+                    <div className={styles.leaderboard}>
+                        <div className={styles.leaderboardContent}>
+                            <h2 className={styles.leaderboardTitle}>
+                                🏆 순위표 🏆
+                            </h2>
+                            
+                            <div className={styles.scoresTable}>
+                                <div className={styles.tableHeader}>
+                                    <div className={styles.rankCol}>순위</div>
+                                    <div className={styles.nicknameCol}>닉네임</div>
+                                    <div className={styles.scoreCol}>점수</div>
+                                    <div className={styles.dateCol}>날짜</div>
+                                </div>
+                                
+                                {topScores.length > 0 ? (
+                                    <div className={styles.tableBody}>
+                                        {topScores.map((scoreData, index) => (
+                                            <div 
+                                                key={scoreData._id} 
+                                                className={`${styles.tableRow} ${index < 3 ? styles[`rank${index + 1}`] : ''}`}
+                                            >
+                                                <div className={styles.rankCol}>
+                                                    {index === 0 && '🥇'}
+                                                    {index === 1 && '🥈'}
+                                                    {index === 2 && '🥉'}
+                                                    {index > 2 && (index + 1)}
+                                                </div>
+                                                <div className={styles.nicknameCol}>
+                                                    {scoreData.nickname}
+                                                </div>
+                                                <div className={styles.scoreCol}>
+                                                    {scoreData.score.toLocaleString()}
+                                                </div>
+                                                <div className={styles.dateCol}>
+                                                    {new Date(scoreData.createdAt).toLocaleDateString('ko-KR', {
+                                                        month: 'short',
+                                                        day: 'numeric',
+                                                        hour: '2-digit',
+                                                        minute: '2-digit'
+                                                    })}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className={styles.noScores}>
+                                        아직 기록된 점수가 없습니다
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className={styles.leaderboardButtons}>
+                                <button 
+                                    className={styles.retryButton}
+                                    onClick={startGame}
+                                >
+                                    게임 시작
                                 </button>
                                 <button 
                                     className={styles.menuButton}

@@ -826,5 +826,386 @@
     .instructions p {
         font-size: 1rem;
     }
+
+    /* 메뉴 미니 순위표 모바일 */
+    .menuLeaderboard {
+        padding: 20px;
+    }
+
+    .menuLeaderboardTitle {
+        font-size: 1.3rem;
+    }
+
+    .miniTableRow {
+        grid-template-columns: 45px 1fr 85px 85px;
+        padding: 10px 12px;
+        gap: 8px;
+    }
+
+    .miniRankCol {
+        font-size: 1.2rem;
+    }
+
+    .miniNicknameCol {
+        font-size: 1rem;
+    }
+
+    .miniTimeCol {
+        font-size: 0.8rem;
+    }
+
+    .miniScoreCol {
+        font-size: 1.1rem;
+    }
+}
+
+/* 메뉴 화면 미니 순위표 */
+.menuLeaderboard {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 20px;
+    padding: 25px;
+    margin-top: 25px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+}
+
+.menuLeaderboardTitle {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #2d3436;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.miniScoresTable {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    margin-bottom: 15px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+.miniTableRow {
+    display: grid;
+    grid-template-columns: 60px 1fr 100px 100px;
+    padding: 12px 15px;
+    border-bottom: 1px solid #e9ecef;
+    align-items: center;
+    transition: all 0.2s ease;
+    gap: 10px;
+}
+
+.miniTableRow:hover {
+    background: #f8f9fa;
+}
+
+.miniTableRow:last-child {
+    border-bottom: none;
+}
+
+.miniRank1 {
+    background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+    font-weight: bold;
+}
+
+.miniRank2 {
+    background: linear-gradient(135deg, #dfe6e9 0%, #b2bec3 100%);
+    font-weight: bold;
+}
+
+.miniRank3 {
+    background: linear-gradient(135deg, #fab1a0 0%, #e17055 100%);
+    font-weight: bold;
+}
+
+.miniRankCol {
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.miniNicknameCol {
+    text-align: left;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #2d3436;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.miniTimeCol {
+    text-align: left;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #667eea;
+    line-height: 1.5;
+}
+
+.miniScoreCol {
+    text-align: right;
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #e74c3c;
+}
+
+.viewAllButton {
+    width: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    font-size: 1rem;
+    font-weight: bold;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.viewAllButton:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.5);
+}
+
+.viewAllButton:active {
+    transform: translateY(0);
+}
+
+/* 점수 저장 UI */
+.scoreSubmit {
+    background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+    border-radius: 15px;
+    padding: 20px;
+    margin: 25px 0;
+    text-align: center;
+}
+
+.scoreSubmit h4 {
+    color: #2d3436;
+    font-size: 1.3rem;
+    margin-bottom: 15px;
+}
+
+.nicknameInput {
+    width: 100%;
+    max-width: 300px;
+    padding: 12px 20px;
+    font-size: 1.1rem;
+    border: 2px solid #667eea;
+    border-radius: 50px;
+    text-align: center;
+    margin-bottom: 15px;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.nicknameInput:focus {
+    border-color: #764ba2;
+    box-shadow: 0 0 15px rgba(102, 126, 234, 0.3);
+}
+
+.submitButtons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.saveButton, .skipButton {
+    padding: 10px 30px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.saveButton {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+.saveButton:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.6);
+}
+
+.skipButton {
+    background: white;
+    color: #636e72;
+    border: 2px solid #636e72;
+}
+
+.skipButton:hover {
+    background: #f8f9fa;
+    transform: translateY(-2px);
+}
+
+/* 순위표 */
+.leaderboard {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 30px;
+    padding: 50px;
+    box-shadow: 
+        0 20px 60px rgba(0, 0, 0, 0.3),
+        0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+    animation: slideIn 0.5s ease-out;
+    backdrop-filter: blur(10px);
+    max-width: 800px;
+}
+
+.leaderboardContent {
+    text-align: center;
+}
+
+.leaderboardTitle {
+    font-size: 3rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 30px;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.scoresTable {
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+}
+
+.tableHeader {
+    display: grid;
+    grid-template-columns: 80px 1fr 150px 120px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-weight: bold;
+    font-size: 1.1rem;
+    padding: 15px 20px;
+}
+
+.tableBody {
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.tableRow {
+    display: grid;
+    grid-template-columns: 80px 1fr 150px 120px;
+    padding: 15px 20px;
+    border-bottom: 1px solid #e0e0e0;
+    transition: all 0.3s ease;
+    align-items: center;
+}
+
+.tableRow:hover {
+    background: #f8f9fa;
+    transform: translateX(5px);
+}
+
+.tableRow:last-child {
+    border-bottom: none;
+}
+
+.rank1 {
+    background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 50%);
+    font-weight: bold;
+}
+
+.rank2 {
+    background: linear-gradient(135deg, #dfe6e9 0%, #b2bec3 50%);
+    font-weight: bold;
+}
+
+.rank3 {
+    background: linear-gradient(135deg, #fab1a0 0%, #e17055 50%);
+    font-weight: bold;
+}
+
+.rankCol {
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.nicknameCol {
+    text-align: left;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #2d3436;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.timeCol {
+    text-align: left;
+    font-size: 0.95rem;
+    color: #667eea;
+    font-weight: 600;
+    line-height: 1.5;
+}
+
+.scoreCol {
+    text-align: right;
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #e74c3c;
+}
+
+.noScores {
+    padding: 60px 20px;
+    text-align: center;
+    color: #636e72;
+    font-size: 1.2rem;
+}
+
+.leaderboardButtons {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+/* 모바일 순위표 최적화 */
+@media (max-width: 768px) {
+    .leaderboard {
+        padding: 30px 20px;
+    }
+
+    .tableHeader, .tableRow {
+        grid-template-columns: 55px 1fr 110px 95px;
+        padding: 12px 15px;
+        font-size: 0.9rem;
+    }
+
+    .rankCol {
+        font-size: 1.2rem;
+    }
+
+    .nicknameCol {
+        font-size: 1rem;
+    }
+
+    .timeCol {
+        font-size: 0.8rem;
+        line-height: 1.4;
+    }
+
+    .scoreCol {
+        font-size: 1.1rem;
+    }
+
+    .leaderboardButtons {
+        flex-direction: column;
+    }
+
+    .leaderboardButtons button {
+        width: 100%;
+    }
 }
 
