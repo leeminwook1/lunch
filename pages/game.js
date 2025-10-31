@@ -116,11 +116,22 @@ export default function RunnerGame() {
                 velocityY: 0,
                 gravity: 0.8,
                 jumpPower: -15,
+                doubleJumpPower: -12, // 더블 점프는 약간 낮게
                 isJumping: false,
+                jumpCount: 0, // 점프 횟수 (최대 2)
+                maxJumps: 2, // 최대 점프 횟수
+                isSliding: false,
+                slideTimer: 0,
+                slideHeight: 30, // 슬라이드 시 높이
+                normalHeight: 50,
+                hasShield: false,
+                shieldTimer: 0,
+                speedBoost: 0, // 속도 부스트 타이머
                 rotation: 0
             },
             obstacles: [],
             coins: [],
+            items: [], // 새로운 아이템 배열
             particles: [],
             background: {
                 x1: 0,
@@ -132,32 +143,62 @@ export default function RunnerGame() {
             isRunning: true,
             difficulty: 1,
             obstacleTimer: 0,
-            coinTimer: 0
+            coinTimer: 0,
+            itemTimer: 0
         };
 
         gameRef.current = game;
 
         // 키보드 이벤트
         const handleKeyPress = (e) => {
-            if ((e.code === 'Space' || e.code === 'ArrowUp') && !game.player.isJumping) {
-                game.player.velocityY = game.player.jumpPower;
-                game.player.isJumping = true;
-                createJumpParticles();
-                if (soundManager.current) {
-                    soundManager.current.playJump();
+            if (e.code === 'Space' || e.code === 'ArrowUp') {
+                // 점프 (더블 점프 포함)
+                if (game.player.jumpCount < game.player.maxJumps) {
+                    if (game.player.jumpCount === 0) {
+                        // 첫 번째 점프
+                        game.player.velocityY = game.player.jumpPower;
+                        if (soundManager.current) {
+                            soundManager.current.playJump();
+                        }
+                    } else {
+                        // 더블 점프
+                        game.player.velocityY = game.player.doubleJumpPower;
+                        if (soundManager.current) {
+                            soundManager.current.playDoubleJump();
+                        }
+                    }
+                    game.player.jumpCount++;
+                    game.player.isJumping = true;
+                    createJumpParticles();
+                }
+            } else if (e.code === 'ArrowDown') {
+                // 슬라이드 (공중에서만 가능)
+                if (game.player.isJumping && game.player.jumpCount > 0) {
+                    game.player.velocityY = Math.max(game.player.velocityY, 10); // 빠르게 낙하
                 }
             }
         };
 
         // 마우스/터치 이벤트
         const handleClick = () => {
-            if (!game.player.isJumping) {
-                game.player.velocityY = game.player.jumpPower;
+            // 점프 (더블 점프 포함)
+            if (game.player.jumpCount < game.player.maxJumps) {
+                if (game.player.jumpCount === 0) {
+                    // 첫 번째 점프
+                    game.player.velocityY = game.player.jumpPower;
+                    if (soundManager.current) {
+                        soundManager.current.playJump();
+                    }
+                } else {
+                    // 더블 점프
+                    game.player.velocityY = game.player.doubleJumpPower;
+                    if (soundManager.current) {
+                        soundManager.current.playDoubleJump();
+                    }
+                }
+                game.player.jumpCount++;
                 game.player.isJumping = true;
                 createJumpParticles();
-                if (soundManager.current) {
-                    soundManager.current.playJump();
-                }
             }
         };
 
@@ -193,6 +234,20 @@ export default function RunnerGame() {
             }
         };
 
+        const createItemParticles = (x, y, color) => {
+            for (let i = 0; i < 15; i++) {
+                game.particles.push({
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 6,
+                    vy: (Math.random() - 0.5) * 6,
+                    radius: Math.random() * 3 + 2,
+                    life: 30,
+                    color: color
+                });
+            }
+        };
+
         // 장애물 생성
         const createObstacle = () => {
             const types = ['cactus', 'rock', 'spike'];
@@ -218,6 +273,23 @@ export default function RunnerGame() {
                 radius: 15,
                 collected: false,
                 rotation: 0
+            });
+        };
+
+        // 아이템 생성
+        const createItem = () => {
+            const itemTypes = ['boost', 'shield'];
+            const type = itemTypes[Math.floor(Math.random() * itemTypes.length)];
+            const yPositions = [300, 250, 200];
+            
+            game.items.push({
+                x: canvas.width + 50,
+                y: yPositions[Math.floor(Math.random() * yPositions.length)],
+                radius: 12,
+                type: type,
+                collected: false,
+                rotation: 0,
+                color: type === 'boost' ? '#00ff00' : '#00aaff'
             });
         };
 
@@ -269,6 +341,34 @@ export default function RunnerGame() {
                 game.player.rotation = Math.max(game.player.rotation - 0.1, 0);
             }
             ctx.rotate(game.player.rotation);
+
+            // 쉴드 효과
+            if (game.player.hasShield) {
+                ctx.strokeStyle = '#00aaff';
+                ctx.lineWidth = 3;
+                ctx.shadowColor = '#00aaff';
+                ctx.shadowBlur = 10;
+                ctx.beginPath();
+                ctx.arc(0, 0, game.player.width / 2 + 5, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+            }
+
+            // 속도 부스트 효과
+            if (game.player.speedBoost > 0) {
+                ctx.strokeStyle = '#00ff00';
+                ctx.lineWidth = 2;
+                ctx.shadowColor = '#00ff00';
+                ctx.shadowBlur = 5;
+                for (let i = 0; i < 3; i++) {
+                    ctx.globalAlpha = 0.3 - i * 0.1;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, game.player.width / 2 + i * 3, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+                ctx.globalAlpha = 1;
+                ctx.shadowBlur = 0;
+            }
 
             // 캐릭터 몸체 (음식 아이콘처럼)
             const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, game.player.width / 2);
@@ -409,6 +509,66 @@ export default function RunnerGame() {
             });
         };
 
+        // 아이템 그리기
+        const drawItems = () => {
+            game.items.forEach(item => {
+                if (item.collected) return;
+
+                ctx.save();
+                ctx.translate(item.x, item.y);
+                
+                // 회전 애니메이션
+                item.rotation += 0.08;
+                ctx.rotate(item.rotation);
+
+                // 아이템 타입에 따른 그리기
+                if (item.type === 'boost') {
+                    // 속도 부스트 - 녹색 다이아몬드
+                    ctx.fillStyle = item.color;
+                    ctx.beginPath();
+                    ctx.moveTo(0, -item.radius);
+                    ctx.lineTo(item.radius, 0);
+                    ctx.lineTo(0, item.radius);
+                    ctx.lineTo(-item.radius, 0);
+                    ctx.closePath();
+                    ctx.fill();
+                    
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = 'bold 12px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('⚡', 0, 0);
+                } else if (item.type === 'shield') {
+                    // 쉴드 - 파란색 원
+                    const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, item.radius);
+                    gradient.addColorStop(0, '#88ddff');
+                    gradient.addColorStop(1, item.color);
+                    
+                    ctx.fillStyle = gradient;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, item.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, item.radius * 0.7, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+
+                ctx.restore();
+
+                // 빛나는 효과
+                ctx.save();
+                ctx.globalAlpha = 0.4 + Math.sin(game.frame * 0.15) * 0.3;
+                ctx.fillStyle = item.color;
+                ctx.beginPath();
+                ctx.arc(item.x, item.y, item.radius * 1.8, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            });
+        };
+
         // 파티클 그리기
         const drawParticles = () => {
             game.particles.forEach((particle, index) => {
@@ -447,6 +607,29 @@ export default function RunnerGame() {
             ctx.font = 'bold 20px Arial';
             ctx.strokeText(`난이도: ${difficulty}`, 20, 85);
             ctx.fillText(`난이도: ${difficulty}`, 20, 85);
+
+            // 더블 점프 표시
+            ctx.font = 'bold 16px Arial';
+            const jumpsRemaining = game.player.maxJumps - game.player.jumpCount;
+            ctx.fillStyle = jumpsRemaining > 0 ? '#fff' : '#ff6666';
+            ctx.strokeText(`점프: ${jumpsRemaining}/${game.player.maxJumps}`, 20, 115);
+            ctx.fillText(`점프: ${jumpsRemaining}/${game.player.maxJumps}`, 20, 115);
+
+            // 아이템 상태 표시
+            let statusY = 145;
+            if (game.player.speedBoost > 0) {
+                ctx.fillStyle = '#00ff00';
+                const timeLeft = Math.ceil(game.player.speedBoost / 60);
+                ctx.strokeText(`⚡ 속도 부스트: ${timeLeft}초`, 20, statusY);
+                ctx.fillText(`⚡ 속도 부스트: ${timeLeft}초`, 20, statusY);
+                statusY += 25;
+            }
+            if (game.player.hasShield) {
+                ctx.fillStyle = '#00aaff';
+                const timeLeft = Math.ceil(game.player.shieldTimer / 60);
+                ctx.strokeText(`🛡️ 쉴드: ${timeLeft}초`, 20, statusY);
+                ctx.fillText(`🛡️ 쉴드: ${timeLeft}초`, 20, statusY);
+            }
             
             ctx.restore();
         };
@@ -474,11 +657,27 @@ export default function RunnerGame() {
                 game.player.y = 350;
                 game.player.velocityY = 0;
                 game.player.isJumping = false;
+                game.player.jumpCount = 0; // 점프 횟수 리셋
             }
 
             // 점수 증가
             game.score += 0.1 * game.difficulty;
             game.difficulty = 1 + game.score / 500;
+
+            // 아이템 타이머 업데이트
+            if (game.player.speedBoost > 0) {
+                game.player.speedBoost--;
+            }
+            if (game.player.shieldTimer > 0) {
+                game.player.shieldTimer--;
+                if (game.player.shieldTimer === 0) {
+                    game.player.hasShield = false;
+                }
+            }
+
+            // 속도 설정
+            const baseSpeed = 5;
+            const speedMultiplier = game.player.speedBoost > 0 ? 0.7 : 1; // 부스터 활성화 시 느려짐
 
             // 장애물 생성
             game.obstacleTimer++;
@@ -494,29 +693,67 @@ export default function RunnerGame() {
                 game.coinTimer = 0;
             }
 
-            // 장애물 업데이트
-            game.obstacles.forEach((obstacle, index) => {
-                obstacle.x -= 5 * game.difficulty;
+            // 아이템 생성
+            game.itemTimer++;
+            if (game.itemTimer > 300) {
+                createItem();
+                game.itemTimer = 0;
+            }
+
+            // 장애물 업데이트 (역순으로 순회하여 splice 안전하게 사용)
+            for (let i = game.obstacles.length - 1; i >= 0; i--) {
+                const obstacle = game.obstacles[i];
+                obstacle.x -= baseSpeed * game.difficulty * speedMultiplier;
+
+                // 화면 밖으로 나간 장애물 제거 (충돌 체크 전에 먼저 처리)
+                if (obstacle.x + obstacle.width < 0) {
+                    game.obstacles.splice(i, 1);
+                    game.score += 10;
+                    continue;
+                }
 
                 // 충돌 체크
                 if (checkCollision(game.player, obstacle)) {
-                    game.isRunning = false;
-                    if (soundManager.current) {
-                        soundManager.current.playHit();
+                    if (game.player.hasShield) {
+                        // 쉴드가 있으면 한 번 무시하고 장애물 제거
+                        game.player.hasShield = false;
+                        game.player.shieldTimer = 0;
+                        
+                        // 쉴드 파괴 파티클
+                        createItemParticles(
+                            game.player.x + game.player.width / 2,
+                            game.player.y + game.player.height / 2,
+                            '#00aaff'
+                        );
+                        
+                        // 해당 장애물 제거 (같은 프레임에서 다시 충돌 방지)
+                        game.obstacles.splice(i, 1);
+                        
+                        // 사운드 효과
+                        if (soundManager.current) {
+                            soundManager.current.playItem(); // 쉴드 사용 사운드
+                        }
+                        
+                        // 점수 보너스 (장애물 파괴 보너스)
+                        game.score += 20;
+                        
+                        // 쉴드 사용 후 다음 프레임으로
+                        continue;
+                    } else {
+                        // 쉴드가 없으면 게임 종료
+                        game.isRunning = false;
+                        if (soundManager.current) {
+                            soundManager.current.playHit();
+                        }
+                        endGame();
+                        break; // 게임 종료 시 루프 중단
                     }
-                    endGame();
                 }
-
-                // 화면 밖으로 나간 장애물 제거
-                if (obstacle.x + obstacle.width < 0) {
-                    game.obstacles.splice(index, 1);
-                    game.score += 10;
-                }
-            });
+            }
 
             // 코인 업데이트
             game.coins.forEach((coin, index) => {
-                coin.x -= 5 * game.difficulty;
+                coin.x -= baseSpeed * game.difficulty * speedMultiplier;
 
                 // 코인 수집
                 const dist = Math.hypot(
@@ -538,6 +775,39 @@ export default function RunnerGame() {
                     game.coins.splice(index, 1);
                 }
             });
+
+            // 아이템 업데이트
+            game.items.forEach((item, index) => {
+                item.x -= baseSpeed * game.difficulty * speedMultiplier;
+
+                // 아이템 수집
+                const dist = Math.hypot(
+                    game.player.x + game.player.width / 2 - item.x,
+                    game.player.y + game.player.height / 2 - item.y
+                );
+                
+                if (dist < game.player.width / 2 + item.radius && !item.collected) {
+                    item.collected = true;
+                    createItemParticles(item.x, item.y, item.color);
+                    if (soundManager.current) {
+                        soundManager.current.playItem();
+                    }
+                    
+                    if (item.type === 'boost') {
+                        // 속도 부스트 (장애물이 느려짐)
+                        game.player.speedBoost = 300; // 5초 (60fps 기준)
+                    } else if (item.type === 'shield') {
+                        // 쉴드 (1회 충돌 방지)
+                        game.player.hasShield = true;
+                        game.player.shieldTimer = 600; // 10초
+                    }
+                }
+
+                // 화면 밖으로 나간 아이템 제거
+                if (item.x + item.radius < 0) {
+                    game.items.splice(index, 1);
+                }
+            });
         };
 
         // 게임 루프
@@ -551,6 +821,7 @@ export default function RunnerGame() {
             drawPlayer();
             drawObstacles();
             drawCoins();
+            drawItems();
             drawUI();
             
             update();
@@ -691,7 +962,8 @@ export default function RunnerGame() {
 
                             <div className={styles.instructions}>
                                 <h3>🎮 조작법</h3>
-                                <p>스페이스바 / ↑ / 클릭으로 점프</p>
+                                <p>스페이스바 / ↑ / 클릭: 점프 (더블 점프 가능!)</p>
+                                <p>↓: 공중에서 빠르게 낙하</p>
                                 <div className={styles.scoreInfo}>
                                     <div className={styles.scoreItem}>
                                         <span className={styles.emoji}>⭐</span>
@@ -700,6 +972,14 @@ export default function RunnerGame() {
                                     <div className={styles.scoreItem}>
                                         <span className={styles.emoji}>🚧</span>
                                         <span>장애물 통과: +10점</span>
+                                    </div>
+                                    <div className={styles.scoreItem}>
+                                        <span className={styles.emoji}>⚡</span>
+                                        <span>속도 부스트: 장애물 속도 감소</span>
+                                    </div>
+                                    <div className={styles.scoreItem}>
+                                        <span className={styles.emoji}>🛡️</span>
+                                        <span>실드: 1회 충돌 방지</span>
                                     </div>
                                 </div>
                             </div>
@@ -740,7 +1020,7 @@ export default function RunnerGame() {
                         </div>
                         <canvas ref={canvasRef} className={styles.canvas}></canvas>
                         <div className={styles.gameHint}>
-                            💡 스페이스바 또는 화면을 클릭하여 점프하세요!
+                            💡 스페이스바/클릭: 점프 (2번 가능) | ↓: 빠르게 낙하
                         </div>
                     </div>
                 )}

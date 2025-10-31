@@ -149,6 +149,67 @@ class SoundManager {
         });
     }
 
+    // 더블 점프 사운드 (더 높은 주파수)
+    playDoubleJump() {
+        if (!this.enabled || !this.audioContext) return;
+
+        const oscillator = this.audioContext.createOscillator();
+        const gainNode = this.audioContext.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(this.audioContext.destination);
+
+        // 주파수: 600Hz -> 800Hz로 빠르게 상승
+        oscillator.frequency.setValueAtTime(600, this.audioContext.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(
+            800,
+            this.audioContext.currentTime + 0.1
+        );
+
+        gainNode.gain.setValueAtTime(this.masterVolume * 0.4, this.audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(
+            0.01,
+            this.audioContext.currentTime + 0.1
+        );
+
+        oscillator.type = 'sine';
+        oscillator.start(this.audioContext.currentTime);
+        oscillator.stop(this.audioContext.currentTime + 0.1);
+    }
+
+    // 아이템 획득 사운드
+    playItem() {
+        if (!this.enabled || !this.audioContext) return;
+
+        const oscillator = this.audioContext.createOscillator();
+        const gainNode = this.audioContext.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(this.audioContext.destination);
+
+        // 상승하는 멜로디: 600Hz -> 800Hz -> 1000Hz
+        oscillator.frequency.setValueAtTime(600, this.audioContext.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(
+            800,
+            this.audioContext.currentTime + 0.05
+        );
+        oscillator.frequency.setValueAtTime(800, this.audioContext.currentTime + 0.05);
+        oscillator.frequency.exponentialRampToValueAtTime(
+            1000,
+            this.audioContext.currentTime + 0.1
+        );
+
+        gainNode.gain.setValueAtTime(this.masterVolume * 0.4, this.audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(
+            0.01,
+            this.audioContext.currentTime + 0.15
+        );
+
+        oscillator.type = 'sine';
+        oscillator.start(this.audioContext.currentTime);
+        oscillator.stop(this.audioContext.currentTime + 0.15);
+    }
+
     // 충돌 사운드 (짧고 낮은 충격음)
     playHit() {
         if (!this.enabled || !this.audioContext) return;
