@@ -82,15 +82,19 @@ export default function RunnerGame() {
 
     // 현재 사용자 로드
     const loadCurrentUser = () => {
-        const savedUser = localStorage.getItem('currentUser');
-        if (savedUser) {
-            try {
-                const user = JSON.parse(savedUser);
-                setCurrentUser(user);
-                setNickname(user.name || '');
-            } catch (error) {
-                console.error('사용자 정보 로드 실패:', error);
-            }
+        // sessionStorage 우선 확인 (다른 페이지와 동일한 방식)
+        const savedUserId = sessionStorage.getItem('currentUserId') || localStorage.getItem('currentUserId');
+        const savedUserName = sessionStorage.getItem('currentUserName') || localStorage.getItem('currentUserName');
+        
+        if (savedUserId && savedUserName) {
+            setCurrentUser({
+                _id: savedUserId,
+                name: savedUserName
+            });
+            setNickname(savedUserName);
+            console.log('사용자 로드 성공:', { _id: savedUserId, name: savedUserName });
+        } else {
+            console.log('사용자 정보 없음 - 점수 저장 불가');
         }
     };
 
@@ -113,8 +117,11 @@ export default function RunnerGame() {
     const saveScore = async (finalScore, userNickname) => {
         if (!currentUser) {
             console.error('사용자 정보가 없습니다');
+            alert('로그인이 필요합니다. 메인 페이지에서 로그인해주세요.');
             return false;
         }
+
+        console.log('점수 저장 시도:', { userId: currentUser._id, nickname: userNickname, score: finalScore });
 
         try {
             const response = await fetch('/api/game-scores', {
@@ -129,17 +136,21 @@ export default function RunnerGame() {
                 })
             });
 
-            if (response.ok) {
-                const data = await response.json();
-                if (data.success) {
-                    // 상위 점수 새로고침
-                    await fetchTopScores();
-                    return true;
-                }
+            const data = await response.json();
+            console.log('API 응답:', data);
+
+            if (response.ok && data.success) {
+                // 상위 점수 새로고침
+                await fetchTopScores();
+                return true;
+            } else {
+                console.error('점수 저장 실패:', data.error);
+                alert(`점수 저장 실패: ${data.error || '알 수 없는 오류'}`);
+                return false;
             }
-            return false;
         } catch (error) {
-            console.error('점수 저장 실패:', error);
+            console.error('점수 저장 오류:', error);
+            alert('점수 저장 중 오류가 발생했습니다.');
             return false;
         }
     };
@@ -1084,12 +1095,6 @@ export default function RunnerGame() {
                                 </div>
                             </div>
 
-                            {highScore > 0 && (
-                                <div className={styles.highScore}>
-                                    최고 기록: {highScore}점
-                                </div>
-                            )}
-
                             <button 
                                 className={styles.startButton}
                                 onClick={startGame}
@@ -1117,6 +1122,13 @@ export default function RunnerGame() {
                                                 </div>
                                                 <div className={styles.miniNicknameCol}>
                                                     {scoreData.nickname}
+                                                </div>
+                                                <div className={styles.miniTimeCol}>
+                                                    {new Date(scoreData.createdAt).toLocaleTimeString('ko-KR', {
+                                                        hour: '2-digit',
+                                                        minute: '2-digit',
+                                                        second: '2-digit'
+                                                    })}
                                                 </div>
                                                 <div className={styles.miniScoreCol}>
                                                     {scoreData.score.toLocaleString()}
@@ -1399,8 +1411,8 @@ export default function RunnerGame() {
                                 <div className={styles.tableHeader}>
                                     <div className={styles.rankCol}>순위</div>
                                     <div className={styles.nicknameCol}>닉네임</div>
+                                    <div className={styles.timeCol}>시간</div>
                                     <div className={styles.scoreCol}>점수</div>
-                                    <div className={styles.dateCol}>날짜</div>
                                 </div>
                                 
                                 {topScores.length > 0 ? (
@@ -1419,16 +1431,21 @@ export default function RunnerGame() {
                                                 <div className={styles.nicknameCol}>
                                                     {scoreData.nickname}
                                                 </div>
+                                                <div className={styles.timeCol}>
+                                                    {new Date(scoreData.createdAt).toLocaleDateString('ko-KR', {
+                                                        year: 'numeric',
+                                                        month: '2-digit',
+                                                        day: '2-digit'
+                                                    })}
+                                                    <br />
+                                                    {new Date(scoreData.createdAt).toLocaleTimeString('ko-KR', {
+                                                        hour: '2-digit',
+                                                        minute: '2-digit',
+                                                        second: '2-digit'
+                                                    })}
+                                                </div>
                                                 <div className={styles.scoreCol}>
                                                     {scoreData.score.toLocaleString()}
-                                                </div>
-                                                <div className={styles.dateCol}>
-                                                    {new Date(scoreData.createdAt).toLocaleDateString('ko-KR', {
-                                                        month: 'short',
-                                                        day: 'numeric',
-                                                        hour: '2-digit',
-                                                        minute: '2-digit'
-                                                    })}
                                                 </div>
                                             </div>
                                         ))}
