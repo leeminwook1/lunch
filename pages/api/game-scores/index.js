@@ -32,7 +32,7 @@ export default async function handler(req, res) {
 
             case 'POST':
                 try {
-                    const { userId, nickname, score } = req.body;
+                    const { userId, nickname, score, gameType = 'runner', metadata } = req.body;
 
                     // 유효성 검사
                     if (!userId || !nickname || score === undefined) {
@@ -63,7 +63,8 @@ export default async function handler(req, res) {
                         user: userId,
                         nickname,
                         score,
-                        gameType: 'runner'
+                        gameType,
+                        metadata
                     });
 
                     // populate하여 반환

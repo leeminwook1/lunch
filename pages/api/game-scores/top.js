@@ -12,10 +12,16 @@ export default async function handler(req, res) {
     await dbConnect();
 
     try {
-        const { limit = 10 } = req.query;
+        const { limit = 10, gameType } = req.query;
+
+        // 쿼리 필터 생성
+        const filter = {};
+        if (gameType) {
+            filter.gameType = gameType;
+        }
 
         // 상위 점수 가져오기
-        const topScores = await GameScore.find()
+        const topScores = await GameScore.find(filter)
             .populate('user', 'name')
             .sort({ score: -1, createdAt: -1 })
             .limit(parseInt(limit))

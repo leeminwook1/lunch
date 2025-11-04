@@ -420,6 +420,21 @@ body {
     color: white;
 }
 
+.dart-btn {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+}
+
+.runner-btn {
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    color: white;
+}
+
+.avoid-btn {
+    background: linear-gradient(135deg, #ec4899, #db2777);
+    color: white;
+}
+
 .action-icon {
     font-size: 2rem;
 }

@@ -558,7 +558,13 @@ export default function Home() {
                                         <span className="action-text">러너 게임</span>
                                     </button>
 
-
+                                    <button
+                                        onClick={() => router.push('/avoid')}
+                                        className="action-btn avoid-btn"
+                                    >
+                                        <span className="action-icon">💩</span>
+                                        <span className="action-text">똥피하기</span>
+                                    </button>
 
                                 </div>
                             </section>

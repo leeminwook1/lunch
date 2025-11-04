@@ -19,8 +19,12 @@ const GameScoreSchema = new mongoose.Schema({
     },
     gameType: {
         type: String,
-        enum: ['runner'],
+        enum: ['runner', 'avoid'],
         default: 'runner'
+    },
+    metadata: {
+        type: mongoose.Schema.Types.Mixed,
+        default: {}
     },
     createdAt: {
         type: Date,
