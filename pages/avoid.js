@@ -149,14 +149,17 @@ export default function AvoidGame() {
             if (!canvas) return;
 
             const ctx = canvas.getContext('2d');
-            canvas.width = 800;
-            canvas.height = 600;
+            
+            // 모바일 대응 캔버스 크기
+            const isMobile = window.innerWidth <= 768;
+            canvas.width = isMobile ? Math.min(window.innerWidth - 40, 500) : 800;
+            canvas.height = isMobile ? Math.min(window.innerHeight - 300, 500) : 600;
 
             // 게임 객체
             const game = {
                 player: {
-                    x: 400,
-                    y: 540,
+                    x: canvas.width / 2,
+                    y: canvas.height - 60,
                     width: 40,
                     height: 40,
                     speed: 8,
@@ -966,6 +969,60 @@ export default function AvoidGame() {
                         <canvas ref={canvasRef} className={styles.canvas}></canvas>
                         <div className={styles.gameHint}>
                             💡 ←→ 키로 이동 | 시간 무제한! 난이도가 계속 올라갑니다! 💩 원하는 식당 똥을 마지막에 맞추세요!
+                        </div>
+                        
+                        {/* 모바일 컨트롤 버튼 */}
+                        <div className={styles.mobileControls}>
+                            <button 
+                                className={styles.mobileBtn}
+                                onTouchStart={() => {
+                                    if (gameRef.current) {
+                                        gameRef.current.player.moveLeft = true;
+                                    }
+                                }}
+                                onTouchEnd={() => {
+                                    if (gameRef.current) {
+                                        gameRef.current.player.moveLeft = false;
+                                    }
+                                }}
+                                onMouseDown={() => {
+                                    if (gameRef.current) {
+                                        gameRef.current.player.moveLeft = true;
+                                    }
+                                }}
+                                onMouseUp={() => {
+                                    if (gameRef.current) {
+                                        gameRef.current.player.moveLeft = false;
+                                    }
+                                }}
+                            >
+                                ⬅️
+                            </button>
+                            <button 
+                                className={styles.mobileBtn}
+                                onTouchStart={() => {
+                                    if (gameRef.current) {
+                                        gameRef.current.player.moveRight = true;
+                                    }
+                                }}
+                                onTouchEnd={() => {
+                                    if (gameRef.current) {
+                                        gameRef.current.player.moveRight = false;
+                                    }
+                                }}
+                                onMouseDown={() => {
+                                    if (gameRef.current) {
+                                        gameRef.current.player.moveRight = true;
+                                    }
+                                }}
+                                onMouseUp={() => {
+                                    if (gameRef.current) {
+                                        gameRef.current.player.moveRight = false;
+                                    }
+                                }}
+                            >
+                                ➡️
+                            </button>
                         </div>
                     </div>
                 )}
