@@ -22,7 +22,6 @@ export default function AvoidGame() {
     });
     const [topScores, setTopScores] = useState([]);
     const [showNicknameInput, setShowNicknameInput] = useState(false);
-    const [nickname, setNickname] = useState('');
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const gameRef = useRef(null);
     const soundManager = useRef(null);
@@ -55,23 +54,17 @@ export default function AvoidGame() {
                 _id: savedUserId,
                 name: savedUserName
             });
-            setNickname(savedUserName);
         }
     };
 
     const fetchTopScores = async () => {
         try {
-            console.log('똥피하기 TOP 점수 로딩 중...');
             const response = await fetch('/api/game-scores/top?gameType=avoid&limit=10');
-            console.log('API 응답 상태:', response.status);
             
             if (response.ok) {
                 const data = await response.json();
-                console.log('똥피하기 TOP 점수 데이터:', data);
-                
                 if (data.success) {
                     setTopScores(data.data);
-                    console.log('TOP 점수 설정 완료:', data.data.length, '개');
                 }
             }
         } catch (error) {
@@ -81,21 +74,10 @@ export default function AvoidGame() {
 
     const saveScore = async (finalScore, survivalTime, userNickname) => {
         if (!currentUser) {
-            console.error('사용자 정보가 없습니다');
             return false;
         }
 
         try {
-            console.log('점수 저장 시도:', {
-                userId: currentUser._id,
-                nickname: userNickname,
-                score: finalScore,
-                gameType: 'avoid',
-                metadata: {
-                    survivalTime: survivalTime
-                }
-            });
-
             const response = await fetch('/api/game-scores', {
                 method: 'POST',
                 headers: {
@@ -112,9 +94,7 @@ export default function AvoidGame() {
                 })
             });
 
-            console.log('API 응답 상태:', response.status);
             const data = await response.json();
-            console.log('API 응답 데이터:', data);
 
             if (response.ok && data.success) {
                 await fetchTopScores();
@@ -535,19 +515,6 @@ export default function AvoidGame() {
                 const itemRadius = (item.width || 30) / 2 * 0.85; // 아이템 85%
                 
                 const isColliding = distance < (playerRadius + itemRadius);
-                
-                // 디버깅용 로그 (충돌 시에만)
-                if (isColliding && item.type !== 'restaurant') {
-                    console.log('충돌 감지!', {
-                        type: item.type,
-                        emoji: item.emoji,
-                        distance: distance.toFixed(2),
-                        threshold: (playerRadius + itemRadius).toFixed(2),
-                        playerPos: {x: playerCenterX.toFixed(0), y: playerCenterY.toFixed(0)},
-                        itemPos: {x: itemCenterX.toFixed(0), y: itemCenterY.toFixed(0)}
-                    });
-                }
-                
                 return isColliding;
             };
 
@@ -611,7 +578,6 @@ export default function AvoidGame() {
 
                     // 충돌 체크
                     if (checkCollision(game.player, item)) {
-                        console.log('아이템 충돌! 타입:', item.type, '이모지:', item.emoji, '전체 아이템:', item);
                         let shouldRemove = true;
                         
                         if (item.type === 'restaurant') {
@@ -698,11 +664,8 @@ export default function AvoidGame() {
                             }
                         } else if (item.type === 'bad') {
                             // 나쁜 아이템
-                            console.log('나쁜 아이템 충돌:', item.emoji, 'damage:', item.damage, 'effect:', item.effect, 'scoreDeduct:', item.scoreDeduct);
-                            
                             if (game.effects.shield > 0) {
                                 // 쉴드 상태면 데미지 무시
-                                console.log('쉴드로 막음!');
                                 game.effects.shield = 0;
                                 createParticles(item.x, item.y, '#00aaff', '🛡️');
                                 if (soundManager.current) {
@@ -710,18 +673,15 @@ export default function AvoidGame() {
                                 }
                             } else if (game.effects.invincible > 0) {
                                 // 무적 상태면 데미지 무시
-                                console.log('무적 상태로 데미지 무시');
                                 createParticles(item.x, item.y, '#fbbf24', '✨');
                             } else {
                                 // 데미지 처리
                                 if (item.damage) {
-                                    console.log('데미지 받음! HP 변화:', game.hp, '→', game.hp - item.damage);
                                     game.hp -= item.damage;
                                     setHp(game.hp);
                                     game.effects.invincible = 60; // 1초 무적
                                     
                                     if (game.hp <= 0) {
-                                        console.log('HP 0! 게임 오버');
                                         game.isRunning = false;
                                         if (timerRef.current) {
                                             clearInterval(timerRef.current);
