@@ -32,6 +32,7 @@ const GameScoreSchema = new mongoose.Schema({
     }
 });
 
+
 // 점수 순으로 인덱스 생성
 GameScoreSchema.index({ score: -1, createdAt: -1 });
 GameScoreSchema.index({ user: 1, score: -1 });
