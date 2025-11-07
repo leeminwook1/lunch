@@ -176,6 +176,7 @@ export default function AvoidGame() {
                 frame: 0,
                 spawnTimer: 0,
                 difficulty: 1,
+                timeElapsed: 0,
                 effects: {
                     shield: 0,
                     slow: 0,
@@ -188,10 +189,9 @@ export default function AvoidGame() {
             gameRef.current = game;
 
             // 타이머 시작 (경과 시간 카운트)
-            let timeElapsed = 0;
             timerRef.current = setInterval(() => {
-                timeElapsed++;
-                setTimeLeft(timeElapsed);
+                game.timeElapsed++;
+                setTimeLeft(game.timeElapsed);
             }, 1000);
 
             // 키보드 이벤트
@@ -556,7 +556,7 @@ export default function AvoidGame() {
                 });
 
                 // 난이도 증가 (시간에 따라) - 무제한 증가
-                game.difficulty = 1 + (timeLeft / 20); // 20초마다 난이도 +1
+                game.difficulty = 1 + Math.floor(game.timeElapsed / 5); // 5초마다 난이도 +1
 
                 // 생존 점수 증가 (매 프레임마다, 난이도에 따라 증가)
                 // 60프레임 = 1초, 기본적으로 초당 1점, 난이도에 따라 증가
