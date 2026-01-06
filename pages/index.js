@@ -574,6 +574,14 @@ export default function Home() {
                                         <span className="action-text">리듬 게임</span>
                                     </button>
 
+                                    <button
+                                        onClick={() => router.push('/stats')}
+                                        className="action-btn stats-btn"
+                                    >
+                                        <span className="action-icon">📊</span>
+                                        <span className="action-text">통계 대시보드</span>
+                                    </button>
+
                                 </div>
                             </section>
 

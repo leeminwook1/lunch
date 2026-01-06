@@ -17,77 +17,8 @@ export default function RunnerGame() {
     const [currentUser, setCurrentUser] = useState(null);
     const [showNicknameInput, setShowNicknameInput] = useState(false);
     const [nickname, setNickname] = useState('');
-    const [selectedCharacter, setSelectedCharacter] = useState('burger'); // 기본 캐릭터
-    const [showCharacterSelect, setShowCharacterSelect] = useState(false);
     const gameRef = useRef(null);
     const soundManager = useRef(null);
-
-    // 캐릭터 정의
-    const characters = {
-        burger: {
-            name: '🍔 버거맨',
-            emoji: '🍔',
-            color: '#fbbf24',
-            ability: '더블 점프 3회',
-            description: '점프를 3번까지 할 수 있어요!',
-            maxJumps: 3,
-            speedMultiplier: 1,
-            coinBonus: 1
-        },
-        pizza: {
-            name: '🍕 피자보이',
-            emoji: '🍕',
-            color: '#ef4444',
-            ability: '코인 2배',
-            description: '코인 점수가 2배로 증가해요!',
-            maxJumps: 2,
-            speedMultiplier: 1,
-            coinBonus: 2
-        },
-        sushi: {
-            name: '🍣 스시걸',
-            emoji: '🍣',
-            color: '#ec4899',
-            ability: '빠른 속도',
-            description: '장애물이 20% 느리게 움직여요!',
-            maxJumps: 2,
-            speedMultiplier: 0.8,
-            coinBonus: 1
-        },
-        ramen: {
-            name: '🍜 라면맨',
-            emoji: '🍜',
-            color: '#f59e0b',
-            ability: '높은 점프',
-            description: '점프력이 20% 증가해요!',
-            maxJumps: 2,
-            speedMultiplier: 1,
-            coinBonus: 1,
-            jumpBonus: 1.2
-        },
-        taco: {
-            name: '🌮 타코킹',
-            emoji: '🌮',
-            color: '#10b981',
-            ability: '작은 몸집',
-            description: '충돌 판정이 20% 작아요!',
-            maxJumps: 2,
-            speedMultiplier: 1,
-            coinBonus: 1,
-            sizeMultiplier: 0.8
-        },
-        donut: {
-            name: '🍩 도넛퀸',
-            emoji: '🍩',
-            color: '#a855f7',
-            ability: '실드 시간 증가',
-            description: '실드 지속시간이 50% 증가해요!',
-            maxJumps: 2,
-            speedMultiplier: 1,
-            coinBonus: 1,
-            shieldBonus: 1.5
-        }
-    };
 
     // 최다 방문 식당 가져오기
     const fetchTopRestaurant = async () => {
@@ -139,21 +70,14 @@ export default function RunnerGame() {
             }
         }
 
-        // 엔드리스 모드에서는 최다 방문 식당 로드 생략 가능
-        // fetchTopRestaurant();
-        setIsLoading(false);
+        // 최다 방문 식당 가져오기
+        fetchTopRestaurant();
         
         // 현재 사용자 정보 로드
         loadCurrentUser();
         
         // 상위 점수 로드
         fetchTopScores();
-
-        // 저장된 캐릭터 로드
-        const savedCharacter = localStorage.getItem('selectedCharacter');
-        if (savedCharacter && characters[savedCharacter]) {
-            setSelectedCharacter(savedCharacter);
-        }
     }, []);
 
     // 현재 사용자 로드
@@ -250,9 +174,6 @@ export default function RunnerGame() {
         setGameState('playing');
         setScore(0);
         
-        // 선택된 캐릭터 정보
-        const character = characters[selectedCharacter];
-        
         // 다음 렌더링 후 캔버스 초기화
         setTimeout(() => {
             const canvas = canvasRef.current;
@@ -275,28 +196,27 @@ export default function RunnerGame() {
             player: {
                 x: 100,
                 y: 350,
-                width: 50 * (character.sizeMultiplier || 1),
-                height: 50 * (character.sizeMultiplier || 1),
+                width: 50,
+                height: 50,
                 velocityY: 0,
                 gravity: 0.8,
-                jumpPower: -15 * (character.jumpBonus || 1),
-                doubleJumpPower: -12 * (character.jumpBonus || 1),
+                jumpPower: -15,
+                doubleJumpPower: -12, // 더블 점프는 약간 낮게
                 isJumping: false,
-                jumpCount: 0,
-                maxJumps: character.maxJumps,
+                jumpCount: 0, // 점프 횟수 (최대 2)
+                maxJumps: 2, // 최대 점프 횟수
                 isSliding: false,
                 slideTimer: 0,
-                slideHeight: 30 * (character.sizeMultiplier || 1),
-                normalHeight: 50 * (character.sizeMultiplier || 1),
+                slideHeight: 30, // 슬라이드 시 높이
+                normalHeight: 50,
                 hasShield: false,
                 shieldTimer: 0,
-                speedBoost: 0,
-                rotation: 0,
-                character: character // 캐릭터 정보 저장
+                speedBoost: 0, // 속도 부스트 타이머
+                rotation: 0
             },
             obstacles: [],
             coins: [],
-            items: [],
+            items: [], // 새로운 아이템 배열
             particles: [],
             background: {
                 x1: 0,
@@ -535,19 +455,37 @@ export default function RunnerGame() {
                 ctx.shadowBlur = 0;
             }
 
-            // 캐릭터 이모지 그리기
-            const char = game.player.character;
-            ctx.font = `${game.player.width * 1.2}px Arial`;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(char.emoji, 0, 0);
+            // 캐릭터 몸체 (음식 아이콘처럼)
+            const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, game.player.width / 2);
+            gradient.addColorStop(0, '#fbbf24');
+            gradient.addColorStop(1, '#f59e0b');
+            
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(0, 0, game.player.width / 2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 눈
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(-10, -8, 4, 0, Math.PI * 2);
+            ctx.arc(10, -8, 4, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 입
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 3;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            ctx.arc(0, 5, 15, 0.2, Math.PI - 0.2);
+            ctx.stroke();
 
             ctx.restore();
 
             // 그림자
             ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
             ctx.beginPath();
-            ctx.ellipse(game.player.x + game.player.width / 2, 395, 25 * (char.sizeMultiplier || 1), 5, 0, 0, Math.PI * 2);
+            ctx.ellipse(game.player.x + game.player.width / 2, 395, 25, 5, 0, 0, Math.PI * 2);
             ctx.fill();
         };
 
@@ -824,8 +762,7 @@ export default function RunnerGame() {
 
             // 속도 설정
             const baseSpeed = 5;
-            const characterSpeedMult = game.player.character.speedMultiplier || 1;
-            const speedMultiplier = (game.player.speedBoost > 0 ? 0.7 : 1) * characterSpeedMult; // 부스터 + 캐릭터 능력
+            const speedMultiplier = game.player.speedBoost > 0 ? 0.7 : 1; // 부스터 활성화 시 느려짐
 
             // 장애물 생성
             game.obstacleTimer++;
@@ -911,7 +848,7 @@ export default function RunnerGame() {
                 
                 if (dist < game.player.width / 2 + coin.radius && !coin.collected) {
                     coin.collected = true;
-                    game.score += 50 * game.player.character.coinBonus; // 캐릭터 코인 보너스 적용
+                    game.score += 50;
                     createCollectParticles(coin.x, coin.y);
                     if (soundManager.current) {
                         soundManager.current.playCoin();
@@ -945,9 +882,9 @@ export default function RunnerGame() {
                         // 속도 부스트 (장애물이 느려짐)
                         game.player.speedBoost = 300; // 5초 (60fps 기준)
                     } else if (item.type === 'shield') {
-                        // 쉴드 (1회 충돌 방지) - 캐릭터 보너스 적용
+                        // 쉴드 (1회 충돌 방지)
                         game.player.hasShield = true;
-                        game.player.shieldTimer = 600 * (game.player.character.shieldBonus || 1); // 기본 10초
+                        game.player.shieldTimer = 600; // 10초
                     }
                 }
 
@@ -992,10 +929,18 @@ export default function RunnerGame() {
                 setShowNicknameInput(true);
             }
 
-            // 엔드리스 모드 - 게임 오버만 있음
-            setGameState('gameover');
-            if (soundManager.current) {
-                setTimeout(() => soundManager.current.playGameOver(), 300);
+            // 목표 점수 달성 체크 (예: 1000점 이상)
+            // topRestaurant가 없어도 1000점 이상이면 승리로 처리
+            if (finalScore >= 1000) {
+                setGameState('winner');
+                if (soundManager.current) {
+                    setTimeout(() => soundManager.current.playWin(), 500);
+                }
+            } else {
+                setGameState('gameover');
+                if (soundManager.current) {
+                    setTimeout(() => soundManager.current.playGameOver(), 300);
+                }
             }
 
             // 이벤트 리스너 제거
@@ -1086,55 +1031,49 @@ export default function RunnerGame() {
                         <div className={styles.menuContent}>
                             <h1 className={styles.title}>
                                 <span className={styles.emoji}>🍜</span>
-                                엔드리스 러너
+                                점심 러너
                                 <span className={styles.emoji}>🏃‍♂️</span>
                             </h1>
                             <p className={styles.subtitle}>
-                                끝없이 달리며 최고 기록에 도전하세요!
+                                장애물을 피하고 코인을 모으세요!
                             </p>
-
-                            {/* 캐릭터 선택 */}
-                            <div className={styles.characterSection}>
-                                <h3 className={styles.characterTitle}>캐릭터 선택</h3>
-                                <div className={styles.characterGrid}>
-                                    {Object.keys(characters).map((key) => {
-                                        const char = characters[key];
-                                        return (
-                                            <div
-                                                key={key}
-                                                className={`${styles.characterCard} ${selectedCharacter === key ? styles.selected : ''}`}
-                                                onClick={() => {
-                                                    setSelectedCharacter(key);
-                                                    localStorage.setItem('selectedCharacter', key);
-                                                }}
-                                            >
-                                                <div className={styles.characterEmoji}>{char.emoji}</div>
-                                                <div className={styles.characterName}>{char.name}</div>
-                                                <div className={styles.characterAbility}>{char.ability}</div>
-                                                <div className={styles.characterDesc}>{char.description}</div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
                             
-                            <div className={styles.prizeInfo} style={{background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'}}>
-                                <div className={styles.prizeLabel} style={{color: 'white'}}>
-                                    🏆 엔드리스 모드
-                                </div>
-                                <div className={styles.prizeRestaurant} style={{background: 'rgba(255, 255, 255, 0.95)'}}>
-                                    <div className={styles.prizeDetails}>
-                                        <h3>최고 기록: {highScore}점</h3>
-                                        <p className={styles.visitCount}>
-                                            끝없이 달리며 최고 점수를 갱신하세요! 🚀
-                                        </p>
+                            {topRestaurant ? (
+                                <div className={styles.prizeInfo}>
+                                    <div className={styles.prizeLabel}>🎁 1000점 달성 시 당첨!</div>
+                                    <div className={styles.prizeRestaurant}>
+                                        <img 
+                                            src={topRestaurant.restaurant?.image || '/images/default-restaurant.jpg'} 
+                                            alt={topRestaurant.restaurant?.name}
+                                            className={styles.prizeImage}
+                                        />
+                                        <div className={styles.prizeDetails}>
+                                            <h3>{topRestaurant.restaurant?.name}</h3>
+                                            <p className={styles.visitCount}>
+                                                방문 횟수: {topRestaurant.visitCount}회
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            ) : (
+                                <div className={styles.prizeInfo} style={{background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'}}>
+                                    <div className={styles.prizeLabel} style={{color: 'white'}}>
+                                        🎮 목표: 1000점 달성!
+                                    </div>
+                                    <div className={styles.prizeRestaurant} style={{background: 'rgba(255, 255, 255, 0.95)'}}>
+                                        <div className={styles.prizeDetails}>
+                                            <h3>최고 점수에 도전하세요!</h3>
+                                            <p className={styles.visitCount}>
+                                                1000점을 달성하면 승리합니다! 🏆
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
 
                             <div className={styles.instructions}>
                                 <h3>🎮 조작법</h3>
-                                <p>스페이스바 / ↑ / 클릭: 점프</p>
+                                <p>스페이스바 / ↑ / 클릭: 점프 (더블 점프 가능!)</p>
                                 <p>↓: 공중에서 빠르게 낙하</p>
                                 <div className={styles.scoreInfo}>
                                     <div className={styles.scoreItem}>
@@ -1154,17 +1093,13 @@ export default function RunnerGame() {
                                         <span>실드: 1회 충돌 방지</span>
                                     </div>
                                 </div>
-                                <div className={styles.difficultyInfo}>
-                                    <p>💡 점수가 높아질수록 난이도가 증가합니다!</p>
-                                    <p>🎯 500점마다 난이도 +1</p>
-                                </div>
                             </div>
 
                             <button 
                                 className={styles.startButton}
                                 onClick={startGame}
                             >
-                                {characters[selectedCharacter].emoji} {characters[selectedCharacter].name}로 시작
+                                게임 시작
                             </button>
 
                             {/* 메인 메뉴 순위표 */}
@@ -1297,21 +1232,17 @@ export default function RunnerGame() {
                                     🎉 신기록 달성!
                                 </div>
                             )}
-                            <div className={styles.scoreComparison}>
-                                <div className={styles.comparisonItem}>
-                                    <span className={styles.comparisonLabel}>최고 기록</span>
-                                    <span className={styles.comparisonValue}>{highScore}</span>
+                            <div className={styles.scoreTarget}>
+                                <p>1000점을 달성하면 당첨 식당을 확인할 수 있어요!</p>
+                                <div className={styles.progressBar}>
+                                    <div 
+                                        className={styles.progressFill}
+                                        style={{ width: `${Math.min((score / 1000) * 100, 100)}%` }}
+                                    ></div>
                                 </div>
-                                <div className={styles.comparisonItem}>
-                                    <span className={styles.comparisonLabel}>이번 기록</span>
-                                    <span className={styles.comparisonValue}>{score}</span>
-                                </div>
-                                <div className={styles.comparisonItem}>
-                                    <span className={styles.comparisonLabel}>차이</span>
-                                    <span className={styles.comparisonValue} style={{color: score >= highScore ? '#10b981' : '#ef4444'}}>
-                                        {score >= highScore ? '+' : ''}{score - highScore}
-                                    </span>
-                                </div>
+                                <p className={styles.remaining}>
+                                    {1000 - score > 0 ? `${1000 - score}점 남음` : '목표 달성!'}
+                                </p>
                             </div>
 
                             {showNicknameInput && currentUser && (
@@ -1366,6 +1297,108 @@ export default function RunnerGame() {
                     </div>
                 )}
 
+                {gameState === 'winner' && (
+                    <div className={styles.winner}>
+                        <div className={styles.winnerContent}>
+                            <div className={styles.celebration}>
+                                <span className={styles.confetti}>🎊</span>
+                                <span className={styles.confetti}>🎉</span>
+                                <span className={styles.confetti}>🎊</span>
+                            </div>
+                            <h2 className={styles.winnerTitle}>축하합니다!</h2>
+                            <div className={styles.winnerScore}>
+                                최종 점수: {score}점
+                            </div>
+                            
+                            {topRestaurant ? (
+                                <div className={styles.winnerPrize}>
+                                    <h3>🏆 당첨 식당 🏆</h3>
+                                    <div className={styles.winnerRestaurant}>
+                                        <img 
+                                            src={topRestaurant.restaurant?.image || '/images/default-restaurant.jpg'} 
+                                            alt={topRestaurant.restaurant?.name}
+                                            className={styles.winnerImage}
+                                        />
+                                        <div className={styles.winnerDetails}>
+                                            <h2>{topRestaurant.restaurant?.name}</h2>
+                                            <p className={styles.winnerCategory}>
+                                                {topRestaurant.restaurant?.category}
+                                            </p>
+                                            <p className={styles.winnerVisits}>
+                                                총 방문 횟수: {topRestaurant.visitCount}회
+                                            </p>
+                                            <p className={styles.winnerMessage}>
+                                                가장 많이 방문한 당신의 인기 맛집입니다! 🎯
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className={styles.winnerPrize}>
+                                    <h3>🏆 목표 달성! 🏆</h3>
+                                    <div className={styles.winnerRestaurant}>
+                                        <div className={styles.winnerDetails}>
+                                            <h2>🎮 완벽합니다!</h2>
+                                            <p className={styles.winnerMessage}>
+                                                1000점을 달성했습니다!<br/>
+                                                당신은 진정한 러너입니다! 🏃‍♂️✨
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {showNicknameInput && currentUser && (
+                                <div className={styles.scoreSubmit}>
+                                    <h4>🏆 점수를 기록하시겠습니까?</h4>
+                                    <input
+                                        type="text"
+                                        className={styles.nicknameInput}
+                                        placeholder="닉네임 입력"
+                                        value={nickname}
+                                        onChange={(e) => setNickname(e.target.value)}
+                                        maxLength={20}
+                                    />
+                                    <div className={styles.submitButtons}>
+                                        <button 
+                                            className={styles.saveButton}
+                                            onClick={handleSaveScore}
+                                        >
+                                            저장
+                                        </button>
+                                        <button 
+                                            className={styles.skipButton}
+                                            onClick={() => setShowNicknameInput(false)}
+                                        >
+                                            건너뛰기
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className={styles.winnerButtons}>
+                                <button 
+                                    className={styles.retryButton}
+                                    onClick={startGame}
+                                >
+                                    다시 플레이
+                                </button>
+                                <button 
+                                    className={styles.menuButton}
+                                    onClick={viewLeaderboard}
+                                >
+                                    순위표
+                                </button>
+                                <button 
+                                    className={styles.menuButton}
+                                    onClick={resetGame}
+                                >
+                                    메뉴로
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {gameState === 'leaderboard' && (
                     <div className={styles.leaderboard}>

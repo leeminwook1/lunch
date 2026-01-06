@@ -200,22 +200,22 @@
 }
 
 .instructions {
-    background: #f8f9fa;
+    background: rgba(255, 255, 255, 0.95);
     border-radius: 12px;
     padding: 20px;
     margin: 20px 0;
-    border: 1px solid #e9ecef;
+    border: 2px solid rgba(255, 255, 255, 0.3);
 }
 
 .instructions h3 {
     font-size: 1.3rem;
-    color: #2d3436;
+    color: #1f2937;
     margin-bottom: 12px;
 }
 
 .instructions p {
     font-size: 1rem;
-    color: #636e72;
+    color: #374151;
     margin-bottom: 12px;
 }
 
@@ -232,7 +232,7 @@
     align-items: center;
     gap: 8px;
     font-size: 1rem;
-    color: #2d3436;
+    color: #1f2937;
     font-weight: 600;
     flex: 1 1 auto;
     min-width: 140px;
@@ -1009,5 +1009,195 @@
 
     .leaderboardButtons button {
         width: 100%;
+    }
+}
+
+/* 엔드리스 러너 추가 스타일 */
+.difficultyInfo {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: rgba(102, 126, 234, 0.2);
+    border-radius: 12px;
+    border: 2px solid rgba(102, 126, 234, 0.3);
+}
+
+.difficultyInfo p {
+    margin: 0.5rem 0;
+    font-size: 0.9rem;
+    color: #1f2937;
+    font-weight: 600;
+}
+
+.scoreComparison {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.comparisonItem {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.comparisonLabel {
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 500;
+}
+
+.comparisonValue {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: white;
+}
+
+.newRecord {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 1rem 0;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+/* 모바일 반응형 */
+@media (max-width: 768px) {
+    .scoreComparison {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+        padding: 1rem;
+    }
+
+    .comparisonValue {
+        font-size: 1.5rem;
+    }
+
+    .difficultyInfo p {
+        font-size: 0.85rem;
+    }
+}
+
+/* 캐릭터 선택 */
+.characterSection {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.characterTitle {
+    color: #1f2937;
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.characterGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+}
+
+.characterCard {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 12px;
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 3px solid transparent;
+    text-align: center;
+}
+
+.characterCard:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.characterCard.selected {
+    border-color: #fbbf24;
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    box-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
+}
+
+.characterEmoji {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+}
+
+.characterName {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 0.25rem;
+}
+
+.characterAbility {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #7c3aed;
+    margin-bottom: 0.5rem;
+}
+
+.characterDesc {
+    font-size: 0.75rem;
+    color: #6b7280;
+    line-height: 1.4;
+}
+
+/* 모바일 반응형 - 캐릭터 선택 */
+@media (max-width: 768px) {
+    .characterGrid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+    }
+
+    .characterCard {
+        padding: 0.75rem;
+    }
+
+    .characterEmoji {
+        font-size: 2.5rem;
+    }
+
+    .characterName {
+        font-size: 0.875rem;
+    }
+
+    .characterAbility {
+        font-size: 0.75rem;
+    }
+
+    .characterDesc {
+        font-size: 0.7rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .characterGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .characterSection {
+        padding: 1rem;
     }
 }
