@@ -458,6 +458,11 @@ body {
     color: white;
 }
 
+.rhythm-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
 .action-icon {
     font-size: 2rem;
 }

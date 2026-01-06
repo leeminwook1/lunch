@@ -566,6 +566,14 @@ export default function Home() {
                                         <span className="action-text">똥피하기</span>
                                     </button>
 
+                                    <button
+                                        onClick={() => router.push('/rhythm')}
+                                        className="action-btn rhythm-btn"
+                                    >
+                                        <span className="action-icon">🎵</span>
+                                        <span className="action-text">리듬 게임</span>
+                                    </button>
+
                                 </div>
                             </section>
 
