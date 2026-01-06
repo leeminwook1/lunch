@@ -17,26 +17,6 @@
     100% { background-position: 0% 50%; }
 }
 
-.container::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: 
-        radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
-        radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
-        radial-gradient(circle at 40% 20%, rgba(236, 72, 153, 0.2) 0%, transparent 40%);
-    pointer-events: none;
-    animation: float 20s ease-in-out infinite;
-}
-
-@keyframes float {
-    0%, 100% { transform: translate(0, 0) scale(1); }
-    50% { transform: translate(20px, 20px) scale(1.1); }
-}
-
 .gameWrapper {
     max-width: 900px;
     width: 100%;
@@ -55,18 +35,16 @@
 .controlBtn {
     background: rgba(255, 255, 255, 0.95);
     border: none;
-    padding: 12px 24px;
+    padding: 10px 20px;
     border-radius: 12px;
-    font-size: 16px;
+    font-size: 0.9375rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s ease;
 }
 
 .controlBtn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    transform: translateY(-1px);
     background: #fff;
 }
 
@@ -74,20 +52,16 @@
 .menu {
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(20px);
-    border-radius: 32px;
-    padding: 50px;
-    box-shadow: 
-        0 25px 50px rgba(0, 0, 0, 0.15),
-        0 0 0 1px rgba(255, 255, 255, 0.5) inset,
-        0 10px 30px rgba(236, 72, 153, 0.2);
-    animation: fadeInUp 0.6s ease;
-    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 24px;
+    padding: 40px;
+    border: 2px s rgba(255, 255, 255, 0.3);
+    animation: fadeInUp 0.4s ease;
 }
 
 @keyframes fadeInUp {
     from {
         opacity: 0;
-        transform: translateY(30px);
+        transform: translateY(20px);
     }
     to {
         opacity: 1;
@@ -100,8 +74,8 @@
 }
 
 .title {
-    font-size: 3.5rem;
-    font-weight: 900;
+    font-size: 3rem;
+    font-weight: 800;
     background: linear-gradient(135deg, #6366f1 0%, #ec4899 50%, #f59e0b 100%);
     background-size: 200% 200%;
     animation: gradientText 3s ease infinite;
@@ -112,8 +86,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 20px;
-    text-shadow: 0 0 30px rgba(236, 72, 153, 0.3);
+    gap: 16px;
 }
 
 @keyframes gradientText {
@@ -122,84 +95,65 @@
 }
 
 .emoji {
-    font-size: 4rem;
-    animation: bounce 2s ease-in-out infinite, rotate 10s linear infinite;
-    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
-}
-
-@keyframes rotate {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-@keyframes bounce {
-    0%, 100% {
-        transform: translateY(0);
-    }
-    50% {
-        transform: translateY(-20px);
-    }
+    font-size: 3.5rem;
 }
 
 .subtitle {
-    font-size: 1.4rem;
+    font-size: 1.3rem;
     background: linear-gradient(135deg, #6366f1, #ec4899);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    margin-bottom: 40px;
+    margin-bottom: 32px;
     font-weight: 600;
 }
 
 .instructions {
     background: linear-gradient(135deg, #f0f9ff 0%, #fce7f3 50%, #fef3c7 100%);
-    border-radius: 24px;
-    padding: 35px;
-    margin-bottom: 30px;
+    border-radius: 20px;
+    padding: 28px;
+    margin-bottom: 24px;
     text-align: left;
     border: 2px solid rgba(236, 72, 153, 0.2);
-    box-shadow: 0 8px 24px rgba(236, 72, 153, 0.15);
 }
 
 .instructions h3 {
-    font-size: 1.8rem;
-    margin-bottom: 25px;
+    font-size: 1.6rem;
+    margin-bottom: 20px;
     text-align: center;
     color: #1e293b;
 }
 
 .instructionGrid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 15px;
-    margin-bottom: 25px;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
 }
 
 .instructionItem {
     background: rgba(255, 255, 255, 0.9);
     backdrop-filter: blur(10px);
-    padding: 20px;
-    border-radius: 16px;
+    padding: 16px;
+    border-radius: 12px;
     text-align: center;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.2s ease;
     border: 1px solid rgba(255, 255, 255, 0.5);
 }
 
 .instructionItem:hover {
-    transform: translateY(-8px) scale(1.02);
-    box-shadow: 0 12px 28px rgba(236, 72, 153, 0.25);
+    transform: translateY(-4px);
     border-color: rgba(236, 72, 153, 0.3);
 }
 
 .instructionEmoji {
-    font-size: 2.5rem;
+    font-size: 2.2rem;
     display: block;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
 }
 
 .instructionItem p {
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     color: #475569;
     margin: 0;
     font-weight: 600;
@@ -207,16 +161,15 @@
 
 .ruleBox {
     background: linear-gradient(135deg, #fff7ed 0%, #fed7aa 100%);
-    border-radius: 20px;
-    padding: 28px;
+    border-radius: 16px;
+    padding: 24px;
     border: 2px solid #fb923c;
-    margin-top: 20px;
-    box-shadow: 0 8px 20px rgba(251, 146, 60, 0.2);
+    margin-top: 16px;
 }
 
 .ruleBox h4 {
-    font-size: 1.6rem;
-    margin-bottom: 15px;
+    font-size: 1.4rem;
+    margin-bottom: 12px;
     background: linear-gradient(135deg, #f97316, #ea580c);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -225,10 +178,10 @@
 }
 
 .ruleBox p {
-    font-size: 1.05rem;
+    font-size: 1rem;
     color: #9a3412;
-    margin: 10px 0;
-    line-height: 1.7;
+    margin: 8px 0;
+    line-height: 1.6;
 }
 
 .ruleBox strong {
@@ -240,61 +193,39 @@
     background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);
     color: white;
     border: none;
-    padding: 22px 70px;
-    font-size: 1.9rem;
+    padding: 18px 56px;
+    font-size: 1.6rem;
     font-weight: 800;
-    border-radius: 24px;
+    border-radius: 20px;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 12px 35px rgba(236, 72, 153, 0.4);
-    position: relative;
-    overflow: hidden;
+    transition: all 0.2s ease;
     text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.startButton::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.3);
-    transform: translate(-50%, -50%);
-    transition: width 0.6s, height 0.6s;
-}
-
-.startButton:hover::before {
-    width: 300px;
-    height: 300px;
+    letter-spacing: 0.5px;
 }
 
 .startButton:hover {
-    transform: translateY(-5px) scale(1.05);
-    box-shadow: 0 20px 50px rgba(236, 72, 153, 0.6);
+    transform: translateY(-2px);
+    opacity: 0.9;
 }
 
 .startButton:active {
-    transform: translateY(-2px) scale(1.02);
+    transform: translateY(0);
 }
 
 /* 메인 메뉴 순위표 */
 .menuLeaderboard {
-    background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
-    border-radius: 24px;
+    background: #ede9fe;
+    border-radius: 20px;
     border: 2px solid rgba(139, 92, 246, 0.2);
-    box-shadow: 0 8px 24px rgba(139, 92, 246, 0.15);
-    padding: 25px;
-    margin-top: 30px;
+    padding: 20px;
+    margin-top: 24px;
 }
 
 .menuLeaderboardTitle {
-    font-size: 1.6rem;
+    font-size: 1.4rem;
     font-weight: 800;
     text-align: center;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
     background: linear-gradient(135deg, #8b5cf6, #6366f1);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -304,81 +235,79 @@
 .miniScoresTable {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
 }
 
 .miniTableRow {
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
-    padding: 18px;
-    border-radius: 16px;
+    padding: 14px;
+    border-radius: 12px;
     display: grid;
     grid-template-columns: 50px 1fr 100px 80px;
     align-items: center;
-    gap: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    gap: 10px;
+    transition: all 0.2s ease;
     border: 1px solid rgba(139, 92, 246, 0.1);
 }
 
 .miniTableRow:hover {
-    transform: translateY(-4px) scale(1.02);
-    box-shadow: 0 8px 20px rgba(139, 92, 246, 0.2);
+    transform: translateY(-2px);
     border-color: rgba(139, 92, 246, 0.3);
 }
 
 .miniRank1 {
-    border-left: 5px solid #fbbf24;
+    border-left: 4px solid #fbbf24;
     background: linear-gradient(to right, rgba(251, 191, 36, 0.1), transparent);
 }
 
 .miniRank2 {
-    border-left: 5px solid #94a3b8;
+    border-left: 4px solid #94a3b8;
     background: linear-gradient(to right, rgba(148, 163, 184, 0.1), transparent);
 }
 
 .miniRank3 {
-    border-left: 5px solid #f97316;
+    border-left: 4px solid #f97316;
     background: linear-gradient(to right, rgba(249, 115, 22, 0.1), transparent);
 }
 
 .miniRankCol {
-    font-size: 1.5rem;
+    font-size: 1.3rem;
     font-weight: 700;
     text-align: center;
 }
 
 .miniNicknameCol {
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 600;
     color: #1e293b;
 }
 
 .miniScoreCol {
-    font-size: 1rem;
+    font-size: 0.95rem;
     font-weight: 700;
     color: #ef4444;
     text-align: right;
 }
 
 .miniTimeCol {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: #64748b;
     text-align: right;
 }
 
 .noScores {
     text-align: center;
-    padding: 30px;
+    padding: 24px;
     background: white;
-    border-radius: 15px;
+    border-radius: 12px;
     color: #64748b;
 }
 
 .noScores p {
-    margin: 8px 0;
-    font-size: 1rem;
-    line-height: 1.6;
+    margin: 6px 0;
+    font-size: 0.95rem;
+    line-height: 1.5;
 }
 
 .noScores p:first-child {
@@ -388,17 +317,16 @@
 
 /* 점수 저장 UI */
 .scoreSubmit {
-    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-    border-radius: 24px;
-    padding: 28px;
-    margin-bottom: 25px;
+    background: #dbeafe;
+    border-radius: 20px;
+    padding: 24px;
+    margin-bottom: 20px;
     border: 2px solid #60a5fa;
-    box-shadow: 0 8px 24px rgba(96, 165, 250, 0.2);
 }
 
 .scoreSubmit h4 {
-    font-size: 1.4rem;
-    margin-bottom: 15px;
+    font-size: 1.3rem;
+    margin-bottom: 12px;
     background: linear-gradient(135deg, #3b82f6, #2563eb);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -408,11 +336,11 @@
 }
 
 .scoreInfo {
-    font-size: 1.1rem;
+    font-size: 1rem;
     color: #1e40af;
     text-align: center;
-    margin-bottom: 20px;
-    line-height: 1.6;
+    margin-bottom: 16px;
+    line-height: 1.5;
 }
 
 .scoreInfo strong {
@@ -428,66 +356,61 @@
 .saveButton,
 .skipButton {
     flex: 1;
-    padding: 14px;
+    padding: 12px;
     border: none;
-    border-radius: 16px;
-    font-size: 1.05rem;
+    border-radius: 12px;
+    font-size: 1rem;
     font-weight: 800;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.2s ease;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
 }
 
 .saveButton {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    background: #10b981;
     color: white;
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
 .saveButton:hover {
-    transform: translateY(-3px) scale(1.03);
-    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+    transform: translateY(-2px);
+    opacity: 0.9;
 }
 
 .skipButton {
-    background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+    background: #64748b;
     color: white;
-    box-shadow: 0 4px 12px rgba(100, 116, 139, 0.3);
 }
 
 .skipButton:hover {
-    transform: translateY(-3px) scale(1.03);
-    box-shadow: 0 6px 20px rgba(100, 116, 139, 0.4);
+    transform: translateY(-2px);
+    opacity: 0.9;
 }
 
 /* 게임 화면 */
 .gameArea {
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(20px);
-    border-radius: 32px;
+    border-radius: 24px;
     border: 2px solid rgba(255, 255, 255, 0.3);
-    box-shadow: 
-        0 25px 50px rgba(0, 0, 0, 0.15),
-        0 0 0 1px rgba(255, 255, 255, 0.5) inset,
-        0 10px 30px rgba(99, 102, 241, 0.2);
-    padding: 30px;
-    animation: fadeInUp 0.6s ease;
+    padding: 24px;
+    animation: fadeInUp 0.4s ease;
 }
 
 .gameHeader {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
-    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-    padding: 20px;
-    border-radius: 15px;
+    margin-bottom: 16px;
+    background: #f8fafc;
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
 }
 
 .gameInfo {
     display: flex;
-    gap: 30px;
+    gap: 24px;
 }
 
 .infoItem {
@@ -497,37 +420,37 @@
 }
 
 .label {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: #64748b;
     font-weight: 600;
-    margin-bottom: 5px;
+    margin-bottom: 4px;
 }
 
 .value {
-    font-size: 1.5rem;
+    font-size: 1.3rem;
     font-weight: 700;
     color: #1e293b;
 }
 
 .gameControls {
     display: flex;
-    gap: 10px;
+    gap: 8px;
 }
 
 .pauseBtn {
     background: white;
     border: 2px solid #e2e8f0;
-    width: 50px;
-    height: 50px;
-    border-radius: 12px;
-    font-size: 24px;
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    font-size: 20px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
 }
 
 .pauseBtn:hover {
-    transform: scale(1.1);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    transform: scale(1.05);
+    border-color: #cbd5e1;
 }
 
 .canvas {
@@ -535,42 +458,42 @@
     max-width: 800px;
     height: auto;
     aspect-ratio: 4 / 3;
-    border-radius: 20px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    border-radius: 16px;
     display: block;
     margin: 0 auto;
     background: linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%);
+    border: 2px solid rgba(255, 255, 255, 0.3);
 }
 
 .gameHint {
     text-align: center;
-    margin-top: 20px;
-    font-size: 1.1rem;
+    margin-top: 16px;
+    font-size: 1rem;
     color: #64748b;
     font-weight: 600;
-    padding: 15px;
+    padding: 12px;
     background: rgba(241, 245, 249, 0.8);
-    border-radius: 12px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
 }
 
 /* 모바일 컨트롤 */
 .mobileControls {
     display: none;
     justify-content: center;
-    gap: 40px;
-    margin-top: 20px;
-    padding: 20px;
+    gap: 32px;
+    margin-top: 16px;
+    padding: 16px;
 }
 
 .mobileBtn {
-    width: 80px;
-    height: 80px;
-    font-size: 2.5rem;
+    width: 72px;
+    height: 72px;
+    font-size: 2.2rem;
     background: linear-gradient(135deg, #ec4899, #f43f5e);
     border: none;
-    border-radius: 20px;
+    border-radius: 16px;
     cursor: pointer;
-    box-shadow: 0 8px 24px rgba(236, 72, 153, 0.4);
     transition: all 0.2s ease;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
@@ -581,7 +504,6 @@
 
 .mobileBtn:active {
     transform: scale(0.9);
-    box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
 }
 
 @media (max-width: 768px) {
@@ -590,18 +512,18 @@
     }
     
     .gameHint {
-        font-size: 0.9rem;
-        padding: 10px;
+        font-size: 0.875rem;
+        padding: 8px;
     }
 }
 
 /* 게임 오버 화면 */
 .gameOver {
     background: rgba(255, 255, 255, 0.98);
-    border-radius: 30px;
-    padding: 50px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    animation: fadeInUp 0.6s ease;
+    border-radius: 24px;
+    padding: 40px;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    animation: fadeInUp 0.4s ease;
 }
 
 .gameOverContent {
@@ -609,43 +531,33 @@
 }
 
 .gameOverTitle {
-    font-size: 3rem;
-    font-weight: 900;
+    font-size: 2.5rem;
+    font-weight: 800;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    margin-bottom: 30px;
-    animation: pulse 2s ease-in-out infinite;
-}
-
-@keyframes pulse {
-    0%, 100% {
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.05);
-    }
+    margin-bottom: 24px;
 }
 
 .finalScore {
-    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-    border-radius: 20px;
-    padding: 30px;
-    margin-bottom: 40px;
-    border: 3px solid #fbbf24;
+    background: #fef3c7;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 32px;
+    border: 2px solid #fbbf24;
 }
 
 .finalScore p {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     color: #78350f;
     font-weight: 600;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
 }
 
 .scoreDisplay {
-    font-size: 4rem;
-    font-weight: 900;
+    font-size: 3.5rem;
+    font-weight: 800;
     background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -653,47 +565,35 @@
 }
 
 .winnerSection {
-    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-    border-radius: 25px;
-    padding: 30px;
-    margin-bottom: 30px;
-    border: 4px solid #fbbf24;
-    box-shadow: 0 10px 40px rgba(251, 191, 36, 0.3);
+    background: #fef3c7;
+    border-radius: 20px;
+    padding: 24px;
+    margin-bottom: 24px;
+    border: 3px solid #fbbf24;
 }
 
 .winnerTitle {
-    font-size: 2rem;
-    font-weight: 900;
+    font-size: 1.8rem;
+    font-weight: 800;
     color: #92400e;
-    margin-bottom: 25px;
-    animation: sparkle 1.5s ease-in-out infinite;
-}
-
-@keyframes sparkle {
-    0%, 100% {
-        text-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
-    }
-    50% {
-        text-shadow: 0 0 40px rgba(251, 191, 36, 0.8);
-    }
+    margin-bottom: 20px;
 }
 
 .winnerCard {
     background: white;
-    border-radius: 20px;
-    padding: 30px;
+    border-radius: 16px;
+    padding: 24px;
     display: flex;
-    gap: 30px;
+    gap: 24px;
     align-items: center;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    border: 1px solid #f3f4f6;
 }
 
 .winnerImage {
-    width: 250px;
-    height: 180px;
+    width: 220px;
+    height: 160px;
     object-fit: cover;
-    border-radius: 15px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
 }
 
 .winnerInfo {
@@ -702,162 +602,160 @@
 }
 
 .winnerInfo h2 {
-    font-size: 2.5rem;
-    margin-bottom: 15px;
+    font-size: 2rem;
+    margin-bottom: 12px;
     color: #1e293b;
 }
 
 .category {
-    font-size: 1.3rem;
+    font-size: 1.1rem;
     color: #64748b;
-    margin-bottom: 15px;
+    margin-bottom: 12px;
     font-weight: 600;
 }
 
 .hitCount {
-    font-size: 1.5rem;
+    font-size: 1.3rem;
     color: #ef4444;
     font-weight: 700;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
 }
 
 .earnedScore {
-    font-size: 1.3rem;
+    font-size: 1.1rem;
     color: #10b981;
     font-weight: 600;
 }
 
 .statsSection {
-    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-    border-radius: 20px;
-    padding: 25px;
-    margin-bottom: 30px;
+    background: #f8fafc;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 24px;
+    border: 1px solid #e2e8f0;
 }
 
 .statsSection h4 {
-    font-size: 1.5rem;
-    margin-bottom: 20px;
+    font-size: 1.3rem;
+    margin-bottom: 16px;
     color: #1e293b;
 }
 
 .statsTable {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
 }
 
 .statsRow {
     background: white;
-    padding: 15px 20px;
-    border-radius: 12px;
+    padding: 12px 16px;
+    border-radius: 10px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid #e2e8f0;
+    transition: transform 0.2s ease;
 }
 
 .statsRow:hover {
-    transform: translateX(5px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    transform: translateX(4px);
 }
 
 .rank {
-    font-size: 1.5rem;
+    font-size: 1.3rem;
     font-weight: 700;
-    min-width: 60px;
+    min-width: 50px;
 }
 
 .restaurantName {
     flex: 1;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     font-weight: 600;
     color: #1e293b;
 }
 
 .count {
-    font-size: 1.1rem;
+    font-size: 1rem;
     color: #ef4444;
     font-weight: 600;
-    min-width: 60px;
+    min-width: 50px;
     text-align: center;
 }
 
 .points {
-    font-size: 1.1rem;
+    font-size: 1rem;
     color: #10b981;
     font-weight: 700;
-    min-width: 80px;
+    min-width: 70px;
     text-align: right;
 }
 
 .winnerMessage {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     color: #1e293b;
-    margin-top: 15px;
-    line-height: 1.6;
+    margin-top: 12px;
+    line-height: 1.5;
     font-weight: 600;
 }
 
 .distance {
-    font-size: 1.1rem;
+    font-size: 1rem;
     color: #64748b;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
 }
 
 .description {
-    font-size: 1rem;
+    font-size: 0.95rem;
     color: #64748b;
-    margin-bottom: 15px;
-    line-height: 1.5;
+    margin-bottom: 12px;
+    line-height: 1.4;
 }
 
 .successSection {
-    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-    border-radius: 25px;
-    padding: 30px;
-    margin-bottom: 30px;
-    border: 4px solid #10b981;
-    box-shadow: 0 10px 40px rgba(16, 185, 129, 0.3);
+    background: #d1fae5;
+    border-radius: 20px;
+    padding: 24px;
+    margin-bottom: 24px;
+    border: 3px solid #10b981;
 }
 
 .successTitle {
-    font-size: 2rem;
-    font-weight: 900;
+    font-size: 1.8rem;
+    font-weight: 800;
     color: #065f46;
-    margin-bottom: 25px;
-    animation: sparkle 1.5s ease-in-out infinite;
+    margin-bottom: 20px;
 }
 
 .successCard {
     background: white;
-    border-radius: 20px;
-    padding: 30px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    border-radius: 16px;
+    padding: 24px;
+    border: 1px solid #f3f4f6;
 }
 
 .successMessage {
-    font-size: 1.3rem;
+    font-size: 1.2rem;
     color: #065f46;
-    margin-bottom: 20px;
-    line-height: 1.8;
+    margin-bottom: 16px;
+    line-height: 1.6;
     font-weight: 600;
 }
 
 .successScore {
-    font-size: 1.5rem;
+    font-size: 1.3rem;
     color: #10b981;
-    margin-bottom: 15px;
+    margin-bottom: 12px;
     font-weight: 700;
 }
 
 .successScore strong {
-    font-size: 1.8rem;
+    font-size: 1.5rem;
     color: #059669;
 }
 
 .successHint {
-    font-size: 1.1rem;
+    font-size: 1rem;
     color: #64748b;
     font-style: italic;
 }
@@ -865,51 +763,50 @@
 .gameOverButtons {
     display: flex;
     justify-content: center;
-    gap: 15px;
+    gap: 12px;
     flex-wrap: wrap;
 }
 
 .retryButton,
 .menuButton,
 .homeButton {
-    padding: 18px 40px;
-    font-size: 1.2rem;
+    padding: 14px 32px;
+    font-size: 1.1rem;
     font-weight: 700;
     border: none;
-    border-radius: 15px;
+    border-radius: 12px;
     cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s ease;
 }
 
 .retryButton {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    background: #ef4444;
     color: white;
 }
 
 .retryButton:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
+    transform: translateY(-2px);
+    opacity: 0.9;
 }
 
 .menuButton {
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    background: #3b82f6;
     color: white;
 }
 
 .menuButton:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+    transform: translateY(-2px);
+    opacity: 0.9;
 }
 
 .homeButton {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    background: #10b981;
     color: white;
 }
 
 .homeButton:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+    transform: translateY(-2px);
+    opacity: 0.9;
 }
 
 /* 반응형 디자인 */
@@ -921,131 +818,131 @@
     .menu,
     .gameArea,
     .gameOver {
-        padding: 25px 15px;
-        border-radius: 24px;
+        padding: 20px 12px;
+        border-radius: 20px;
     }
 
     .title {
-        font-size: 2.2rem;
-        gap: 10px;
+        font-size: 2rem;
+        gap: 8px;
         flex-direction: column;
     }
 
     .emoji {
-        font-size: 2.8rem;
+        font-size: 2.5rem;
     }
 
     .subtitle {
-        font-size: 1.1rem;
+        font-size: 1rem;
     }
 
     .instructions {
-        padding: 20px;
-        border-radius: 16px;
+        padding: 16px;
+        border-radius: 12px;
     }
 
     .instructionGrid {
         grid-template-columns: 1fr 1fr;
-        gap: 10px;
+        gap: 8px;
     }
 
     .instructionItem {
-        padding: 12px;
-        border-radius: 12px;
+        padding: 10px;
+        border-radius: 10px;
     }
 
     .instructionEmoji {
-        font-size: 1.8rem;
-        margin-bottom: 6px;
+        font-size: 1.6rem;
+        margin-bottom: 4px;
     }
 
     .instructionItem p {
-        font-size: 0.8rem;
+        font-size: 0.75rem;
     }
 
     .ruleBox {
-        padding: 18px;
-        border-radius: 16px;
+        padding: 14px;
+        border-radius: 12px;
     }
 
     .ruleBox h4 {
-        font-size: 1.3rem;
+        font-size: 1.2rem;
     }
 
     .ruleBox p {
-        font-size: 0.9rem;
+        font-size: 0.85rem;
     }
 
     .startButton {
-        padding: 18px 50px;
-        font-size: 1.5rem;
-        border-radius: 20px;
+        padding: 14px 40px;
+        font-size: 1.3rem;
+        border-radius: 16px;
     }
 
     .canvas {
-        border-radius: 16px;
+        border-radius: 12px;
     }
 
     .gameHeader {
         flex-direction: column;
-        gap: 12px;
+        gap: 10px;
     }
 
     .gameInfo {
-        gap: 15px;
+        gap: 12px;
         width: 100%;
         justify-content: space-around;
         flex-wrap: wrap;
     }
 
     .infoItem {
-        font-size: 0.9rem;
-    }
-
-    .label {
-        font-size: 0.8rem;
-    }
-
-    .value {
-        font-size: 1rem;
-    }
-
-    .menuLeaderboard {
-        padding: 18px;
-    }
-
-    .menuLeaderboardTitle {
-        font-size: 1.3rem;
-    }
-
-    .miniTableRow {
-        grid-template-columns: 40px 1fr 80px 60px;
-        padding: 12px;
-        gap: 8px;
-    }
-
-    .miniRankCol {
-        font-size: 1.2rem;
-    }
-
-    .miniNicknameCol {
-        font-size: 0.95rem;
-    }
-
-    .miniScoreCol {
         font-size: 0.85rem;
     }
 
-    .miniTimeCol {
+    .label {
         font-size: 0.75rem;
     }
 
+    .value {
+        font-size: 0.95rem;
+    }
+
+    .menuLeaderboard {
+        padding: 14px;
+    }
+
+    .menuLeaderboardTitle {
+        font-size: 1.2rem;
+    }
+
+    .miniTableRow {
+        grid-template-columns: 40px 1fr 75px 55px;
+        padding: 10px;
+        gap: 6px;
+    }
+
+    .miniRankCol {
+        font-size: 1.1rem;
+    }
+
+    .miniNicknameCol {
+        font-size: 0.9rem;
+    }
+
+    .miniScoreCol {
+        font-size: 0.8rem;
+    }
+
+    .miniTimeCol {
+        font-size: 0.7rem;
+    }
+
     .gameOverTitle {
-        font-size: 2.2rem;
+        font-size: 2rem;
     }
 
     .scoreDisplay {
-        font-size: 3.5rem;
+        font-size: 3rem;
     }
 
     .winnerCard {
@@ -1059,26 +956,26 @@
 
     .winnerImage {
         width: 100%;
-        max-width: 280px;
-        border-radius: 16px;
+        max-width: 260px;
+        border-radius: 12px;
     }
 
     .gameOverButtons {
         flex-direction: column;
-        gap: 12px;
+        gap: 10px;
     }
 
     .retryButton,
     .menuButton,
     .homeButton {
         width: 100%;
-        padding: 14px;
-        font-size: 1.1rem;
+        padding: 12px;
+        font-size: 1rem;
     }
 
     .statsRow {
         flex-wrap: wrap;
-        gap: 10px;
+        gap: 8px;
     }
 
     .rank,
@@ -1088,12 +985,12 @@
     }
 
     .scoreSubmit {
-        padding: 20px;
+        padding: 16px;
     }
 
     .submitButtons {
         flex-direction: column;
-        gap: 12px;
+        gap: 10px;
     }
 
     .saveButton,
@@ -1104,28 +1001,28 @@
 
 @media (max-width: 480px) {
     .title {
-        font-size: 2rem;
-        gap: 10px;
+        font-size: 1.8rem;
+        gap: 8px;
     }
 
     .emoji {
-        font-size: 2.5rem;
+        font-size: 2.2rem;
     }
 
     .subtitle {
-        font-size: 1.1rem;
+        font-size: 1rem;
     }
 
     .gameOverTitle {
-        font-size: 2rem;
+        font-size: 1.8rem;
     }
 
     .scoreDisplay {
-        font-size: 3rem;
+        font-size: 2.8rem;
     }
 
     .winnerInfo h2 {
-        font-size: 1.8rem;
+        font-size: 1.6rem;
     }
 }
 
@@ -1136,13 +1033,13 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.75);
-    backdrop-filter: blur(8px);
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 9999;
-    animation: fadeIn 0.3s ease;
+    animation: fadeIn 0.2s ease;
 }
 
 @keyframes fadeIn {
@@ -1157,22 +1054,19 @@
 .successModal {
     background: linear-gradient(135deg, #6366f1 0%, #ec4899 50%, #f59e0b 100%);
     background-size: 200% 200%;
-    animation: slideUp 0.3s ease, gradientShift 5s ease infinite;
-    border-radius: 32px;
-    padding: 45px;
-    max-width: 450px;
+    animation: slideUp 0.2s ease, gradientShift 5s ease infinite;
+    border-radius: 24px;
+    padding: 36px;
+    max-width: 420px;
     width: 90%;
-    box-shadow: 
-        0 25px 80px rgba(0, 0, 0, 0.4),
-        0 0 0 1px rgba(255, 255, 255, 0.3) inset;
+    border: 2px solid rgba(255, 255, 255, 0.2);
     text-align: center;
     position: relative;
-    border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
 @keyframes slideUp {
     from {
-        transform: translateY(50px);
+        transform: translateY(30px);
         opacity: 0;
     }
     to {
@@ -1182,87 +1076,69 @@
 }
 
 .successIcon {
-    font-size: 5.5rem;
-    margin-bottom: 20px;
-    animation: bounce 0.6s ease, rotate 3s ease-in-out infinite;
-    filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.3));
-}
-
-@keyframes bounce {
-    0%, 100% {
-        transform: scale(1) rotate(0deg);
-    }
-    50% {
-        transform: scale(1.3) rotate(10deg);
-    }
+    font-size: 4.5rem;
+    margin-bottom: 16px;
 }
 
 .successModalTitle {
-    font-size: 2.2rem;
-    font-weight: 900;
+    font-size: 2rem;
+    font-weight: 800;
     color: white;
-    margin-bottom: 12px;
-    text-shadow: 3px 3px 8px rgba(0, 0, 0, 0.4);
-    letter-spacing: 1px;
+    margin-bottom: 10px;
+    letter-spacing: 0.5px;
 }
 
 .successModalMessage {
-    font-size: 1.25rem;
+    font-size: 1.15rem;
     color: rgba(255, 255, 255, 0.98);
-    margin-bottom: 28px;
+    margin-bottom: 24px;
     font-weight: 600;
-    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .successModalScore {
     background: rgba(255, 255, 255, 0.25);
-    border-radius: 20px;
-    padding: 24px;
-    margin-bottom: 28px;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 24px;
     backdrop-filter: blur(15px);
     border: 2px solid rgba(255, 255, 255, 0.4);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
 }
 
 .modalScoreLabel {
     display: block;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     color: rgba(255, 255, 255, 0.9);
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     font-weight: 600;
 }
 
 .modalScoreValue {
     display: block;
-    font-size: 2.5rem;
+    font-size: 2.2rem;
     font-weight: 800;
     color: #fbbf24;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .successModalButton {
     background: white;
     color: #6366f1;
     border: none;
-    padding: 16px 50px;
-    border-radius: 16px;
-    font-size: 1.15rem;
+    padding: 14px 40px;
+    border-radius: 12px;
+    font-size: 1.05rem;
     font-weight: 800;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+    transition: all 0.2s ease;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
 }
 
 .successModalButton:hover {
-    transform: translateY(-4px) scale(1.05);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
-    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    transform: translateY(-2px);
+    background: #fbbf24;
     color: white;
 }
 
 .successModalButton:active {
-    transform: translateY(-2px) scale(1.02);
+    transform: translateY(0);
 }
-

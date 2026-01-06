@@ -7,21 +7,21 @@
 }
 
 :root {
-    /* Modern Color Palette */
+    /* Modern Color Palette - 밝고 깔끔한 색상 */
     --primary-50: #f0f9ff;
     --primary-100: #e0f2fe;
-    --primary-500: #0ea5e9;
-    --primary-600: #0284c7;
-    --primary-700: #0369a1;
-    --primary-900: #0c4a6e;
+    --primary-500: #3b82f6;
+    --primary-600: #2563eb;
+    --primary-700: #1d4ed8;
+    --primary-900: #1e3a8a;
 
     --secondary-50: #fdf4ff;
     --secondary-500: #a855f7;
     --secondary-600: #9333ea;
 
     --success-50: #f0fdf4;
-    --success-500: #22c55e;
-    --success-600: #16a34a;
+    --success-500: #10b981;
+    --success-600: #059669;
 
     --warning-50: #fffbeb;
     --warning-500: #f59e0b;
@@ -31,29 +31,22 @@
     --error-500: #ef4444;
     --error-600: #dc2626;
 
-    --gray-50: #f8fafc;
-    --gray-100: #f1f5f9;
-    --gray-200: #e2e8f0;
-    --gray-300: #cbd5e1;
-    --gray-400: #94a3b8;
-    --gray-500: #64748b;
-    --gray-600: #475569;
-    --gray-700: #334155;
-    --gray-800: #1e293b;
-    --gray-900: #0f172a;
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-400: #9ca3af;
+    --gray-500: #6b7280;
+    --gray-600: #4b5563;
+    --gray-700: #374151;
+    --gray-800: #1f2937;
+    --gray-900: #111827;
 
-    /* Shadows */
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-    --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
-
-    /* Border Radius */
-    --radius-sm: 0.375rem;
-    --radius-md: 0.5rem;
-    --radius-lg: 0.75rem;
-    --radius-xl: 1rem;
+    /* Border Radius - 더 부드러운 모서리 */
+    --radius-sm: 0.5rem;
+    --radius-md: 0.75rem;
+    --radius-lg: 1rem;
+    --radius-xl: 1.25rem;
     --radius-2xl: 1.5rem;
     --radius-3xl: 2rem;
 
@@ -77,7 +70,7 @@ body {
         sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background: white;
+    background: var(--gray-50);
     min-height: 100vh;
     color: var(--gray-800);
     line-height: 1.6;
@@ -87,28 +80,27 @@ body {
 .app {
     min-height: 100vh;
     padding: var(--space-6);
-    background: white;
+    background: var(--gray-50);
 }
 
 .container {
     max-width: 1200px;
     margin: 0 auto;
     background: #ffffff;
-    border-radius: var(--radius-3xl);
-    padding: var(--space-10);
-    box-shadow: var(--shadow-lg);
+    border-radius: var(--radius-2xl);
+    padding: var(--space-8);
     border: 1px solid var(--gray-200);
 }
 
 /* 모바일 반응형 - 기본 컨테이너 */
 @media (max-width: 768px) {
     .app {
-        padding: var(--space-3);
+        padding: var(--space-4);
     }
 
     .container {
         border-radius: var(--radius-xl);
-        padding: var(--space-6);
+        padding: var(--space-5);
         margin: 0;
     }
 }
@@ -121,6 +113,7 @@ body {
     .container {
         border-radius: var(--radius-lg);
         padding: var(--space-4);
+        border: none;
     }
 }
 
@@ -146,13 +139,25 @@ body {
 }
 
 .title {
-    font-size: 2.5rem;
-    font-weight: 800;
-    color: var(--primary-600);
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--gray-900);
     margin: 0;
     display: flex;
     align-items: center;
     gap: var(--space-3);
+}
+
+@media (max-width: 768px) {
+    .title {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .title {
+        font-size: 1.25rem;
+    }
 }
 
 .user-info {
@@ -183,11 +188,11 @@ body {
 }
 
 .btn-change-user {
-    padding: var(--space-3) var(--space-4);
-    background: var(--gray-100);
+    padding: var(--space-2) var(--space-4);
+    background: white;
     color: var(--gray-700);
-    border: none;
-    border-radius: var(--radius-xl);
+    border: 2px solid var(--gray-200);
+    border-radius: var(--radius-lg);
     font-size: 0.875rem;
     font-weight: 500;
     cursor: pointer;
@@ -198,8 +203,8 @@ body {
 }
 
 .btn-change-user:hover {
-    background: var(--gray-200);
-    transform: translateY(-1px);
+    background: var(--gray-50);
+    border-color: var(--gray-300);
 }
 
 /* 메인 콘텐츠 */
@@ -211,24 +216,25 @@ body {
 
 /* 히어로 섹션 */
 .hero-section {
-    background: white;
-    border-radius: var(--radius-3xl);
-    padding: var(--space-8);
+    background: linear-gradient(135deg, var(--primary-50) 0%, var(--secondary-50) 100%);
+    border-radius: var(--radius-2xl);
+    padding: var(--space-10);
     text-align: center;
     position: relative;
     overflow: hidden;
-    border: 1px solid var(--gray-200);
+    border: 2px solid var(--primary-100);
 }
 
-.hero-section::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="%23ffffff" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="%23ffffff" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="%23ffffff" opacity="0.1"/><circle cx="10" cy="60" r="0.5" fill="%23ffffff" opacity="0.1"/><circle cx="90" cy="40" r="0.5" fill="%23ffffff" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
-    pointer-events: none;
+@media (max-width: 768px) {
+    .hero-section {
+        padding: var(--space-6);
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-section {
+        padding: var(--space-5);
+    }
 }
 
 .hero-content {
@@ -304,45 +310,45 @@ body {
 }
 
 .btn-random {
-    padding: var(--space-4) var(--space-10);
-    background: linear-gradient(135deg, var(--primary-600), var(--primary-700));
+    padding: var(--space-4) var(--space-8);
+    background: var(--primary-600);
     color: white;
     border: none;
-    border-radius: var(--radius-2xl);
-    font-size: 1.25rem;
-    font-weight: 700;
+    border-radius: var(--radius-xl);
+    font-size: 1.125rem;
+    font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: var(--shadow-lg);
-    position: relative;
-    overflow: hidden;
-}
-
-.btn-random::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-    transition: left 0.5s;
+    transition: all 0.2s ease;
 }
 
 .btn-random:hover:not(:disabled) {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-2xl);
+    background: var(--primary-700);
+    transform: scale(1.02);
 }
 
-.btn-random:hover:not(:disabled)::before {
-    left: 100%;
+.btn-random:active:not(:disabled) {
+    transform: scale(0.98);
 }
 
 .btn-random:disabled {
-    background: var(--gray-400);
+    background: var(--gray-300);
     cursor: not-allowed;
     transform: none;
-    box-shadow: var(--shadow-md);
+}
+
+@media (max-width: 768px) {
+    .btn-random {
+        padding: var(--space-3) var(--space-6);
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .btn-random {
+        padding: var(--space-3) var(--space-5);
+        font-size: 0.9375rem;
+        width: 100%;
+    }
 }
 
 /* 액션 섹션 */
@@ -350,88 +356,105 @@ body {
     background: white;
     border-radius: var(--radius-2xl);
     padding: var(--space-6);
-    box-shadow: var(--shadow-md);
+    border: 1px solid var(--gray-200);
 }
 
 .action-grid {
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: var(--space-4);
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: var(--space-3);
+}
+
+@media (max-width: 768px) {
+    .action-grid {
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        gap: var(--space-2);
+    }
+}
+
+@media (max-width: 480px) {
+    .action-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--space-2);
+    }
 }
 
 .action-btn {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: var(--space-3);
-    padding: var(--space-6);
+    justify-content: center;
+    gap: var(--space-2);
+    padding: var(--space-4);
     border: none;
-    border-radius: var(--radius-xl);
+    border-radius: var(--radius-lg);
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
     text-decoration: none;
-    position: relative;
-    overflow: hidden;
-}
-
-.action-btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.3));
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.action-btn:hover::before {
-    opacity: 1;
+    min-height: 100px;
 }
 
 .action-btn:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-xl);
+    transform: translateY(-2px);
+    opacity: 0.9;
+}
+
+.action-btn:active {
+    transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+    .action-btn {
+        padding: var(--space-3);
+        min-height: 90px;
+        gap: var(--space-1);
+    }
+}
+
+@media (max-width: 480px) {
+    .action-btn {
+        padding: var(--space-3);
+        min-height: 80px;
+    }
 }
 
 .add-btn {
-    background: linear-gradient(135deg, var(--success-500), var(--success-600));
+    background: var(--success-500);
     color: white;
 }
 
 .game-btn {
-    background: linear-gradient(135deg, var(--warning-500), var(--warning-600));
+    background: var(--warning-500);
     color: white;
 }
 
 .review-btn {
-    background: linear-gradient(135deg, var(--secondary-500), var(--secondary-600));
+    background: var(--secondary-500);
     color: white;
 }
 
 .feedback-btn {
-    background: linear-gradient(135deg, var(--primary-500), var(--primary-600));
+    background: var(--primary-500);
     color: white;
 }
 
 .calendar-btn {
-    background: linear-gradient(135deg, var(--success-500), var(--success-600));
+    background: var(--success-500);
     color: white;
 }
 
 .dart-btn {
-    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    background: #3b82f6;
     color: white;
 }
 
 .runner-btn {
-    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    background: #8b5cf6;
     color: white;
 }
 
 .avoid-btn {
-    background: linear-gradient(135deg, #ec4899, #db2777);
+    background: #ec4899;
     color: white;
 }
 
@@ -443,6 +466,27 @@ body {
     font-size: 0.875rem;
     font-weight: 600;
     text-align: center;
+    line-height: 1.2;
+}
+
+@media (max-width: 768px) {
+    .action-icon {
+        font-size: 1.75rem;
+    }
+    
+    .action-text {
+        font-size: 0.8125rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .action-icon {
+        font-size: 1.5rem;
+    }
+    
+    .action-text {
+        font-size: 0.75rem;
+    }
 }
 
 /* 필터 섹션 */
@@ -450,7 +494,13 @@ body {
     background: white;
     border-radius: var(--radius-2xl);
     padding: var(--space-6);
-    box-shadow: var(--shadow-md);
+    border: 1px solid var(--gray-200);
+}
+
+@media (max-width: 768px) {
+    .filter-section {
+        padding: var(--space-4);
+    }
 }
 
 .filter-header {
@@ -469,7 +519,14 @@ body {
 .filter-controls {
     display: grid;
     grid-template-columns: 2fr 1fr 1fr;
-    gap: var(--space-4);
+    gap: var(--space-3);
+}
+
+@media (max-width: 768px) {
+    .filter-controls {
+        grid-template-columns: 1fr;
+        gap: var(--space-2);
+    }
 }
 
 .search-input,
@@ -496,7 +553,13 @@ body {
     background: white;
     border-radius: var(--radius-2xl);
     padding: var(--space-6);
-    box-shadow: var(--shadow-md);
+    border: 1px solid var(--gray-200);
+}
+
+@media (max-width: 768px) {
+    .restaurants-section {
+        padding: var(--space-4);
+    }
 }
 
 .section-header {
@@ -526,48 +589,52 @@ body {
 
 .restaurants-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: var(--space-5);
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--space-4);
     margin-bottom: var(--space-5);
+}
+
+@media (max-width: 768px) {
+    .restaurants-grid {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: var(--space-3);
+    }
+}
+
+@media (max-width: 480px) {
+    .restaurants-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-3);
+    }
 }
 
 /* 가게 카드 스타일 */
 .restaurant-card {
-    border-radius: var(--radius-2xl);
-    box-shadow: var(--shadow-md);
+    background: white;
+    border-radius: var(--radius-xl);
     overflow: hidden;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
     cursor: pointer;
     position: relative;
-    border: 1px solid var(--gray-100);
-}
-
-.restaurant-card * {
-    background-color: inherit;
-}
-
-/* 가게 카드 이미지 영역 배경 완전 제거 */
-.restaurant-card .restaurant-image {
-    background: none !important;
-    background-color: transparent !important;
-}
-
-.restaurant-card .restaurant-image img {
-    background: none !important;
-    background-color: transparent !important;
+    border: 2px solid var(--gray-200);
 }
 
 .restaurant-card:hover {
-    transform: translateY(-6px);
-    box-shadow: var(--shadow-2xl);
-    border-color: var(--primary-200);
+    transform: translateY(-4px);
+    border-color: var(--primary-300);
+}
+
+@media (max-width: 480px) {
+    .restaurant-card:hover {
+        transform: translateY(-2px);
+    }
 }
 
 .restaurant-image {
     position: relative;
     height: 200px;
     overflow: hidden;
-    background: none !important;
+    background: var(--gray-100);
 }
 
 .restaurant-image img {
@@ -575,37 +642,17 @@ body {
     height: 100%;
     object-fit: cover;
     transition: transform 0.3s ease;
-    background: none !important;
     display: block;
-    border: none;
-    outline: none;
-}
-
-/* 이미지 로드 실패 시 숨김 */
-.restaurant-image img[src=""],
-.restaurant-image img:not([src]),
-.restaurant-image img[src="#"],
-.restaurant-image img[alt=""] {
-    display: none !important;
-    visibility: hidden !important;
-}
-
-/* 이미지 로드 에러 시 처리 */
-.restaurant-image img:not([src]) {
-    opacity: 0 !important;
-}
-
-/* 모든 배경 제거 */
-.restaurant-image,
-.restaurant-image *,
-.restaurant-image::before,
-.restaurant-image::after {
-    background: none !important;
-    background-color: transparent !important;
 }
 
 .restaurant-card:hover .restaurant-image img {
     transform: scale(1.05);
+}
+
+@media (max-width: 480px) {
+    .restaurant-image {
+        height: 180px;
+    }
 }
 
 .restaurant-category {
@@ -684,40 +731,37 @@ body {
 
 .btn-edit,
 .btn-delete {
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     border: none;
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-md);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.25rem;
+    font-size: 1.125rem;
     transition: all 0.2s ease;
     backdrop-filter: blur(10px);
-    box-shadow: var(--shadow-md);
     line-height: 1;
     padding: 0;
 }
 
 .btn-edit {
-    background: rgba(59, 130, 246, 0.95);
+    background: rgba(59, 130, 246, 0.9);
 }
 
 .btn-edit:hover {
-    background: rgba(59, 130, 246, 1);
-    transform: scale(1.15);
-    box-shadow: var(--shadow-lg);
+    background: rgb(59, 130, 246);
+    transform: scale(1.1);
 }
 
 .btn-delete {
-    background: rgba(239, 68, 68, 0.95);
+    background: rgba(239, 68, 68, 0.9);
 }
 
 .btn-delete:hover {
-    background: rgba(239, 68, 68, 1);
-    transform: scale(1.15);
-    box-shadow: var(--shadow-lg);
+    background: rgb(239, 68, 68);
+    transform: scale(1.1);
 }
 
 /* 페이지네이션 */
@@ -730,25 +774,28 @@ body {
 }
 
 .pagination-btn {
-    padding: var(--space-3) var(--space-5);
+    padding: var(--space-2) var(--space-4);
     background: var(--primary-600);
     color: white;
     border: none;
-    border-radius: var(--radius-xl);
+    border-radius: var(--radius-lg);
     cursor: pointer;
     transition: all 0.2s ease;
     font-weight: 500;
+    font-size: 0.875rem;
 }
 
 .pagination-btn:hover:not(:disabled) {
     background: var(--primary-700);
-    transform: translateY(-1px);
+}
+
+.pagination-btn:active:not(:disabled) {
+    transform: scale(0.95);
 }
 
 .pagination-btn:disabled {
     background: var(--gray-300);
     cursor: not-allowed;
-    transform: none;
 }
 
 .pagination-info {
@@ -756,7 +803,8 @@ body {
     color: var(--gray-700);
     padding: var(--space-2) var(--space-4);
     background: var(--gray-100);
-    border-radius: var(--radius-xl);
+    border-radius: var(--radius-lg);
+    font-size: 0.875rem;
 }
 
 /* 페이지네이션 모바일 최적화 - 강제로 한 줄 배치 */
@@ -848,11 +896,11 @@ body {
 }
 
 .btn-reset-filter {
-    padding: var(--space-3) var(--space-6);
+    padding: var(--space-3) var(--space-5);
     background: var(--primary-600);
     color: white;
     border: none;
-    border-radius: var(--radius-xl);
+    border-radius: var(--radius-lg);
     cursor: pointer;
     transition: all 0.2s ease;
     font-weight: 500;
@@ -860,7 +908,6 @@ body {
 
 .btn-reset-filter:hover {
     background: var(--primary-700);
-    transform: translateY(-1px);
 }
 
 /* 통계 섹션 */
@@ -868,29 +915,42 @@ body {
     background: white;
     border-radius: var(--radius-2xl);
     padding: var(--space-6);
-    box-shadow: var(--shadow-md);
+    border: 1px solid var(--gray-200);
 }
 
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: var(--space-4);
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: var(--space-3);
+}
+
+@media (max-width: 480px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
 
 .stat-card {
-    background: linear-gradient(135deg, var(--gray-100), var(--gray-200));
-    padding: var(--space-6);
-    border-radius: var(--radius-xl);
+    background: var(--gray-50);
+    padding: var(--space-5);
+    border-radius: var(--radius-lg);
     display: flex;
     align-items: center;
-    gap: var(--space-4);
-    transition: all 0.3s ease;
-    border: 1px solid var(--gray-300);
+    gap: var(--space-3);
+    transition: all 0.2s ease;
+    border: 2px solid var(--gray-200);
 }
 
 .stat-card:hover {
     transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
+    border-color: var(--primary-300);
+}
+
+@media (max-width: 480px) {
+    .stat-card {
+        padding: var(--space-4);
+        gap: var(--space-2);
+    }
 }
 
 .stat-icon {
@@ -923,7 +983,14 @@ body {
     background: white;
     border-radius: var(--radius-2xl);
     padding: var(--space-6);
-    box-shadow: var(--shadow-md);
+    border: 1px solid var(--gray-200);
+}
+
+@media (max-width: 768px) {
+    .form-view,
+    .detail-view {
+        padding: var(--space-4);
+    }
 }
 
 .form-header,
@@ -938,9 +1005,9 @@ body {
 
 .btn-back {
     padding: var(--space-2) var(--space-4);
-    background: var(--gray-100);
+    background: white;
     color: var(--gray-700);
-    border: none;
+    border: 2px solid var(--gray-200);
     border-radius: var(--radius-lg);
     cursor: pointer;
     transition: all 0.2s ease;
@@ -948,8 +1015,8 @@ body {
 }
 
 .btn-back:hover {
-    background: var(--gray-200);
-    transform: translateX(-2px);
+    background: var(--gray-50);
+    border-color: var(--gray-300);
 }
 
 .form-header h2,
@@ -1076,12 +1143,12 @@ body {
 
 .btn-write-review {
     padding: var(--space-3) var(--space-6);
-    background: linear-gradient(135deg, var(--secondary-500), var(--secondary-600));
+    background: var(--secondary-500);
     color: white;
     border: none;
-    border-radius: var(--radius-xl);
+    border-radius: var(--radius-lg);
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
     font-weight: 600;
     display: flex;
     align-items: center;
@@ -1090,17 +1157,24 @@ body {
 }
 
 .btn-write-review:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
+    background: var(--secondary-600);
+    transform: scale(1.02);
 }
 
 /* 리뷰 섹션 */
 .reviews-section {
-    background: var(--gray-100);
+    background: var(--gray-50);
     border-radius: var(--radius-xl);
-    padding: var(--space-8);
+    padding: var(--space-6);
     border: 1px solid var(--gray-200);
     margin: var(--space-4);
+}
+
+@media (max-width: 768px) {
+    .reviews-section {
+        padding: var(--space-4);
+        margin: var(--space-2);
+    }
 }
 
 .reviews-header {
@@ -1118,10 +1192,16 @@ body {
 
 .review-form {
     background: white;
-    padding: var(--space-6);
-    border-radius: var(--radius-xl);
-    margin-bottom: var(--space-6);
-    box-shadow: var(--shadow-sm);
+    padding: var(--space-5);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--space-5);
+    border: 1px solid var(--gray-200);
+}
+
+@media (max-width: 480px) {
+    .review-form {
+        padding: var(--space-4);
+    }
 }
 
 .review-form h4 {
@@ -1166,10 +1246,10 @@ body {
 
 .review-textarea {
     width: 100%;
-    padding: var(--space-4);
+    padding: var(--space-3);
     border: 2px solid var(--gray-200);
     border-radius: var(--radius-lg);
-    font-size: 1rem;
+    font-size: 0.9375rem;
     font-family: inherit;
     resize: vertical;
     transition: border-color 0.2s ease;
@@ -1179,7 +1259,7 @@ body {
 .review-textarea:focus {
     outline: none;
     border-color: var(--primary-500);
-    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+    background: var(--primary-50);
 }
 
 .review-form-actions {
@@ -1229,9 +1309,15 @@ body {
 
 .review-item {
     background: white;
-    padding: var(--space-5);
-    border-radius: var(--radius-xl);
-    box-shadow: var(--shadow-sm);
+    padding: var(--space-4);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--gray-200);
+}
+
+@media (max-width: 480px) {
+    .review-item {
+        padding: var(--space-3);
+    }
 }
 
 .review-header {
@@ -1295,30 +1381,30 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(0, 0, 0, 0.5);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 1000;
     padding: var(--space-4);
-    backdrop-filter: blur(4px);
+    backdrop-filter: blur(2px);
 }
 
 .modal-content {
     background: white;
-    border-radius: var(--radius-2xl);
-    box-shadow: var(--shadow-2xl);
+    border-radius: var(--radius-xl);
     max-width: 500px;
     width: 100%;
     max-height: 90vh;
     overflow-y: auto;
-    animation: modalSlideIn 0.3s ease-out;
+    animation: modalSlideIn 0.2s ease-out;
+    border: 1px solid var(--gray-200);
 }
 
 @keyframes modalSlideIn {
     from {
         opacity: 0;
-        transform: translateY(-20px) scale(0.95);
+        transform: translateY(-10px) scale(0.98);
     }
 
     to {
@@ -1331,23 +1417,30 @@ body {
     max-width: 800px;
 }
 
+@media (max-width: 480px) {
+    .modal-content {
+        max-width: 100%;
+        border-radius: var(--radius-lg);
+    }
+}
+
 .modal-header {
     padding: var(--space-6) var(--space-6) var(--space-4);
     border-bottom: 1px solid var(--gray-200);
 }
 
 .modal-header.success {
-    background: linear-gradient(135deg, var(--success-50), var(--success-100));
+    background: var(--success-50);
     color: var(--success-700);
 }
 
 .modal-header.error {
-    background: linear-gradient(135deg, var(--error-50), var(--error-100));
+    background: var(--error-50);
     color: var(--error-700);
 }
 
 .modal-header.confirm {
-    background: linear-gradient(135deg, var(--warning-50), var(--warning-100));
+    background: var(--warning-50);
     color: var(--warning-700);
 }
 
@@ -1391,7 +1484,6 @@ body {
 
 .modal-btn.confirm:hover {
     background: var(--primary-700);
-    transform: translateY(-1px);
 }
 
 .modal-btn.cancel {
@@ -1410,10 +1502,9 @@ body {
 
 .restaurant-card.skeleton {
     background: white;
-    border-radius: var(--radius-2xl);
-    box-shadow: var(--shadow-md);
+    border-radius: var(--radius-xl);
     overflow: hidden;
-    border: 1px solid var(--gray-100);
+    border: 2px solid var(--gray-200);
 }
 
 .skeleton-image {
@@ -1450,8 +1541,22 @@ body {
 
 .restaurant-list {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: var(--space-6);
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--space-4);
+}
+
+@media (max-width: 768px) {
+    .restaurant-list {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: var(--space-3);
+    }
+}
+
+@media (max-width: 480px) {
+    .restaurant-list {
+        grid-template-columns: 1fr;
+        gap: var(--space-3);
+    }
 }
 
 @keyframes skeleton-loading {
