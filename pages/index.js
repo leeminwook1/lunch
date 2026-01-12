@@ -67,6 +67,7 @@ export default function Home() {
     // 페이지네이션
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 6;
+    const [showAllRestaurants, setShowAllRestaurants] = useState(false);
 
     // 리뷰 관련 상태
     const [reviews, setReviews] = useState([]);
@@ -355,7 +356,9 @@ export default function Home() {
     // 페이지네이션 계산
     const totalPages = Math.ceil(filteredAndSortedRestaurants.length / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
-    const paginatedRestaurants = filteredAndSortedRestaurants.slice(startIndex, startIndex + itemsPerPage);
+    const paginatedRestaurants = showAllRestaurants 
+        ? filteredAndSortedRestaurants 
+        : filteredAndSortedRestaurants.slice(startIndex, startIndex + itemsPerPage);
 
     // 로딩 중이면 스켈레톤 표시
     if (isInitializing) {
@@ -484,6 +487,14 @@ export default function Home() {
                                     >
                                         <span className="action-icon">➕</span>
                                         <span className="action-text">가게 추가</span>
+                                    </button>
+
+                                    <button
+                                        onClick={() => router.push('/all-restaurants')}
+                                        className="action-btn view-all-btn"
+                                    >
+                                        <span className="action-icon">📋</span>
+                                        <span className="action-text">전체 가게 목록</span>
                                     </button>
 
                                     <button
@@ -629,8 +640,21 @@ export default function Home() {
                             {/* 가게 목록 */}
                             <section className="restaurants-section">
                                 <div className="section-header">
-                                    <h3>🏪 가게 목록</h3>
-                                    <span className="count-badge">{filteredAndSortedRestaurants.length}개</span>
+                                    <div className="section-header-left">
+                                        <h3>🏪 가게 목록</h3>
+                                        <span className="count-badge">{filteredAndSortedRestaurants.length}개</span>
+                                    </div>
+                                    <button
+                                        onClick={() => {
+                                            setShowAllRestaurants(!showAllRestaurants);
+                                            if (!showAllRestaurants) {
+                                                setCurrentPage(1);
+                                            }
+                                        }}
+                                        className="btn-toggle-view"
+                                    >
+                                        {showAllRestaurants ? '📋 페이지별 보기' : '📜 전체 보기'}
+                                    </button>
                                 </div>
 
                                 {restaurantsLoading ? (
@@ -655,7 +679,7 @@ export default function Home() {
                                         </div>
 
                                         {/* 페이지네이션 */}
-                                        {totalPages > 1 && (
+                                        {!showAllRestaurants && totalPages > 1 && (
                                             <div className="pagination">
                                                 <button
                                                     onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}

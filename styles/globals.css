@@ -8618,6 +8618,99 @@ textarea:focus-visible {
     color: white;
 }
 
+/* 액션 버튼 - 전체 가게 보기 버튼 스타일 */
+.action-btn.view-all-btn {
+    background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+    color: white;
+}
+
+.action-btn.view-all-btn:hover {
+    background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
+    color: white;
+}
+
+.action-btn.view-all-btn .action-text {
+    color: white;
+}
+
+/* 전체 가게 보기 정보 메시지 */
+.all-restaurants-info {
+    text-align: center;
+    padding: var(--space-4);
+    background: var(--primary-50);
+    border-radius: var(--radius-lg);
+    margin-top: var(--space-4);
+    border: 1px solid var(--primary-200);
+}
+
+.all-restaurants-info p {
+    color: var(--primary-700);
+    font-weight: 500;
+    margin: 0;
+}
+
+/* 가게 목록 섹션 헤더 개선 */
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-6);
+    flex-wrap: wrap;
+    gap: var(--space-3);
+}
+
+.section-header-left {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.section-header-left h3 {
+    color: var(--gray-800);
+    font-size: 1.25rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin: 0;
+}
+
+/* 전체 보기 토글 버튼 */
+.btn-toggle-view {
+    padding: var(--space-2) var(--space-4);
+    background: white;
+    color: var(--gray-700);
+    border: 2px solid var(--primary-300);
+    border-radius: var(--radius-lg);
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.btn-toggle-view:hover {
+    background: var(--primary-50);
+    border-color: var(--primary-400);
+    color: var(--primary-700);
+}
+
+@media (max-width: 768px) {
+    .btn-toggle-view {
+        padding: var(--space-2) var(--space-3);
+        font-size: 0.8125rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .btn-toggle-view {
+        padding: var(--space-1) var(--space-2);
+        font-size: 0.75rem;
+    }
+}
+
 /* 반응형 디자인 */
 @media (max-width: 1400px) {
     .vote-form-container {
@@ -9612,5 +9705,331 @@ textarea:focus-visible {
     .winner-badge {
         font-size: 0.8rem;
         padding: var(--space-1) var(--space-2);
+    }
+}
+
+
+/* ========================================
+   전체 가게 목록 페이지 스타일
+   ======================================== */
+
+.all-restaurants-page {
+    min-height: 100vh;
+    background: var(--gray-50);
+    padding: var(--space-6);
+}
+
+.all-restaurants-container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* 헤더 */
+.all-restaurants-header {
+    background: white;
+    border-radius: var(--radius-2xl);
+    padding: var(--space-6);
+    margin-bottom: var(--space-6);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    border: 1px solid var(--gray-200);
+    flex-wrap: wrap;
+}
+
+.btn-back-home {
+    padding: var(--space-2) var(--space-4);
+    background: white;
+    color: var(--gray-700);
+    border: 2px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 500;
+    font-size: 0.875rem;
+}
+
+.btn-back-home:hover {
+    background: var(--gray-50);
+    border-color: var(--gray-300);
+}
+
+.all-restaurants-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin: 0;
+    flex: 1;
+}
+
+.header-stats {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.total-count {
+    background: var(--primary-100);
+    color: var(--primary-700);
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-xl);
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+/* 검색 및 정렬 */
+.all-restaurants-controls {
+    background: white;
+    border-radius: var(--radius-2xl);
+    padding: var(--space-5);
+    margin-bottom: var(--space-5);
+    display: flex;
+    gap: var(--space-3);
+    border: 1px solid var(--gray-200);
+}
+
+.search-box-large {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-icon {
+    position: absolute;
+    left: var(--space-4);
+    font-size: 1.25rem;
+    pointer-events: none;
+}
+
+.search-input-large {
+    width: 100%;
+    padding: var(--space-3) var(--space-4) var(--space-3) var(--space-10);
+    border: 2px solid var(--gray-200);
+    border-radius: var(--radius-xl);
+    font-size: 1rem;
+    transition: all 0.2s ease;
+}
+
+.search-input-large:focus {
+    outline: none;
+    border-color: var(--primary-500);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.sort-select-large {
+    padding: var(--space-3) var(--space-4);
+    border: 2px solid var(--gray-200);
+    border-radius: var(--radius-xl);
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    background: white;
+    min-width: 150px;
+}
+
+.sort-select-large:focus {
+    outline: none;
+    border-color: var(--primary-500);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* 카테고리 탭 */
+.category-tabs {
+    background: white;
+    border-radius: var(--radius-2xl);
+    padding: var(--space-4);
+    margin-bottom: var(--space-5);
+    display: flex;
+    gap: var(--space-2);
+    overflow-x: auto;
+    border: 1px solid var(--gray-200);
+    scrollbar-width: thin;
+}
+
+.category-tabs::-webkit-scrollbar {
+    height: 6px;
+}
+
+.category-tabs::-webkit-scrollbar-track {
+    background: var(--gray-100);
+    border-radius: var(--radius-sm);
+}
+
+.category-tabs::-webkit-scrollbar-thumb {
+    background: var(--gray-300);
+    border-radius: var(--radius-sm);
+}
+
+.category-tabs::-webkit-scrollbar-thumb:hover {
+    background: var(--gray-400);
+}
+
+.category-tab {
+    padding: var(--space-3) var(--space-5);
+    background: var(--gray-100);
+    color: var(--gray-700);
+    border: none;
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 500;
+    white-space: nowrap;
+    font-size: 0.9375rem;
+}
+
+.category-tab:hover {
+    background: var(--gray-200);
+}
+
+.category-tab.active {
+    background: var(--primary-600);
+    color: white;
+}
+
+/* 가게 목록 콘텐츠 */
+.all-restaurants-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+}
+
+.category-section {
+    background: white;
+    border-radius: var(--radius-2xl);
+    padding: var(--space-6);
+    border: 1px solid var(--gray-200);
+}
+
+.category-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-5);
+    padding-bottom: var(--space-4);
+    border-bottom: 2px solid var(--gray-100);
+}
+
+.category-section-header h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--gray-800);
+    margin: 0;
+}
+
+.category-count {
+    background: var(--primary-100);
+    color: var(--primary-700);
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-xl);
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.restaurants-grid-large {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--space-4);
+}
+
+/* 빈 상태 */
+.empty-state-large {
+    text-align: center;
+    padding: var(--space-16);
+    color: var(--gray-600);
+    background: white;
+    border-radius: var(--radius-2xl);
+    border: 1px solid var(--gray-200);
+}
+
+.empty-state-large .empty-icon {
+    font-size: 4rem;
+    margin-bottom: var(--space-4);
+}
+
+.empty-state-large h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: var(--space-2);
+    color: var(--gray-700);
+}
+
+.empty-state-large p {
+    margin: 0;
+}
+
+/* 반응형 */
+@media (max-width: 1024px) {
+    .restaurants-grid-large {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .all-restaurants-page {
+        padding: var(--space-4);
+    }
+
+    .all-restaurants-header {
+        padding: var(--space-4);
+    }
+
+    .all-restaurants-title {
+        font-size: 1.5rem;
+    }
+
+    .all-restaurants-controls {
+        flex-direction: column;
+    }
+
+    .sort-select-large {
+        width: 100%;
+    }
+
+    .category-tabs {
+        padding: var(--space-3);
+    }
+
+    .category-tab {
+        padding: var(--space-2) var(--space-4);
+        font-size: 0.875rem;
+    }
+
+    .category-section {
+        padding: var(--space-4);
+    }
+
+    .restaurants-grid-large {
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: var(--space-3);
+    }
+}
+
+@media (max-width: 480px) {
+    .all-restaurants-page {
+        padding: var(--space-2);
+    }
+
+    .all-restaurants-header {
+        padding: var(--space-3);
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .all-restaurants-title {
+        font-size: 1.25rem;
+    }
+
+    .total-count {
+        padding: var(--space-1) var(--space-3);
+        font-size: 0.875rem;
+    }
+
+    .restaurants-grid-large {
+        grid-template-columns: 1fr;
+    }
+
+    .empty-state-large {
+        padding: var(--space-10);
     }
 }

@@ -33,21 +33,8 @@ export const useRestaurants = () => {
     const loadRestaurants = useCallback(async () => {
         try {
             setLoading(true);
-            const params = new URLSearchParams();
-            if (filterCategory && filterCategory !== 'all') {
-                params.append('category', filterCategory);
-            }
-            if (sortBy) {
-                params.append('sortBy', sortBy);
-            }
-            if (searchQuery && searchQuery.trim()) {
-                params.append('search', searchQuery.trim());
-            }
-            
-            const queryString = params.toString();
-            const url = queryString ? `/api/restaurants?${queryString}` : '/api/restaurants';
-            
-            const result = await apiCall(url);
+            // 항상 전체 데이터를 가져오고 클라이언트에서 필터링
+            const result = await apiCall('/api/restaurants');
             if (result.success) {
                 setRestaurants(result.data);
             }
@@ -56,7 +43,7 @@ export const useRestaurants = () => {
         } finally {
             setLoading(false);
         }
-    }, [filterCategory, sortBy, searchQuery, apiCall]);
+    }, [apiCall]);
 
     const filteredAndSortedRestaurants = useMemo(() => {
         let filtered = restaurants.filter(restaurant => {
