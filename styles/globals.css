@@ -1087,7 +1087,7 @@ body {
     display: flex;
     align-items: center;
     gap: var(--space-3);
-    padding: var(--space-4);
+    padding: var(--space-4) var(--space-5) var(--space-4) var(--space-4);
     background: var(--gray-100);
     border-radius: var(--radius-lg);
     border: 1px solid var(--gray-200);
@@ -1107,14 +1107,22 @@ body {
 }
 
 .info-link {
-    color: var(--primary-600);
+    color: white;
+    background: #4A90E2;
     text-decoration: none;
     font-weight: 500;
-    transition: color 0.2s ease;
+    transition: all 0.2s ease;
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-md);
+    display: inline-block;
+    margin-right: var(--space-3);
+    font-size: 0.9rem;
 }
 
 .info-link:hover {
-    color: var(--primary-700);
+    background: #357ABD;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .restaurant-stats-large {
