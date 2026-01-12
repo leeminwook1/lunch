@@ -57,6 +57,11 @@ export const useRestaurants = () => {
                 return a.name.localeCompare(b.name);
             } else if (sortBy === 'distance') {
                 return parseInt(a.distance) - parseInt(b.distance);
+            } else if (sortBy === 'newest') {
+                // 최신순 정렬 (createdAt 기준 내림차순)
+                const dateA = new Date(a.createdAt || 0);
+                const dateB = new Date(b.createdAt || 0);
+                return dateB - dateA;
             }
             return 0;
         });
