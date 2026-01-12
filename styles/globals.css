@@ -443,8 +443,8 @@ body {
     color: white;
 }
 
-.dart-btn {
-    background: #3b82f6;
+.ladder-btn {
+    background: #8b5cf6;
     color: white;
 }
 
@@ -4755,12 +4755,12 @@ body {
     box-shadow: var(--shadow-lg);
 }
 
-.dart-btn {
-    background: linear-gradient(135deg, #f59e0b, #d97706);
+.ladder-btn {
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
     color: white;
 }
 
-.dart-btn:hover {
+.ladder-btn:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow-lg);
 }
@@ -10040,4 +10040,862 @@ textarea:focus-visible {
     .empty-state-large {
         padding: var(--space-10);
     }
+}
+
+
+/* ===== 사다리 타기 게임 스타일 ===== */
+.ladder-setup-section {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: var(--space-6);
+}
+
+.setup-content {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.setup-content h2 {
+    margin-bottom: var(--space-6);
+    text-align: center;
+    color: var(--gray-800);
+}
+
+.setup-group {
+    margin-bottom: var(--space-6);
+}
+
+.setup-group label {
+    display: block;
+    margin-bottom: var(--space-3);
+    font-weight: 600;
+    color: var(--gray-700);
+}
+
+.player-count-buttons {
+    display: flex;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+}
+
+.btn-count {
+    flex: 1;
+    min-width: 80px;
+    padding: var(--space-3);
+    border: 2px solid var(--gray-300);
+    background: white;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+}
+
+.btn-count:hover {
+    border-color: var(--primary-500);
+}
+
+.btn-count.active {
+    background: var(--primary-600);
+    color: white;
+    border-color: var(--primary-600);
+}
+
+.player-names {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.input-player-name {
+    padding: var(--space-3);
+    border: 2px solid var(--gray-300);
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+    transition: border-color 0.2s;
+}
+
+.input-player-name:focus {
+    outline: none;
+    border-color: var(--primary-500);
+}
+
+.btn-generate {
+    width: 100%;
+    padding: var(--space-4);
+    background: var(--primary-600);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-generate:hover:not(:disabled) {
+    background: var(--primary-700);
+    transform: translateY(-2px);
+}
+
+.btn-generate:disabled {
+    background: var(--gray-400);
+    cursor: not-allowed;
+}
+
+.restaurant-select-section {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: var(--space-6);
+}
+
+.select-content {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.select-content h2 {
+    margin-bottom: var(--space-3);
+    text-align: center;
+    color: var(--gray-800);
+}
+
+.select-instruction {
+    text-align: center;
+    color: var(--gray-600);
+    margin-bottom: var(--space-6);
+    font-size: 1.1rem;
+}
+
+.restaurant-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: var(--space-4);
+    margin-bottom: var(--space-6);
+    max-height: 500px;
+    overflow-y: auto;
+    padding: var(--space-2);
+}
+
+.restaurant-card {
+    position: relative;
+    padding: var(--space-4);
+    border: 2px solid var(--gray-300);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.2s;
+    background: white;
+}
+
+.restaurant-card:hover {
+    border-color: var(--primary-500);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.restaurant-card.selected {
+    border-color: var(--primary-600);
+    background: var(--primary-50);
+}
+
+.check-mark {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 24px;
+    height: 24px;
+    background: var(--primary-600);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.restaurant-card h3 {
+    margin-bottom: var(--space-2);
+    color: var(--gray-800);
+    font-size: 1rem;
+}
+
+.restaurant-category {
+    color: var(--gray-600);
+    font-size: 0.9rem;
+}
+
+.select-actions {
+    display: flex;
+    gap: var(--space-3);
+    justify-content: center;
+}
+
+.btn-back-setup {
+    padding: var(--space-3) var(--space-5);
+    border: 2px solid var(--gray-300);
+    background: white;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-back-setup:hover {
+    border-color: var(--gray-400);
+    background: var(--gray-50);
+}
+
+.btn-confirm {
+    padding: var(--space-3) var(--space-5);
+    background: var(--primary-600);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-confirm:hover:not(:disabled) {
+    background: var(--primary-700);
+    transform: translateY(-2px);
+}
+
+.btn-confirm:disabled {
+    background: var(--gray-400);
+    cursor: not-allowed;
+}
+
+.ladder-game-section {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: var(--space-4);
+}
+
+.game-container {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.canvas-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-bottom: var(--space-6);
+}
+
+.ladder-canvas {
+    border: 2px solid var(--gray-200);
+    border-radius: var(--radius-md);
+    background: white;
+}
+
+.player-select {
+    text-align: center;
+    margin-bottom: var(--space-6);
+}
+
+.player-select h3 {
+    margin-bottom: var(--space-4);
+    color: var(--gray-800);
+}
+
+.player-buttons {
+    display: flex;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.btn-player {
+    padding: var(--space-3) var(--space-5);
+    background: var(--primary-600);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-player:hover:not(:disabled) {
+    background: var(--primary-700);
+    transform: translateY(-2px);
+}
+
+.btn-player:disabled {
+    background: var(--gray-400);
+    cursor: not-allowed;
+}
+
+.game-controls {
+    display: flex;
+    gap: var(--space-3);
+    justify-content: center;
+}
+
+.btn-reset, .btn-new-game {
+    padding: var(--space-3) var(--space-5);
+    border: 2px solid var(--gray-300);
+    background: white;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-reset:hover, .btn-new-game:hover {
+    border-color: var(--primary-500);
+    background: var(--gray-50);
+}
+
+@media (max-width: 768px) {
+    .ladder-canvas {
+        width: 100%;
+        height: auto;
+    }
+
+    .player-buttons {
+        flex-direction: column;
+    }
+
+    .btn-player {
+        width: 100%;
+    }
+}
+
+
+/* ===== 사다리 타기 - 현대적 가게 선택 디자인 ===== */
+.restaurant-select-section {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: var(--space-4) var(--space-6) !important;
+}
+
+.select-content {
+    background: linear-gradient(to bottom, #ffffff, #f9fafb) !important;
+    border-radius: 0 !important;
+    padding: var(--space-6) var(--space-8) !important;
+    box-shadow: none !important;
+    max-width: 100% !important;
+}
+
+.select-header {
+    text-align: center;
+    margin-bottom: var(--space-6);
+}
+
+.select-content h2 {
+    font-size: 2.5rem !important;
+    margin-bottom: var(--space-3) !important;
+    color: var(--gray-900) !important;
+    font-weight: 700 !important;
+}
+
+.select-instruction {
+    color: var(--gray-600) !important;
+    font-size: 1.2rem !important;
+    margin-bottom: var(--space-4) !important;
+}
+
+.selection-counter {
+    display: inline-block;
+    margin-top: var(--space-2);
+}
+
+.counter-badge {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+    padding: var(--space-3) var(--space-5);
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 1.3rem;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.restaurant-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)) !important;
+    gap: var(--space-6) !important;
+    margin-bottom: var(--space-8) !important;
+    max-height: calc(100vh - 400px) !important;
+    overflow-y: auto !important;
+    padding: var(--space-4) !important;
+}
+
+.restaurant-grid::-webkit-scrollbar {
+    width: 10px;
+}
+
+.restaurant-grid::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.restaurant-grid::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    border-radius: 10px;
+}
+
+.restaurant-grid::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+}
+
+.restaurant-card-modern {
+    position: relative;
+    background: white;
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border: 3px solid transparent;
+}
+
+.restaurant-card-modern:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.2);
+    border-color: var(--primary-400);
+}
+
+.restaurant-card-modern.selected {
+    border-color: var(--primary-600);
+    box-shadow: 0 12px 28px rgba(59, 130, 246, 0.4);
+}
+
+.selection-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(59, 130, 246, 0.2);
+    backdrop-filter: blur(3px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+}
+
+.check-icon {
+    width: 80px;
+    height: 80px;
+    background: var(--primary-600);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    font-weight: bold;
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
+    animation: checkPop 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes checkPop {
+    0% {
+        transform: scale(0);
+    }
+    50% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.card-image {
+    width: 100%;
+    height: 240px;
+    overflow: hidden;
+    background: var(--gray-100);
+}
+
+.card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+
+.restaurant-card-modern:hover .card-image img {
+    transform: scale(1.1);
+}
+
+.placeholder-image {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
+
+.placeholder-icon {
+    font-size: 5rem;
+    opacity: 0.9;
+}
+
+.card-content {
+    padding: var(--space-5);
+}
+
+.card-content h3 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin-bottom: var(--space-3);
+    line-height: 1.3;
+}
+
+.card-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-3);
+    flex-wrap: wrap;
+}
+
+.category-badge {
+    background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+    color: var(--gray-700);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.distance-info {
+    color: var(--gray-600);
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 600;
+}
+
+.rating-info {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.stars {
+    color: #f59e0b;
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.select-actions {
+    display: flex !important;
+    gap: var(--space-5) !important;
+    justify-content: center !important;
+    padding-top: var(--space-6) !important;
+}
+
+.btn-back-setup {
+    padding: var(--space-4) var(--space-8) !important;
+    border: 3px solid var(--gray-300) !important;
+    background: white !important;
+    border-radius: var(--radius-xl) !important;
+    font-weight: 700 !important;
+    font-size: 1.1rem !important;
+    cursor: pointer !important;
+    transition: all 0.3s !important;
+}
+
+.btn-back-setup:hover {
+    border-color: var(--gray-500) !important;
+    background: var(--gray-50) !important;
+    transform: translateY(-3px) !important;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1) !important;
+}
+
+.btn-confirm {
+    padding: var(--space-4) var(--space-10) !important;
+    background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: var(--radius-xl) !important;
+    font-weight: 700 !important;
+    font-size: 1.2rem !important;
+    cursor: pointer !important;
+    transition: all 0.3s !important;
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4) !important;
+}
+
+.btn-confirm:hover:not(:disabled) {
+    transform: translateY(-3px) !important;
+    box-shadow: 0 10px 30px rgba(59, 130, 246, 0.5) !important;
+}
+
+.btn-confirm:disabled {
+    background: var(--gray-400) !important;
+    cursor: not-allowed !important;
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+
+/* ===== 사다리 타기 모달 스타일 ===== */
+.ladder-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.ladder-modal-content {
+    background: white;
+    border-radius: var(--radius-xl);
+    padding: 0;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    overflow: hidden;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.ladder-modal-header {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    padding: var(--space-6);
+    text-align: center;
+}
+
+.ladder-modal-header h3 {
+    color: white;
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.ladder-modal-body {
+    padding: var(--space-8);
+    text-align: center;
+}
+
+.ladder-modal-body p {
+    color: var(--gray-700);
+    font-size: 1.2rem;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.ladder-modal-actions {
+    padding: var(--space-4) var(--space-6) var(--space-6);
+    display: flex;
+    justify-content: center;
+}
+
+.ladder-btn-modal-confirm {
+    padding: var(--space-3) var(--space-8);
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+    border: none;
+    border-radius: var(--radius-lg);
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.ladder-btn-modal-confirm:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+}
+
+.ladder-btn-modal-confirm:active {
+    transform: translateY(0);
+}
+
+
+/* ===== 사다리 타기 플레이어 선택 및 결과 ===== */
+.player-select-hint {
+    text-align: center;
+    color: var(--gray-600);
+    font-size: 1rem;
+    margin-bottom: var(--space-4);
+    font-weight: 600;
+}
+
+.btn-player.played {
+    background: var(--gray-400) !important;
+    cursor: not-allowed !important;
+    opacity: 0.6;
+}
+
+.btn-show-results {
+    margin-top: var(--space-6);
+    padding: var(--space-4) var(--space-8);
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    border: none;
+    border-radius: var(--radius-xl);
+    font-size: 1.2rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.btn-show-results:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+}
+
+.results-section {
+    text-align: center;
+    padding: var(--space-6);
+    background: white;
+    border-radius: var(--radius-xl);
+    margin-top: var(--space-6);
+}
+
+.results-section h3 {
+    font-size: 2rem;
+    color: var(--gray-900);
+    margin-bottom: var(--space-6);
+}
+
+.results-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.result-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-4) var(--space-5);
+    background: linear-gradient(135deg, #f9fafb, #ffffff);
+    border-radius: var(--radius-lg);
+    border: 2px solid var(--gray-200);
+    transition: all 0.3s;
+}
+
+.result-item:hover {
+    border-color: var(--primary-400);
+    transform: translateX(4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.result-player {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--gray-800);
+    flex: 1;
+    text-align: left;
+}
+
+.result-arrow {
+    font-size: 1.5rem;
+    color: var(--primary-600);
+    margin: 0 var(--space-4);
+}
+
+.result-restaurant {
+    flex: 2;
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: var(--space-1);
+}
+
+.restaurant-name {
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: var(--gray-900);
+}
+
+.restaurant-cat {
+    font-size: 0.9rem;
+    color: var(--gray-600);
+    background: var(--gray-100);
+    padding: 2px 10px;
+    border-radius: 12px;
+}
+
+.not-played {
+    color: var(--gray-400);
+    font-style: italic;
+}
+
+@media (max-width: 768px) {
+    .result-item {
+        flex-direction: column;
+        text-align: center;
+        gap: var(--space-2);
+    }
+    
+    .result-player,
+    .result-restaurant {
+        text-align: center;
+        align-items: center;
+    }
+    
+    .result-arrow {
+        transform: rotate(90deg);
+        margin: var(--space-2) 0;
+    }
+}
+
+
+/* ===== 사다리 타기 헤더 스타일 ===== */
+.page-container .page-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: var(--space-4) var(--space-6);
+}
+
+.page-container .page-header .btn-back {
+    position: absolute;
+    left: var(--space-6);
+}
+
+.page-container .page-header h1 {
+    margin: 0;
+    text-align: center;
 }

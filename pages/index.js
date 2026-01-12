@@ -554,11 +554,11 @@ export default function Home() {
                                     </button>
 
                                     <button
-                                        onClick={() => router.push('/dart')}
-                                        className="action-btn dart-btn"
+                                        onClick={() => router.push('/ladder')}
+                                        className="action-btn ladder-btn"
                                     >
-                                        <span className="action-icon">🎯</span>
-                                        <span className="action-text">다트 게임</span>
+                                        <span className="action-icon">🪜</span>
+                                        <span className="action-text">사다리 타기</span>
                                     </button>
 
                                     <button
